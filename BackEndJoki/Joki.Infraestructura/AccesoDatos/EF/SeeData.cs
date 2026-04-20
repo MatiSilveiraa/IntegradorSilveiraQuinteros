@@ -15,11 +15,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
         public void Run()
         {
-            if (!_context.Usuarios.Any()) Usuarios();
-            if (!_context.Grupos.Any()) Grupos();
-            if (!_context.Inscripciones.Any()) Inscripciones();
-            if (!_context.Cuotas.Any()) Cuotas();
-            if (!_context.Desafios.Any()) Desafios();
+            Usuarios();
+            Grupos();
+            Inscripciones();
+            Cuotas();
+            Desafios();
         }
 
         // =========================
