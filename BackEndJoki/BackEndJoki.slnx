@@ -1,3 +1,8 @@
 <Solution>
-  <Project Path="Joki-Dominio/Joki-Dominio.csproj" />
+  <Project Path="BackEndJoki/Joki.WebApi.csproj" />
+  <Project Path="Joki.CasoUsoCompartida/Joki.CasoUsoCompartida.csproj" Id="08678035-d65c-4175-838d-7255d1393753" />
+  <Project Path="Joki.Dominio/Joki.LogicaNegocio.csproj" />
+  <Project Path="Joki.Infraestructura/Joki.Infraestructura.csproj" />
+  <Project Path="Joki.LogicaAplicacion/Joki.LogicaAplicacion.csproj" />
+  <Project Path="Joki.Pruebas/Joki.Pruebas.csproj" Id="3e55916d-afde-4718-9e59-ebe5a8b92159" />
 </Solution>
