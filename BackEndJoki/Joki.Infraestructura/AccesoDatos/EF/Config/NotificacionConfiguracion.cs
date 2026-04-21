@@ -31,12 +31,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
             builder.HasOne(n => n.Usuario)
                 .WithMany(u => u.Notificaciones)
                 .HasForeignKey(n => n.UsuarioId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasIndex(n => n.UsuarioId);
-
             builder.HasIndex(n => n.Leida);
-
             builder.HasIndex(n => n.FechaCreacion);
         }
     }

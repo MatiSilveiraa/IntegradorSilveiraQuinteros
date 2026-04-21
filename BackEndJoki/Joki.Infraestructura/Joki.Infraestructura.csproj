@@ -15,7 +15,6 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="ServiciosExternos\" />
-    <Folder Include="Seguridad\" />
     <Folder Include="Postman\" />
   </ItemGroup>
 

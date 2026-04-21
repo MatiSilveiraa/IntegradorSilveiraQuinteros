@@ -1,9 +1,12 @@
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.Infraestructura.AccesoDatos.EF;
+using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
+using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-//using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,9 +36,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
-
-builder.Services.AddAuthorization();
+    builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
+    builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
+    builder.Services.AddScoped<ILoginUsuario, LoginUsuario>();
+    builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
