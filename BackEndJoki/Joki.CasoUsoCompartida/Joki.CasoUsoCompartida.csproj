@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="InterfacesCasosUso\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Joki.Dominio\Joki.LogicaNegocio.csproj" />
   </ItemGroup>
 

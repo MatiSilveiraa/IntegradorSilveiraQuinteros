@@ -9,7 +9,7 @@ namespace Joki.LogicaNegocio.Entidades
         public Nombre Nombre { get; set; }
         public Apellido Apellido { get; set; }
         public Email Email { get; set; }
-        public string? PasswordHash { get; set; }
+        public Contrasena Contrasena { get; set; }
         public string? GoogleId { get; set; }
         public string ProveedorAutenticacion { get; set; }
         public DateTime? UltimoAcceso { get; set; }
@@ -26,6 +26,7 @@ namespace Joki.LogicaNegocio.Entidades
             Nombre = new Nombre();
             Apellido = new Apellido();
             Email = new Email();
+            Contrasena = new Contrasena();
             ProveedorAutenticacion = string.Empty;
             ProveedorAutenticacion = "";
             Estado = EstadoUsuario.ACTIVO;

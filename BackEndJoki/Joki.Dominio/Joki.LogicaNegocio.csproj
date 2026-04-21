@@ -6,10 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Excepciones\" />
-    <Folder Include="InterfacesDominio\" />
-    <Folder Include="InterfacesRepositorio\" />
-  </ItemGroup>
-
 </Project>
