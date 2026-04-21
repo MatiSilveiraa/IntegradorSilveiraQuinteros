@@ -63,7 +63,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Usuarios.AddRange(entrenador, alumno1, alumno2);
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
 
         // =========================
@@ -101,7 +101,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Grupos.Add(grupo);
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
 
         // =========================
@@ -119,7 +119,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Inscripciones.Add(inscripcion);
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
 
         // =========================
@@ -141,7 +141,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Cuotas.Add(cuota);
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             var pago = new Pago
             {
@@ -152,7 +152,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Pagos.Add(pago);
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
 
         // =========================
@@ -169,7 +169,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             };
 
             _context.Desafios.Add(desafio);
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
     }
 }
