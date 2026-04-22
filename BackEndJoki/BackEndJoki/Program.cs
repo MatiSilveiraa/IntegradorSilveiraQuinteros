@@ -1,6 +1,8 @@
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
+using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
@@ -38,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
     builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
+    builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
+    builder.Services.AddScoped<IRegistrarAlumno, RegistrarAlumno>();
     builder.Services.AddScoped<ILoginUsuario, LoginUsuario>();
     builder.Services.AddAuthorization();
 
