@@ -12,6 +12,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
 
             builder.HasKey(u => u.UsuarioId);
 
+            builder.HasOne(u => u.Rol)
+                .WithMany(r => r.Usuarios)
+                .HasForeignKey(u => u.RolId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.OwnsOne(u => u.Nombre, nombre =>
             {
                 nombre.Property(n => n.Valor)

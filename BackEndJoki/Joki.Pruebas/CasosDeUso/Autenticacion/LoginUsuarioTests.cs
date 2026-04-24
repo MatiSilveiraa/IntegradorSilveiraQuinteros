@@ -66,7 +66,6 @@ namespace Joki.Pruebas.CasosDeUso.Autenticacion
                 Email = new Email("carlos@joki.com"),
                 Contrasena = Contrasena.FromHash(hash),
                 Estado = EstadoUsuario.ACTIVO,
-                EsPrincipal = true
             };
 
             mockRepo.Setup(r => r.ObtenerPorEmail("carlos@joki.com")).Returns(entrenador);

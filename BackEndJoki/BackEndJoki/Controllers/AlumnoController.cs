@@ -2,12 +2,14 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
 using Joki.LogicaNegocio.Excepciones;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Joki.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Alumno,Admin")]
     public class AlumnoController : ControllerBase
     {
         private readonly IRegistrarAlumno _registrarAlumno;

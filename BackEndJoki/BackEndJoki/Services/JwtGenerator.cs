@@ -33,9 +33,13 @@ namespace Joki.WebApi.Services
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(1),
+
+                Issuer = _configuration["JwtSettings:Issuer"],      // 🔥
+                Audience = _configuration["JwtSettings:Audience"],  // 🔥
+
                 SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
             };
 
             var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
