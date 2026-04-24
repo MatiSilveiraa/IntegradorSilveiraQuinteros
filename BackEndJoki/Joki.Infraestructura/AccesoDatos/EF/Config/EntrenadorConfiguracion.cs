@@ -8,15 +8,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
     {
         public void Configure(EntityTypeBuilder<Entrenador> builder)
         {
-            builder.Property(e => e.EsPrincipal)
-                .IsRequired();
 
             builder.HasMany(e => e.Grupos)
                 .WithOne(g => g.Entrenador)
                 .HasForeignKey(g => g.EntrenadorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(e => e.EsPrincipal);
         }
     }
 }

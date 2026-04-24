@@ -1,5 +1,6 @@
 ﻿using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
@@ -20,6 +21,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         public Usuario? ObtenerPorEmail(string email)
         {
             return _contexto.Set<Usuario>()
+                .Include(u => u.Rol)
                 .FirstOrDefault(u => u.Email.Valor == email);
         }
     }

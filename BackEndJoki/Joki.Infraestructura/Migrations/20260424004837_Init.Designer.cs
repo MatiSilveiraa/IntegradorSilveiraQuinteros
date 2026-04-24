@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    [Migration("20260419110602_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260424004837_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -474,6 +474,27 @@ namespace Joki.Infraestructura.Migrations
                     b.ToTable("Recompensa", (string)null);
                 });
 
+            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Rol", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Rol", (string)null);
+                });
+
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.SolicitudCupo", b =>
                 {
                     b.Property<int>("Id")
@@ -511,7 +532,7 @@ namespace Joki.Infraestructura.Migrations
                     b.ToTable("SolicitudCupo", (string)null);
                 });
 
-            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Usuario", b =>
+            modelBuilder.Entity("Usuario", b =>
                 {
                     b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
@@ -538,13 +559,12 @@ namespace Joki.Infraestructura.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PasswordHash")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<string>("ProveedorAutenticacion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RolId")
+                        .HasColumnType("int");
 
                     b.Property<string>("SociedadMedica")
                         .HasMaxLength(100)
@@ -560,6 +580,8 @@ namespace Joki.Infraestructura.Migrations
 
                     b.HasKey("UsuarioId");
 
+                    b.HasIndex("RolId");
+
                     b.ToTable("Usuario", (string)null);
 
                     b.HasDiscriminator<string>("TipoUsuario").HasValue("Usuario");
@@ -569,7 +591,7 @@ namespace Joki.Infraestructura.Migrations
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Alumno", b =>
                 {
-                    b.HasBaseType("Joki.LogicaNegocio.Entidades.Usuario");
+                    b.HasBaseType("Usuario");
 
                     b.Property<decimal?>("Estatura")
                         .HasColumnType("decimal(5,2)");
@@ -585,12 +607,7 @@ namespace Joki.Infraestructura.Migrations
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Entrenador", b =>
                 {
-                    b.HasBaseType("Joki.LogicaNegocio.Entidades.Usuario");
-
-                    b.Property<bool>("EsPrincipal")
-                        .HasColumnType("bit");
-
-                    b.HasIndex("EsPrincipal");
+                    b.HasBaseType("Usuario");
 
                     b.HasDiscriminator().HasValue("Entrenador");
                 });
@@ -616,7 +633,7 @@ namespace Joki.Infraestructura.Migrations
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Auditoria", b =>
                 {
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Usuario", "Usuario")
+                    b.HasOne("Usuario", "Usuario")
                         .WithMany("Auditorias")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -738,10 +755,10 @@ namespace Joki.Infraestructura.Migrations
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Notificacion", b =>
                 {
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Usuario", "Usuario")
+                    b.HasOne("Usuario", "Usuario")
                         .WithMany("Notificaciones")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Usuario");
@@ -807,8 +824,14 @@ namespace Joki.Infraestructura.Migrations
                     b.Navigation("Grupo");
                 });
 
-            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Usuario", b =>
+            modelBuilder.Entity("Usuario", b =>
                 {
+                    b.HasOne("Joki.LogicaNegocio.Entidades.Rol", "Rol")
+                        .WithMany("Usuarios")
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Apellido", "Apellido", b1 =>
                         {
                             b1.Property<int>("UsuarioId")
@@ -819,6 +842,25 @@ namespace Joki.Infraestructura.Migrations
                                 .HasMaxLength(100)
                                 .HasColumnType("nvarchar(100)")
                                 .HasColumnName("Apellido");
+
+                            b1.HasKey("UsuarioId");
+
+                            b1.ToTable("Usuario");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UsuarioId");
+                        });
+
+                    b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Contrasena", "Contrasena", b1 =>
+                        {
+                            b1.Property<int>("UsuarioId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Valor")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("nvarchar(255)")
+                                .HasColumnName("Contrasena");
 
                             b1.HasKey("UsuarioId");
 
@@ -871,11 +913,16 @@ namespace Joki.Infraestructura.Migrations
                     b.Navigation("Apellido")
                         .IsRequired();
 
+                    b.Navigation("Contrasena")
+                        .IsRequired();
+
                     b.Navigation("Email")
                         .IsRequired();
 
                     b.Navigation("Nombre")
                         .IsRequired();
+
+                    b.Navigation("Rol");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Clase", b =>
@@ -911,7 +958,12 @@ namespace Joki.Infraestructura.Migrations
                     b.Navigation("Beneficios");
                 });
 
-            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Usuario", b =>
+            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Rol", b =>
+                {
+                    b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("Usuario", b =>
                 {
                     b.Navigation("Auditorias");
 

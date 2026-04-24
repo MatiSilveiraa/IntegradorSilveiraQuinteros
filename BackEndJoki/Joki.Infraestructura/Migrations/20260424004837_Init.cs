@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Joki.Infraestructura.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,32 +29,16 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Usuario",
+                name: "Rol",
                 columns: table => new
                 {
-                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    GoogleId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    ProveedorAutenticacion = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UltimoAcceso = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Genero = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FechaNacimiento = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Celular = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    SociedadMedica = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
-                    Peso = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    Estatura = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    IMC = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    EsPrincipal = table.Column<bool>(type: "bit", nullable: true)
+                    Nombre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Usuario", x => x.UsuarioId);
+                    table.PrimaryKey("PK_Rol", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -79,6 +63,41 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Usuario",
+                columns: table => new
+                {
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Contrasena = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    RolId = table.Column<int>(type: "int", nullable: false),
+                    GoogleId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ProveedorAutenticacion = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UltimoAcceso = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Genero = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FechaNacimiento = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Celular = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    SociedadMedica = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
+                    Peso = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
+                    Estatura = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
+                    IMC = table.Column<decimal>(type: "decimal(5,2)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuario", x => x.UsuarioId);
+                    table.ForeignKey(
+                        name: "FK_Usuario_Rol_RolId",
+                        column: x => x.RolId,
+                        principalTable: "Rol",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Auditoria",
                 columns: table => new
                 {
@@ -98,6 +117,34 @@ namespace Joki.Infraestructura.Migrations
                         column: x => x.UsuarioId,
                         principalTable: "Usuario",
                         principalColumn: "UsuarioId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Beneficio",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AlumnoId = table.Column<int>(type: "int", nullable: false),
+                    RecompensaId = table.Column<int>(type: "int", nullable: true),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DescripcionBeneficio = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Beneficio", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Beneficio_Recompensa_RecompensaId",
+                        column: x => x.RecompensaId,
+                        principalTable: "Recompensa",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Beneficio_Usuario_AlumnoId",
+                        column: x => x.AlumnoId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -179,8 +226,7 @@ namespace Joki.Infraestructura.Migrations
                         name: "FK_Notificacion_Usuario_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuario",
-                        principalColumn: "UsuarioId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UsuarioId");
                 });
 
             migrationBuilder.CreateTable(
@@ -205,34 +251,6 @@ namespace Joki.Infraestructura.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ParticipacionDesafio_Usuario_AlumnoId",
-                        column: x => x.AlumnoId,
-                        principalTable: "Usuario",
-                        principalColumn: "UsuarioId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Beneficio",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AlumnoId = table.Column<int>(type: "int", nullable: false),
-                    RecompensaId = table.Column<int>(type: "int", nullable: true),
-                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DescripcionBeneficio = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Beneficio", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Beneficio_Recompensa_RecompensaId",
-                        column: x => x.RecompensaId,
-                        principalTable: "Recompensa",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Beneficio_Usuario_AlumnoId",
                         column: x => x.AlumnoId,
                         principalTable: "Usuario",
                         principalColumn: "UsuarioId",
@@ -504,6 +522,12 @@ namespace Joki.Infraestructura.Migrations
                 column: "DesafioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Rol_Nombre",
+                table: "Rol",
+                column: "Nombre",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SolicitudCupo_AlumnoId_GrupoId",
                 table: "SolicitudCupo",
                 columns: new[] { "AlumnoId", "GrupoId" },
@@ -527,9 +551,9 @@ namespace Joki.Infraestructura.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Usuario_EsPrincipal",
+                name: "IX_Usuario_RolId",
                 table: "Usuario",
-                column: "EsPrincipal");
+                column: "RolId");
         }
 
         /// <inheritdoc />
@@ -579,6 +603,9 @@ namespace Joki.Infraestructura.Migrations
 
             migrationBuilder.DropTable(
                 name: "Usuario");
+
+            migrationBuilder.DropTable(
+                name: "Rol");
         }
     }
 }
