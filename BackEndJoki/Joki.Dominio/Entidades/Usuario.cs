@@ -19,7 +19,8 @@ public abstract class Usuario
     public DateTime? UltimoAcceso { get; set; }
     public Genero Genero { get; set; }
     public DateTime? FechaNacimiento { get; set; }
-    public string? Celular { get; set; }
+    public Celular Celular { get; set; } 
+
     public string? SociedadMedica { get; set; }
     public EstadoUsuario Estado { get; set; }
 
@@ -32,6 +33,7 @@ public abstract class Usuario
         Apellido = new Apellido();
         Email = new Email();
         Contrasena = new Contrasena();
+        Celular = new Celular();
         ProveedorAutenticacion = string.Empty;
         Estado = EstadoUsuario.ACTIVO;
         Notificaciones = new List<Notificacion>();

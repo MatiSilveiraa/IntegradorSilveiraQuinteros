@@ -22,10 +22,11 @@ namespace Joki.LogicaAplicacion.Mappers
                 Email = new Email(request.Email),
                 Contrasena = Contrasena.FromHash(hash),
                 ProveedorAutenticacion = "LOCAL",
-                Estado = EstadoUsuario.ACTIVO,
+                Estado = EstadoUsuario.ACTIVO,        
+                RolId = 3,
                 Genero = (Genero)request.Genero,
                 FechaNacimiento = request.FechaNacimiento,
-                Celular = request.Celular,
+                Celular = Celular.Crear(request.Celular),
                 SociedadMedica = request.SociedadMedica,
                 Peso = request.Peso,
                 Estatura = request.Estatura
