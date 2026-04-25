@@ -537,10 +537,6 @@ namespace Joki.Infraestructura.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
 
-                    b.Property<string>("Celular")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -848,6 +844,25 @@ namespace Joki.Infraestructura.Migrations
                                 .HasForeignKey("UsuarioId");
                         });
 
+                    b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Celular", "Celular", b1 =>
+                        {
+                            b1.Property<int>("UsuarioId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Valor")
+                                .IsRequired()
+                                .HasMaxLength(9)
+                                .HasColumnType("nvarchar(9)")
+                                .HasColumnName("Celular");
+
+                            b1.HasKey("UsuarioId");
+
+                            b1.ToTable("Usuario");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UsuarioId");
+                        });
+
                     b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Contrasena", "Contrasena", b1 =>
                         {
                             b1.Property<int>("UsuarioId")
@@ -908,6 +923,9 @@ namespace Joki.Infraestructura.Migrations
                         });
 
                     b.Navigation("Apellido")
+                        .IsRequired();
+
+                    b.Navigation("Celular")
                         .IsRequired();
 
                     b.Navigation("Contrasena")

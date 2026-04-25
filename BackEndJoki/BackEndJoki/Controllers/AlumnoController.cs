@@ -1,6 +1,7 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
+using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Mvc; 
 
@@ -12,10 +13,12 @@ namespace Joki.WebApi.Controllers
     public class AlumnoController : ControllerBase
     {
         private readonly IRegistrarAlumno _registrarAlumno;
+        private readonly IObtenerAlumnos _obtenerAlumnos;
 
-        public AlumnoController(IRegistrarAlumno registrarAlumno)
+        public AlumnoController(IRegistrarAlumno registrarAlumno, IObtenerAlumnos obtenerAlumnos)
         {
             _registrarAlumno = registrarAlumno;
+            _obtenerAlumnos = obtenerAlumnos;
         }
 
         [HttpPost("registrar")]
@@ -43,6 +46,13 @@ namespace Joki.WebApi.Controllers
                 Error error = new Error(500, $"Error real: {mensajeReal}");
                 return StatusCode(500, error);
             }
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            var alumnos = _obtenerAlumnos.Ejecutar();
+            return Ok(alumnos);
         }
     }
 }

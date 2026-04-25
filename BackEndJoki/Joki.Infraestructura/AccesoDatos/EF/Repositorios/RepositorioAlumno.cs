@@ -23,5 +23,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _contexto.SaveChanges();
             return alumno.UsuarioId;
         }
+
+        public IEnumerable<Alumno> ObtenerTodos()
+        {
+            return _contexto.Set<Alumno>().ToList();
+        }
     }
 }
