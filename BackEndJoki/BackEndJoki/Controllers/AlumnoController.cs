@@ -1,25 +1,29 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
+using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaNegocio.Excepciones;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Joki.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   
+
     public class AlumnoController : ControllerBase
     {
         private readonly IRegistrarAlumno _registrarAlumno;
         private readonly IObtenerAlumnos _obtenerAlumnos;
         private readonly IObtenerAlumnoPorId _obtenerAlumnoPorId;
+        private readonly IBajaAlumno _bajaAlumno;
 
-        public AlumnoController(IRegistrarAlumno registrarAlumno, IObtenerAlumnos obtenerAlumnos, IObtenerAlumnoPorId obtenerAlumnoPorId)
+        public AlumnoController(IRegistrarAlumno registrarAlumno, IObtenerAlumnos obtenerAlumnos, IObtenerAlumnoPorId obtenerAlumnoPorId, IBajaAlumno bajaAlumno)
         {
             _registrarAlumno = registrarAlumno;
             _obtenerAlumnos = obtenerAlumnos;
             _obtenerAlumnoPorId = obtenerAlumnoPorId;
+            _bajaAlumno = bajaAlumno;
         }
 
         [HttpPost("registrar")]
@@ -38,10 +42,10 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(400, e.Error());
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 string mensajeReal = e.InnerException != null ? e.InnerException.Message : e.Message;
-                
+
                 Error error = new Error(500, $"Error real: {mensajeReal}");
                 return StatusCode(500, error);
             }
@@ -68,6 +72,21 @@ namespace Joki.WebApi.Controllers
                 {
                     mensaje = "Alumno no encontrado"
                 });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public IActionResult Baja(int id)
+        {
+            try
+            {
+                _bajaAlumno.Ejecutar(id);
+                return Ok(new { mensaje = "Alumno dado de baja correctamente" });
+            }
+            catch (Exception e)
+            {
+                return NotFound(new { mensaje = e.Message });
             }
         }
     }

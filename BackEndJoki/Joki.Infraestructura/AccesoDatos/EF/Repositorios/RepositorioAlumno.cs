@@ -34,5 +34,15 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             return _contexto.Set<Alumno>()
                 .FirstOrDefault(a => a.UsuarioId == id);
         }
+
+        public void Modificar(Alumno alumno)
+        {
+            if (alumno == null)
+            {
+                throw new ArgumentNullException(nameof(alumno));
+            }
+            _contexto.Set<Alumno>().Update(alumno);
+            _contexto.SaveChanges();
+        }
     }
 }
