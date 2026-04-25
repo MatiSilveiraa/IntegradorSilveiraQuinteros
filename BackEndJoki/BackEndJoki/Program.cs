@@ -53,6 +53,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerPerfilUsuario, ObtenerPerfilUsuario>();
     builder.Services.AddScoped<IActualizarPerfilUsuario, ActualizarPerfilUsuario>();
     builder.Services.AddScoped<IObtenerAlumnos, ObtenerAlumnos>();
+    builder.Services.AddScoped<IObtenerAlumnoPorId, ObtenerAlumnoPorId>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

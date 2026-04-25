@@ -1,5 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
+using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Alumno
@@ -17,14 +18,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Alumno
         {
             var alumnos = _repo.ObtenerTodos();
 
-            return alumnos.Select(a => new DtoAlumno
-            {
-                Id = a.UsuarioId,
-                Nombre = a.Nombre.Valor,
-                Apellido = a.Apellido.Valor,
-                Email = a.Email.Valor,
-                Estado = a.Estado.ToString()
-            });
+            return MapperAlumno.ToDtoList(alumnos);
         }
     }
 }

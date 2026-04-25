@@ -3,7 +3,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Excepciones.Usuario;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using Joki.LogicaNegocio.Entidades;
+using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Alumnos
 {
@@ -42,7 +42,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Alumnos
             }
 
             MapperAlumno mapperAlumno = new MapperAlumno();
-            Alumno alumno = mapperAlumno.ToEntity(request);
+            alumnoEntidad alumno = mapperAlumno.ToEntity(request);
 
             int id = _repositorioAlumno.Agregar(alumno);
             alumno.UsuarioId = id;

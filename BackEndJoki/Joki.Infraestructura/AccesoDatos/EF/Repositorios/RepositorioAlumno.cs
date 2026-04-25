@@ -28,5 +28,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _contexto.Set<Alumno>().ToList();
         }
+
+        public Alumno? ObtenerPorId(int id)
+        {
+            return _contexto.Set<Alumno>()
+                .FirstOrDefault(a => a.UsuarioId == id);
+        }
     }
 }

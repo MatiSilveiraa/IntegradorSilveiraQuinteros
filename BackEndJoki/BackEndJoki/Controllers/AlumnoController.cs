@@ -1,7 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
-using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Mvc; 
 
@@ -14,11 +13,13 @@ namespace Joki.WebApi.Controllers
     {
         private readonly IRegistrarAlumno _registrarAlumno;
         private readonly IObtenerAlumnos _obtenerAlumnos;
+        private readonly IObtenerAlumnoPorId _obtenerAlumnoPorId;
 
-        public AlumnoController(IRegistrarAlumno registrarAlumno, IObtenerAlumnos obtenerAlumnos)
+        public AlumnoController(IRegistrarAlumno registrarAlumno, IObtenerAlumnos obtenerAlumnos, IObtenerAlumnoPorId obtenerAlumnoPorId)
         {
             _registrarAlumno = registrarAlumno;
             _obtenerAlumnos = obtenerAlumnos;
+            _obtenerAlumnoPorId = obtenerAlumnoPorId;
         }
 
         [HttpPost("registrar")]
@@ -37,10 +38,8 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(400, e.Error());
             }
-            catch (Exception e) // <-- Agrega la "e"
+            catch (Exception e) 
             {
-                // Cambiamos temporalmente el mensaje para ver qué dice el servidor. 
-                // e.InnerException?.Message te dirá exactamente qué columna falló en SQL Server.
                 string mensajeReal = e.InnerException != null ? e.InnerException.Message : e.Message;
                 
                 Error error = new Error(500, $"Error real: {mensajeReal}");
@@ -53,6 +52,23 @@ namespace Joki.WebApi.Controllers
         {
             var alumnos = _obtenerAlumnos.Ejecutar();
             return Ok(alumnos);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult ObtenerPorId(int id)
+        {
+            try
+            {
+                var alumno = _obtenerAlumnoPorId.Ejecutar(id);
+                return Ok(alumno);
+            }
+            catch (Exception)
+            {
+                return NotFound(new
+                {
+                    mensaje = "Alumno no encontrado"
+                });
+            }
         }
     }
 }

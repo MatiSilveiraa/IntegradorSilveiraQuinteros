@@ -22,7 +22,7 @@ namespace Joki.LogicaAplicacion.Mappers
                 Email = new Email(request.Email),
                 Contrasena = Contrasena.FromHash(hash),
                 ProveedorAutenticacion = "LOCAL",
-                Estado = EstadoUsuario.ACTIVO,        
+                Estado = EstadoUsuario.ACTIVO,
                 RolId = 3,
                 Genero = (Genero)request.Genero,
                 FechaNacimiento = request.FechaNacimiento,
@@ -42,6 +42,22 @@ namespace Joki.LogicaAplicacion.Mappers
                 UsuarioId = alumno.UsuarioId,
                 Mensaje = "El registro fue realizado correctamente."
             };
+        }
+
+        public static DtoAlumno ToDto(Alumno alumno)
+        {
+            return new DtoAlumno(
+                alumno.UsuarioId,
+                alumno.Nombre.Valor,
+                alumno.Apellido.Valor,
+                alumno.Email.Valor,
+                alumno.Estado.ToString()
+            );
+        }
+
+        public static IEnumerable<DtoAlumno> ToDtoList(IEnumerable<Alumno> alumnos)
+        {
+            return alumnos.Select(ToDto);
         }
     }
 }

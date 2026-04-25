@@ -7,5 +7,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         int Agregar(Alumno alumno);
 
         IEnumerable<Alumno> ObtenerTodos();
+
+        Alumno? ObtenerPorId(int id);
     }
 }
