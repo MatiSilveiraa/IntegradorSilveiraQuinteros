@@ -1,9 +1,11 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -47,6 +49,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
     builder.Services.AddScoped<IRegistrarAlumno, RegistrarAlumno>();
     builder.Services.AddScoped<ILoginUsuario, LoginUsuario>();
+    builder.Services.AddScoped<IObtenerPerfilUsuario, ObtenerPerfilUsuario>();
+    builder.Services.AddScoped<IActualizarPerfilUsuario, ActualizarPerfilUsuario>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

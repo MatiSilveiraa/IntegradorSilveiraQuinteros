@@ -54,8 +54,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
             builder.Property(u => u.GoogleId)
                 .HasMaxLength(100);
 
-            builder.Property(u => u.Celular)
-                .HasMaxLength(30);
+            builder.OwnsOne(u => u.Celular, c =>
+            {
+                c.Property(celular => celular.Valor)
+                 .HasColumnName("Celular") 
+                 .IsRequired()            
+                 .HasMaxLength(9);         
+            });
 
             builder.Property(u => u.SociedadMedica)
                 .HasMaxLength(100);

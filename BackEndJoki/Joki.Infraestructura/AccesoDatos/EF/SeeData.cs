@@ -30,11 +30,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         private void Roles()
         {
             var roles = new List<Rol>
-    {
-        new Rol { Nombre = "Admin" },
-        new Rol { Nombre = "Entrenador" },
-        new Rol { Nombre = "Alumno" }
-    };
+            {
+                new Rol { Nombre = "Admin" },
+                new Rol { Nombre = "Entrenador" },
+                new Rol { Nombre = "Alumno" }
+            };
 
             _context.Roles.AddRange(roles);
             _context.SaveChanges();
@@ -65,7 +65,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                     RolId = rolAdmin.Id, // 🔥
                     Genero = Genero.MASCULINO,
                     FechaNacimiento = new DateTime(1988, 5, 10),
-                    Celular = "099111111",
+                    Celular = Celular.Crear("099111111"), 
                     SociedadMedica = "CASMU"
                 },
 
@@ -81,7 +81,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                     RolId = rolEntrenador.Id,
                     Genero = Genero.FEMENINO,
                     FechaNacimiento = new DateTime(1992, 9, 22),
-                    Celular = "099222222",
+                    Celular = Celular.Crear("099222222"), 
                     SociedadMedica = "MP"
                 },
 
@@ -97,7 +97,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                     RolId = rolAlumno.Id,
                     Genero = Genero.MASCULINO,
                     FechaNacimiento = new DateTime(2000, 3, 15),
-                    Celular = "099333333",
+                    Celular = Celular.Crear("099333333"), 
                     SociedadMedica = "ASSE",
                     Peso = 70m,
                     Estatura = 1.75m
@@ -114,7 +114,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                     RolId = rolAlumno.Id,
                     Genero = Genero.FEMENINO,
                     FechaNacimiento = new DateTime(1999, 7, 8),
-                    Celular = "099444444",
+                    Celular = Celular.Crear("099444444"), 
                     SociedadMedica = "SMI",
                     Peso = 60m,
                     Estatura = 1.65m

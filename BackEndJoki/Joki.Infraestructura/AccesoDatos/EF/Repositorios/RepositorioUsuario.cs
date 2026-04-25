@@ -1,5 +1,4 @@
-﻿using Joki.LogicaNegocio.Entidades;
-using Joki.LogicaNegocio.InterfacesRepositorio;
+﻿using Joki.LogicaNegocio.InterfacesRepositorio;
 using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
@@ -23,6 +22,19 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             return _contexto.Set<Usuario>()
                 .Include(u => u.Rol)
                 .FirstOrDefault(u => u.Email.Valor == email);
+        }
+
+        public Usuario? ObtenerPorId(int id)
+        {
+            return _contexto.Set<Usuario>()
+                .Include(u => u.Rol)
+                .FirstOrDefault(u => u.UsuarioId == id);
+        }
+
+        public void Modificar(Usuario usuario)
+        {
+            _contexto.Set<Usuario>().Update(usuario);
+            _contexto.SaveChanges();
         }
     }
 }
