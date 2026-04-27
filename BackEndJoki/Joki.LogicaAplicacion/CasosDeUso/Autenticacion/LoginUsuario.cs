@@ -5,7 +5,7 @@ using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Microsoft.AspNetCore.Identity;
-
+using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
     public class LoginUsuario : ILoginUsuario
@@ -68,7 +68,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 rol = usuario switch
                 {
                     Entrenador => "Entrenador",
-                    Alumno => "Alumno",
+                    alumnoEntidad => "Alumno",
                     _ => "Alumno"
                 };
             }

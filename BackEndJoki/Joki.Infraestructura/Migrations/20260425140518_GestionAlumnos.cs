@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Joki.Infraestructura.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class GestionAlumnos : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -78,7 +78,7 @@ namespace Joki.Infraestructura.Migrations
                     UltimoAcceso = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Genero = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FechaNacimiento = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Celular = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    Celular = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
                     SociedadMedica = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
