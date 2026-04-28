@@ -11,7 +11,7 @@ namespace Joki.WebApi.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            return Ok("Grupo creado");
+            return Ok("Sos admin");
         }
     }
 }

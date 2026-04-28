@@ -1,8 +1,8 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
-using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaNegocio.Excepciones;
+using Joki.LogicaNegocio.Excepciones.Usuario;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,19 +38,22 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(e.StatusCode(), e.Error());
             }
+            catch (UsuarioRepetidoException e)
+            {
+                return StatusCode(409, new { mensaje = e.Message });
+            }
             catch (LogicaNegocioException e)
             {
                 return StatusCode(400, e.Error());
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                string mensajeReal = e.InnerException != null ? e.InnerException.Message : e.Message;
-
-                Error error = new Error(500, $"Error real: {mensajeReal}");
+                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
                 return StatusCode(500, error);
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Get()
         {
