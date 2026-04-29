@@ -138,7 +138,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                 Nivel = "Intermedio",
                 CupoMaximo = 20,
                 DiaSemana = DiaSemana.Lunes,
-                Hora = new TimeSpan(9, 0, 0),
+                HoraInicio = new TimeSpan(9, 0, 0),
+                HoraFin = new TimeSpan(10, 0, 0),
 
                 Ubicacion = new Ubicacion
                 {
