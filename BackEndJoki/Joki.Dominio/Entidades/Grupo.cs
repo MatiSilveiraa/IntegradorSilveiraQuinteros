@@ -13,7 +13,8 @@ namespace Joki.LogicaNegocio.Entidades
         public int CupoMaximo { get; set; }
 
         public DiaSemana DiaSemana { get; set; }
-        public TimeSpan Hora { get; set; }
+        public TimeSpan HoraInicio { get; set; }
+        public TimeSpan HoraFin { get; set; }
 
         public Ubicacion Ubicacion { get; set; }
 
@@ -45,6 +46,21 @@ namespace Joki.LogicaNegocio.Entidades
             SolicitudesCupo = new List<SolicitudCupo>();
             Inscripciones = new List<Inscripcion>();
             Clases = new List<Clase>();
+        }
+
+        public bool TieneCupoDisponible()
+        {
+            return Inscripciones.Count < CupoMaximo;
+        }
+
+        public bool SeSuperponeCon(Grupo otroGrupo)
+        {
+            if (DiaSemana != otroGrupo.DiaSemana)
+            {
+                return false;
+            }
+
+            return HoraInicio < otroGrupo.HoraFin && HoraFin > otroGrupo.HoraInicio;
         }
     }
 }

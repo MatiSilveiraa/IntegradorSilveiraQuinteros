@@ -1,11 +1,13 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
@@ -55,6 +57,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerAlumnos, ObtenerAlumnos>();
     builder.Services.AddScoped<IObtenerAlumnoPorId, ObtenerAlumnoPorId>();
     builder.Services.AddScoped<IBajaAlumno, BajaAlumno>();
+    builder.Services.AddScoped<IRepositorioGrupo, RepositorioGrupo>();
+    builder.Services.AddScoped<ICrearGrupo, CrearGrupo>();
+    builder.Services.AddScoped<IObtenerGrupos, ObtenerGrupos>();
+    builder.Services.AddScoped<IObtenerGrupoPorId, ObtenerGrupoPorId>();
+    builder.Services.AddScoped<IEditarGrupo, EditarGrupo>();
+    builder.Services.AddScoped<IEliminarGrupo, EliminarGrupo>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

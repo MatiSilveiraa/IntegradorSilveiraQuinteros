@@ -26,7 +26,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .HasConversion<string>()
                 .IsRequired();
 
-            builder.Property(g => g.Hora)
+            builder.Property(g => g.HoraInicio)
+                .IsRequired();
+
+            builder.Property(g => g.HoraFin)
                 .IsRequired();
 
             builder.Property(g => g.RadioGeolocalizacion)
@@ -70,15 +73,23 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .WithOne(c => c.Grupo)
                 .HasForeignKey(c => c.GrupoId);
 
-            builder.HasCheckConstraint(
-                "CK_Grupo_Fechas",
-                "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]"
-            );
+            builder.ToTable("Grupo", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_Grupo_Fechas",
+                    "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]"
+                );
 
-            builder.HasCheckConstraint(
-                "CK_Grupo_Cupo",
-                "[CupoMaximo] > 0"
-            );
+                t.HasCheckConstraint(
+                    "CK_Grupo_Cupo",
+                    "[CupoMaximo] > 0"
+                );
+
+                t.HasCheckConstraint(
+                    "CK_Grupo_Horario",
+                    "[HoraFin] > [HoraInicio]"
+                );
+            });
         }
     }
 }
