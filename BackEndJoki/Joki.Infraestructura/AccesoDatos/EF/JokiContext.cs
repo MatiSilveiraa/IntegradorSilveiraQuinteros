@@ -28,6 +28,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<Clase> Clases { get; set; }
 
         public DbSet<Inscripcion> Inscripciones { get; set; }
+        public DbSet<ListaEspera> ListaEspera { get; set; }
         public DbSet<SolicitudCupo> SolicitudesCupo { get; set; }
 
         public DbSet<Asistencia> Asistencias { get; set; }

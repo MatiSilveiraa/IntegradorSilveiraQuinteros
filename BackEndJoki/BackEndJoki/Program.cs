@@ -63,7 +63,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerGrupoPorId, ObtenerGrupoPorId>();
     builder.Services.AddScoped<IEditarGrupo, EditarGrupo>();
     builder.Services.AddScoped<IEliminarGrupo, EliminarGrupo>();
-    builder.Services.AddAuthorization();
+    builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
+    builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
+builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
+builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll",

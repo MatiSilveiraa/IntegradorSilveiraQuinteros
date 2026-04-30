@@ -132,11 +132,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         {
             var entrenador = _context.Set<Entrenador>().First();
 
-            var grupo = new Grupo
+            var grupo1 = new Grupo
             {
                 Nombre = "Funcional Mañana",
                 Nivel = "Intermedio",
-                CupoMaximo = 20,
+                CupoMaximo = 2, // 🔥 chico para probar lista de espera
                 DiaSemana = DiaSemana.Lunes,
                 HoraInicio = new TimeSpan(9, 0, 0),
                 HoraFin = new TimeSpan(10, 0, 0),
@@ -156,20 +156,57 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                 EntrenadorId = entrenador.UsuarioId
             };
 
-            _context.Grupos.Add(grupo);
+            var grupo2 = new Grupo
+            {
+                Nombre = "Funcional Tarde",
+                Nivel = "Avanzado",
+                CupoMaximo = 5,
+                DiaSemana = DiaSemana.Lunes,
+                HoraInicio = new TimeSpan(9, 0, 0), // 🔥 MISMO horario → superposición
+                HoraFin = new TimeSpan(10, 0, 0),
+
+                Ubicacion = new Ubicacion
+                {
+                    Latitud = -34.91m,
+                    Longitud = -56.17m,
+                    CodigoPostal = "11000"
+                },
+
+                RadioGeolocalizacion = 100m,
+                EsFijo = true,
+                FechaInicio = DateTime.Now,
+                FechaFin = DateTime.Now.AddMonths(3),
+                Estado = EstadoGrupo.ACTIVO,
+                EntrenadorId = entrenador.UsuarioId
+            };
+
+            _context.Grupos.AddRange(grupo1, grupo2);
             _context.SaveChanges();
         }
 
         // =========================
         private void Inscripciones()
         {
-            var alumno = _context.Set<Alumno>().First();
-            var grupo = _context.Grupos.First();
+            var alumnos = _context.Set<Alumno>().ToList();
+            var grupos = _context.Grupos.ToList();
 
+            var grupo1 = grupos.First();
+            var grupo2 = grupos.Last();
+
+            // ✔ Juan ya está en grupo1
             _context.Inscripciones.Add(new Inscripcion
             {
-                AlumnoId = alumno.UsuarioId,
-                GrupoId = grupo.Id
+                AlumnoId = alumnos[0].UsuarioId,
+                GrupoId = grupo1.Id,
+                FechaInscripcion = DateTime.Now
+            });
+
+            // ✔ Maria también (grupo queda lleno si cupo=2)
+            _context.Inscripciones.Add(new Inscripcion
+            {
+                AlumnoId = alumnos[1].UsuarioId,
+                GrupoId = grupo1.Id,
+                FechaInscripcion = DateTime.Now
             });
 
             _context.SaveChanges();
