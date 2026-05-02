@@ -59,8 +59,16 @@ namespace Joki.WebApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            var grupos = _obtenerGrupos.Ejecutar();
-            return Ok(grupos);
+            try
+            {
+                var grupos = _obtenerGrupos.Ejecutar();
+                return Ok(grupos);
+            }
+            catch (Exception)
+            {
+                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                return StatusCode(500, error);
+            }
         }
 
         [HttpGet("{id}")]
@@ -71,12 +79,13 @@ namespace Joki.WebApi.Controllers
                 var grupo = _obtenerGrupoPorId.Ejecutar(id);
                 return Ok(grupo);
             }
-            catch (Exception)
+            catch (LogicaNegocioException e)
             {
-                return NotFound(new
-                {
-                    mensaje = "Grupo no encontrado"
-                });
+                return NotFound(new { mensaje = e.Message });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { mensaje = e.Message });
             }
         }
 
@@ -89,9 +98,19 @@ namespace Joki.WebApi.Controllers
                 var grupo = _editarGrupo.Ejecutar(id, request);
                 return Ok(grupo);
             }
-            catch (Exception e)
+            catch (LogicaNegocioException e)
             {
-                return NotFound(new { mensaje = e.Message });
+                if (e.Message == "El grupo solicitado no existe.")
+                {
+                    return NotFound(new { mensaje = e.Message });
+                }
+
+                return StatusCode(400, new { mensaje = e.Message });
+            }
+            catch (Exception)
+            {
+                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                return StatusCode(500, error);
             }
         }
 
@@ -104,9 +123,14 @@ namespace Joki.WebApi.Controllers
                 _eliminarGrupo.Ejecutar(id);
                 return Ok(new { mensaje = "Grupo eliminado correctamente" });
             }
-            catch (Exception e)
+            catch (LogicaNegocioException e)
             {
                 return NotFound(new { mensaje = e.Message });
+            }
+            catch (Exception)
+            {
+                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                return StatusCode(500, error);
             }
         }
     }
