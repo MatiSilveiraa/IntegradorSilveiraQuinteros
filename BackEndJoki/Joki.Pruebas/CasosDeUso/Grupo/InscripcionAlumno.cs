@@ -1,9 +1,10 @@
-﻿using Xunit;
-using Moq;
+﻿using Moq;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Joki.LogicaNegocio.Excepciones;
+
 using GrupoEntidad = Joki.LogicaNegocio.Entidades.Grupo;
 
 namespace Joki.Pruebas.CasosDeUso.Grupo
@@ -14,6 +15,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
         private readonly Mock<IRepositorioAlumno> _repoAlumno = new();
         private readonly Mock<IRepositorioInscripcion> _repoInscripcion = new();
         private readonly Mock<IRepositorioListaEspera> _repoLista = new();
+
         private InscribirAlumno CrearCU()
         {
             return new InscribirAlumno(
@@ -24,7 +26,6 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
             );
         }
 
-
         [Fact]
         public void AlumnoNoExiste_LanzaException()
         {
@@ -32,7 +33,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("Alumno no existe", ex.Message);
         }
@@ -46,7 +47,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("Alumno inactivo", ex.Message);
         }
@@ -61,7 +62,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("Grupo no existe", ex.Message);
         }
@@ -70,7 +71,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
         public void AlumnoYaInscripto_LanzaException()
         {
             var alumno = new Alumno { UsuarioId = 1, Estado = EstadoUsuario.ACTIVO };
-            var grupo = new GrupoEntidad { Id = 1 };
+            var grupo = new GrupoEntidad
+            {
+                Id = 1,
+                Estado = EstadoGrupo.ACTIVO
+            };
 
             _repoAlumno.Setup(r => r.ObtenerPorId(1)).Returns(alumno);
             _repoGrupo.Setup(r => r.ObtenerPorId(1)).Returns(grupo);
@@ -78,7 +83,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("El alumno ya está inscripto", ex.Message);
         }
@@ -87,7 +92,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
         public void SuperposicionHoraria_LanzaException()
         {
             var alumno = new Alumno { UsuarioId = 1, Estado = EstadoUsuario.ACTIVO };
-            var grupo = new GrupoEntidad { Id = 1 };
+            var grupo = new GrupoEntidad
+            {
+                Id = 1,
+                Estado = EstadoGrupo.ACTIVO
+            };
 
             _repoAlumno.Setup(r => r.ObtenerPorId(1)).Returns(alumno);
             _repoGrupo.Setup(r => r.ObtenerPorId(1)).Returns(grupo);
@@ -96,17 +105,20 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("Superposición horaria", ex.Message);
         }
-
 
         [Fact]
         public void YaEnListaEspera_LanzaException()
         {
             var alumno = new Alumno { UsuarioId = 1, Estado = EstadoUsuario.ACTIVO };
-            var grupo = new GrupoEntidad { Id = 1 };
+            var grupo = new GrupoEntidad
+            {
+                Id = 1,
+                Estado = EstadoGrupo.ACTIVO
+            };
 
             _repoAlumno.Setup(r => r.ObtenerPorId(1)).Returns(alumno);
             _repoGrupo.Setup(r => r.ObtenerPorId(1)).Returns(grupo);
@@ -116,7 +128,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            var ex = Assert.Throws<Exception>(() => cu.Ejecutar(1, 1));
+            var ex = Assert.Throws<LogicaNegocioException>(() => cu.Ejecutar(1, 1));
 
             Assert.Equal("Ya está en lista de espera", ex.Message);
         }
@@ -125,7 +137,12 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
         public void GrupoLleno_AgregaAListaEspera()
         {
             var alumno = new Alumno { UsuarioId = 1, Estado = EstadoUsuario.ACTIVO };
-            var grupo = new GrupoEntidad { Id = 1, CupoMaximo = 1 };
+            var grupo = new GrupoEntidad
+            {
+                Id = 1,
+                CupoMaximo = 1,
+                Estado = EstadoGrupo.ACTIVO
+            };
 
             _repoAlumno.Setup(r => r.ObtenerPorId(1)).Returns(alumno);
             _repoGrupo.Setup(r => r.ObtenerPorId(1)).Returns(grupo);
@@ -136,8 +153,9 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            cu.Ejecutar(1, 1);
+            var resultado = cu.Ejecutar(1, 1);
 
+            Assert.Equal("LISTA_ESPERA", resultado);
             _repoLista.Verify(r => r.Agregar(1, 1), Times.Once);
             _repoInscripcion.Verify(r => r.Agregar(It.IsAny<Inscripcion>()), Times.Never);
         }
@@ -146,7 +164,12 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
         public void InscripcionCorrecta_GuardaInscripcion()
         {
             var alumno = new Alumno { UsuarioId = 1, Estado = EstadoUsuario.ACTIVO };
-            var grupo = new GrupoEntidad { Id = 1, CupoMaximo = 5 };
+            var grupo = new GrupoEntidad
+            {
+                Id = 1,
+                CupoMaximo = 5,
+                Estado = EstadoGrupo.ACTIVO
+            };
 
             _repoAlumno.Setup(r => r.ObtenerPorId(1)).Returns(alumno);
             _repoGrupo.Setup(r => r.ObtenerPorId(1)).Returns(grupo);
@@ -157,9 +180,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupo
 
             var cu = CrearCU();
 
-            cu.Ejecutar(1, 1);
+            var resultado = cu.Ejecutar(1, 1);
 
+            Assert.Equal("INSCRIPTO", resultado);
             _repoInscripcion.Verify(r => r.Agregar(It.IsAny<Inscripcion>()), Times.Once);
+            _repoLista.Verify(r => r.Agregar(1, 1), Times.Never);
         }
     }
 }

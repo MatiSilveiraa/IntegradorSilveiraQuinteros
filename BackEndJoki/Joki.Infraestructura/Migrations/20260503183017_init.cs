@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Joki.Infraestructura.Migrations
 {
     /// <inheritdoc />
-    public partial class GestionAlumnos : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +26,21 @@ namespace Joki.Infraestructura.Migrations
                 {
                     table.PrimaryKey("PK_Desafio", x => x.Id);
                     table.CheckConstraint("CK_Desafio_Fechas", "[FechaFin] >= [FechaInicio]");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListaEspera",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AlumnoId = table.Column<int>(type: "int", nullable: false),
+                    GrupoId = table.Column<int>(type: "int", nullable: false),
+                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListaEspera", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -182,7 +197,8 @@ namespace Joki.Infraestructura.Migrations
                     Nivel = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CupoMaximo = table.Column<int>(type: "int", nullable: false),
                     DiaSemana = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Hora = table.Column<TimeSpan>(type: "time", nullable: false),
+                    HoraInicio = table.Column<TimeSpan>(type: "time", nullable: false),
+                    HoraFin = table.Column<TimeSpan>(type: "time", nullable: false),
                     Latitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
                     Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
                     CodigoPostal = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
@@ -198,6 +214,7 @@ namespace Joki.Infraestructura.Migrations
                     table.PrimaryKey("PK_Grupo", x => x.Id);
                     table.CheckConstraint("CK_Grupo_Cupo", "[CupoMaximo] > 0");
                     table.CheckConstraint("CK_Grupo_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
+                    table.CheckConstraint("CK_Grupo_Horario", "[HoraFin] > [HoraInicio]");
                     table.ForeignKey(
                         name: "FK_Grupo_Usuario_EntrenadorId",
                         column: x => x.EntrenadorId,
@@ -570,6 +587,9 @@ namespace Joki.Infraestructura.Migrations
 
             migrationBuilder.DropTable(
                 name: "Inscripcion");
+
+            migrationBuilder.DropTable(
+                name: "ListaEspera");
 
             migrationBuilder.DropTable(
                 name: "MaterialEjercicio");

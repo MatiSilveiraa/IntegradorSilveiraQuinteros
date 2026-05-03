@@ -48,7 +48,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
             return inscripciones.Any(i =>
                 i.Grupo.DiaSemana == grupo.DiaSemana &&
-                i.Grupo.HoraInicio == grupo.HoraInicio
+                i.Grupo.HoraInicio < grupo.HoraFin &&
+                i.Grupo.HoraFin > grupo.HoraInicio
             );
         }
     }
