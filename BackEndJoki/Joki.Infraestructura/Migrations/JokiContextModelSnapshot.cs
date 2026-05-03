@@ -556,6 +556,26 @@ namespace Joki.Infraestructura.Migrations
                     b.ToTable("SolicitudCupo", (string)null);
                 });
 
+            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.TokenRevocado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FechaRevocacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TokensRevocados");
+                });
+
             modelBuilder.Entity("Usuario", b =>
                 {
                     b.Property<int>("UsuarioId")
