@@ -3,6 +3,6 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo
 {
     public interface IInscribirAlumno
     {
-        void Ejecutar(int alumnoId, int grupoId);
+        string Ejecutar(int alumnoId, int grupoId);
     }
 }

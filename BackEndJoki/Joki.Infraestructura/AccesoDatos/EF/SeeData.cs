@@ -118,6 +118,23 @@ namespace Joki.Infraestructura.AccesoDatos.EF
                     SociedadMedica = "SMI",
                     Peso = 60m,
                     Estatura = 1.65m
+                },
+
+                new Alumno
+                {
+                    Nombre = new Nombre("Pedro"),   
+                    Apellido = new Apellido("García"),
+                    Email = new Email("pedro@test.com"),
+                    Contrasena = Contrasena.FromHash(hasheador.HashPassword(null, "Pedro#123")),
+                    ProveedorAutenticacion = "LOCAL",
+                    Estado = EstadoUsuario.ACTIVO,
+                    RolId = rolAlumno.Id,
+                    Genero = Genero.MASCULINO,
+                    FechaNacimiento = new DateTime(1995, 11, 20),
+                    Celular = Celular.Crear("099555555"), 
+                    SociedadMedica = "MUCAM",
+                    Peso = 75m,
+                    Estatura = 1.80m
                 }
             };
 

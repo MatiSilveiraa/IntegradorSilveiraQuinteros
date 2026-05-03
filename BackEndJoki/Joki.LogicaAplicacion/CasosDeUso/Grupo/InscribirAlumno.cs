@@ -1,18 +1,23 @@
 ﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
+using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
 {
-    public class InscribirAlumno:IInscribirAlumno
+    public class InscribirAlumno : IInscribirAlumno
     {
         private readonly IRepositorioGrupo _repositorioGrupo;
         private readonly IRepositorioAlumno _repositorioAlumno;
         private readonly IRepositorioInscripcion _repositorioInscripcion;
         private readonly IRepositorioListaEspera _repositorioListaEspera;
 
-        public InscribirAlumno(IRepositorioGrupo repositorioGrupo, IRepositorioAlumno repositorioAlumno, IRepositorioInscripcion repositorioInscripcion, IRepositorioListaEspera repositorioListaEspera)
+        public InscribirAlumno(
+            IRepositorioGrupo repositorioGrupo,
+            IRepositorioAlumno repositorioAlumno,
+            IRepositorioInscripcion repositorioInscripcion,
+            IRepositorioListaEspera repositorioListaEspera)
         {
             _repositorioGrupo = repositorioGrupo;
             _repositorioAlumno = repositorioAlumno;
@@ -20,43 +25,63 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
             _repositorioListaEspera = repositorioListaEspera;
         }
 
-        public void Ejecutar(int alumnoId, int grupoId)
+        public string Ejecutar(int alumnoId, int grupoId)
         {
             var alumno = _repositorioAlumno.ObtenerPorId(alumnoId);
+
             if (alumno == null)
-                throw new Exception("Alumno no existe");
+            {
+                throw new LogicaNegocioException("Alumno no existe");
+            }
 
             if (alumno.Estado != EstadoUsuario.ACTIVO)
-                throw new Exception("Alumno inactivo");
+            {
+                throw new LogicaNegocioException("Alumno inactivo");
+            }
 
             var grupo = _repositorioGrupo.ObtenerPorId(grupoId);
+
             if (grupo == null)
-                throw new Exception("Grupo no existe");
+            {
+                throw new LogicaNegocioException("Grupo no existe");
+            }
+
+            if (grupo.Estado != EstadoGrupo.ACTIVO)
+            {
+                throw new LogicaNegocioException("Grupo inactivo");
+            }
 
             if (_repositorioInscripcion.Existe(alumnoId, grupoId))
-                throw new Exception("El alumno ya está inscripto");
+            {
+                throw new LogicaNegocioException("El alumno ya está inscripto");
+            }
 
-            var tieneCruce = _repositorioInscripcion.TieneSuperposicion(alumnoId, grupo);
-            if (tieneCruce)
-                throw new Exception("Superposición horaria");
+            if (_repositorioInscripcion.TieneSuperposicion(alumnoId, grupo))
+            {
+                throw new LogicaNegocioException("Superposición horaria");
+            }
 
             if (_repositorioListaEspera.Existe(alumnoId, grupoId))
-                throw new Exception("Ya está en lista de espera");
+            {
+                throw new LogicaNegocioException("Ya está en lista de espera");
+            }
 
             if (_repositorioInscripcion.CantidadPorGrupo(grupoId) >= grupo.CupoMaximo)
             {
                 _repositorioListaEspera.Agregar(alumnoId, grupoId);
-                return;
+                return "LISTA_ESPERA";
             }
 
             var inscripcion = new Inscripcion
             {
                 AlumnoId = alumnoId,
                 GrupoId = grupoId,
-                FechaInscripcion = DateTime.Now
+                FechaInscripcion = DateTime.UtcNow
             };
 
             _repositorioInscripcion.Agregar(inscripcion);
+
+            return "INSCRIPTO";
         }
     }
 }

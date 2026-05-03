@@ -1,5 +1,5 @@
-﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
-using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
+﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
+using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -25,18 +25,33 @@ namespace Joki.WebApi.Controllers
             {
                 var alumnoId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-                _inscribirAlumno.Ejecutar(alumnoId, grupoId);
+                var resultado = _inscribirAlumno.Ejecutar(alumnoId, grupoId);
+
+                if (resultado == "LISTA_ESPERA")
+                {
+                    return Ok(new
+                    {
+                        mensaje = "Grupo lleno. Alumno agregado a lista de espera"
+                    });
+                }
 
                 return Ok(new
                 {
                     mensaje = "Inscripción procesada correctamente"
                 });
             }
-            catch (Exception ex)
+            catch (LogicaNegocioException e)
             {
                 return BadRequest(new
                 {
-                    mensaje = ex.Message
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
                 });
             }
         }

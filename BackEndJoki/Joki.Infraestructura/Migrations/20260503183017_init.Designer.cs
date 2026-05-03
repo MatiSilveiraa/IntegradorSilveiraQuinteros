@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    [Migration("20260425140518_GestionAlumnos")]
-    partial class GestionAlumnos
+    [Migration("20260503183017_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -257,7 +257,10 @@ namespace Joki.Infraestructura.Migrations
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("Hora")
+                    b.Property<TimeSpan>("HoraFin")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("HoraInicio")
                         .HasColumnType("time");
 
                     b.Property<string>("Nivel")
@@ -282,6 +285,8 @@ namespace Joki.Infraestructura.Migrations
                             t.HasCheckConstraint("CK_Grupo_Cupo", "[CupoMaximo] > 0");
 
                             t.HasCheckConstraint("CK_Grupo_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
+
+                            t.HasCheckConstraint("CK_Grupo_Horario", "[HoraFin] > [HoraInicio]");
                         });
                 });
 
@@ -310,6 +315,28 @@ namespace Joki.Infraestructura.Migrations
                         .IsUnique();
 
                     b.ToTable("Inscripcion", (string)null);
+                });
+
+            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.ListaEspera", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlumnoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaSolicitud")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("GrupoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ListaEspera");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.MaterialEjercicio", b =>
