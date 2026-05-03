@@ -43,15 +43,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             IssuerSigningKey = new SymmetricSecurityKey(key),
 
-            RoleClaimType = ClaimTypes.Role 
+            RoleClaimType = ClaimTypes.Role
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var token = context.Request.Headers["Authorization"]
+                    .ToString()
+                    .Replace("Bearer ", "");
+
+                var repo = context.HttpContext.RequestServices
+                    .GetRequiredService<IRepositorioTokenRevocado>();
+
+                if (repo.Existe(token))
+                {
+                    context.Fail("Token revocado");
+                }
+
+                return Task.CompletedTask;
+            }
         };
     });
 
-    builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
+builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
     builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
     builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
     builder.Services.AddScoped<IRegistrarAlumno, RegistrarAlumno>();
     builder.Services.AddScoped<ILoginUsuario, LoginUsuario>();
+    builder.Services.AddScoped<IRepositorioTokenRevocado, RepositorioTokenRevocado>();
+    builder.Services.AddScoped<ILogoutUsuario, LogoutUsuario>();
     builder.Services.AddScoped<IObtenerPerfilUsuario, ObtenerPerfilUsuario>();
     builder.Services.AddScoped<IActualizarPerfilUsuario, ActualizarPerfilUsuario>();
     builder.Services.AddScoped<IObtenerAlumnos, ObtenerAlumnos>();
@@ -65,8 +87,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IEliminarGrupo, EliminarGrupo>();
     builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
-builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
-builder.Services.AddAuthorization();
+    builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
+    builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll",

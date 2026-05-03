@@ -2,7 +2,10 @@
 using Joki.CasoUsoCompartida.DTOs.Usuario;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
+using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaNegocio.Excepciones;
 using Joki.WebApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Joki.WebApi.Controllers
@@ -13,11 +16,14 @@ namespace Joki.WebApi.Controllers
     {
         private readonly ILoginUsuario _loginUsuario;
         private readonly IJwtGenerator _jwtGenerator;
+        private readonly ILogoutUsuario _logoutUsuario;
 
-        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator)
+        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario)
         {
             _loginUsuario = loginUsuario;
             _jwtGenerator = jwtGenerator;
+            _logoutUsuario = logoutUsuario;
+
         }
 
         [HttpPost("login")]
@@ -58,24 +64,34 @@ namespace Joki.WebApi.Controllers
             }
         }
 
-        [HttpGet("test-token")]
-        public IActionResult GenerarTokenDePrueba()
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
         {
-            var usuarioSimulado = new DtoDatosUsuario(
-                Id: 1,
-                Nombre: "Matias",
-                Apellido: "Silveira",
-                Email: "matias@test.com",
-                Rol: "Entrenador"
-            );
-
-            var token = _jwtGenerator.GenerateToken(usuarioSimulado);
-
-            return Ok(new
+            try
             {
-                Mensaje = "Token generado exitosamente",
-                Token = token
-            });
+                string token = Request.Headers["Authorization"]
+                    .ToString()
+                    .Replace("Bearer ", "");
+
+                _logoutUsuario.Ejecutar(token);
+
+                return Ok(new
+                {
+                    mensaje = "Sesión cerrada correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new { mensaje = e.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
         }
     }
 }

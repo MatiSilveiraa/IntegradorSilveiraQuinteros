@@ -57,6 +57,20 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TokensRevocados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FechaRevocacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TokensRevocados", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Recompensa",
                 columns: table => new
                 {
@@ -605,6 +619,9 @@ namespace Joki.Infraestructura.Migrations
 
             migrationBuilder.DropTable(
                 name: "SolicitudCupo");
+
+            migrationBuilder.DropTable(
+                name: "TokensRevocados");
 
             migrationBuilder.DropTable(
                 name: "Recompensa");
