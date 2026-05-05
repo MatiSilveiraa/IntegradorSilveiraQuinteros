@@ -6,6 +6,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
     {
         void Agregar(Inscripcion inscripcion);
 
+        void Remover(int alumnoId, int grupoId);
+
         bool Existe(int alumnoId, int grupoId);
 
         int CantidadPorGrupo(int grupoId);

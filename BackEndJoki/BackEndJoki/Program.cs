@@ -11,6 +11,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
+using Joki.Infraestructura.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -67,7 +68,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
+    builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
     builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
     builder.Services.AddScoped<IRepositorioAlumno, RepositorioAlumno>();
     builder.Services.AddScoped<IRegistrarAlumno, RegistrarAlumno>();
@@ -88,6 +89,8 @@ builder.Services.AddScoped<IJwtGenerator, JwtGenerator>();
     builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
     builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
+    builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
+    builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

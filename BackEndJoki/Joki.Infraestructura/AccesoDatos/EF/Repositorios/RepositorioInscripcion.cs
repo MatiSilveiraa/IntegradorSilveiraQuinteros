@@ -19,6 +19,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context.SaveChanges();
         }
 
+        public void Remover(int alumnoId, int grupoId)
+        {
+            var inscripcion = _context.Inscripciones
+                .FirstOrDefault(i => i.AlumnoId == alumnoId && i.GrupoId == grupoId);
+
+            if (inscripcion != null)
+            {
+                _context.Inscripciones.Remove(inscripcion);
+                _context.SaveChanges();
+            }
+        }
+
         public bool Existe(int alumnoId, int grupoId)
         {
             return _context.Inscripciones
