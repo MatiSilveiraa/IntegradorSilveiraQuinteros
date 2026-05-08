@@ -21,19 +21,21 @@ public class CrearGrupo : ICrearGrupo
         if (string.IsNullOrWhiteSpace(request.Nombre))
             throw new LogicaNegocioException("El nombre es obligatorio.");
 
-        if (request.Clases.Any(c => c.CupoMaximo <= 0))
+        if (string.IsNullOrWhiteSpace(request.Nivel))
+            throw new LogicaNegocioException("El nivel es obligatorio.");
+
+        if (request.Clases != null && request.Clases.Any(c => c.CupoMaximo <= 0))
         {
-            throw new LogicaNegocioException(
-                "Cupo inválido.");
+            throw new LogicaNegocioException("Cupo inválido.");
         }
 
-        if (request.Clases == null || !request.Clases.Any())
-            throw new LogicaNegocioException("El grupo debe tener al menos una clase.");
-
-        foreach (var clase in request.Clases)
+        if (request.Clases != null)
         {
-            if (clase.HoraFin <= clase.HoraInicio)
-                throw new LogicaNegocioException("Horario inválido.");
+            foreach (var clase in request.Clases)
+            {
+                if (clase.HoraFin <= clase.HoraInicio)
+                    throw new LogicaNegocioException("Horario inválido.");
+            }
         }
 
         var grupo = MapperGrupo.ToEntity(request);

@@ -22,12 +22,16 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
         public List<Grupo> ObtenerTodos()
         {
-            return _context.Grupos.ToList();
+            return _context.Grupos
+                .Include(g => g.Clases)
+                .ToList();
         }
 
         public Grupo? ObtenerPorId(int id)
         {
-            return _context.Grupos.FirstOrDefault(g => g.Id == id);
+            return _context.Grupos
+                .Include(g => g.Clases)
+                .FirstOrDefault(g => g.Id == id);
         }
 
         public void Actualizar(Grupo grupo)

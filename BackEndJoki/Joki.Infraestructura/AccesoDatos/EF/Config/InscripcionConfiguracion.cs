@@ -24,9 +24,9 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(i => i.Clase)
-                .WithMany(c => c.Inscripciones)
-                .HasForeignKey(i => i.ClaseId)
-                .OnDelete(DeleteBehavior.Restrict);
+             .WithMany(c => c.Inscripciones)
+             .HasForeignKey(i => i.ClaseId)
+             .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasIndex(i =>
                 new

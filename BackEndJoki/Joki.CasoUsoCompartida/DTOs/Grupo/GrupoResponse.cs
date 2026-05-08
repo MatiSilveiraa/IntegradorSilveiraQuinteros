@@ -10,7 +10,6 @@ namespace Joki.CasoUsoCompartida.DTOs.Grupo
 
         public string Nivel { get; set; }
 
-        public int CupoMaximo { get; set; }
 
         public string Estado { get; set; }
 

@@ -10,7 +10,6 @@ namespace Joki.CasoUsoCompartida.DTOs.Grupo
 
         public int EntrenadorId { get; set; }
 
-        public int CupoMaximo { get; set; }
 
         public List<CrearClaseRequest> Clases { get; set; }
 

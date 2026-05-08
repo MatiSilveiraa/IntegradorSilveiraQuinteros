@@ -92,13 +92,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
     builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
-builder.Services.AddScoped<IRepositorioClase, RepositorioClase>();
-builder.Services.AddScoped<IEliminarClase, EliminarClase>();
-builder.Services.AddScoped<ICrearClase, CrearClase>();
-builder.Services.AddScoped<IObtenerClase, ObtenerClase>();
-
-builder.Services.AddScoped<IObtenerClases, ObtenerClases>();
-builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
+    builder.Services.AddScoped<IRepositorioClase, RepositorioClase>();
+    builder.Services.AddScoped<IEliminarClase, EliminarClase>();
+    builder.Services.AddScoped<ICrearClase, CrearClase>();
+    builder.Services.AddScoped<IObtenerClase, ObtenerClase>();
+    builder.Services.AddScoped<IEditarClase, EditarClase>();
+    builder.Services.AddScoped<IObtenerClases, ObtenerClases>();
+    builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
