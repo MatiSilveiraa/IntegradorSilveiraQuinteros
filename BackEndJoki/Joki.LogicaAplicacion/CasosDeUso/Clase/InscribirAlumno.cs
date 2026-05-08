@@ -8,74 +8,88 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
 {
     public class InscribirAlumno : IInscribirAlumno
     {
-        private readonly IRepositorioGrupo _repositorioGrupo;
+        private readonly IRepositorioClase _repositorioClase;
         private readonly IRepositorioAlumno _repositorioAlumno;
         private readonly IRepositorioInscripcion _repositorioInscripcion;
         private readonly IRepositorioListaEspera _repositorioListaEspera;
 
         public InscribirAlumno(
-            IRepositorioGrupo repositorioGrupo,
+            IRepositorioClase repositorioClase,
             IRepositorioAlumno repositorioAlumno,
             IRepositorioInscripcion repositorioInscripcion,
             IRepositorioListaEspera repositorioListaEspera)
         {
-            _repositorioGrupo = repositorioGrupo;
+            _repositorioClase = repositorioClase;
             _repositorioAlumno = repositorioAlumno;
             _repositorioInscripcion = repositorioInscripcion;
             _repositorioListaEspera = repositorioListaEspera;
         }
 
-        public string Ejecutar(int alumnoId, int grupoId)
+        public string Ejecutar(int alumnoId, int claseId)
         {
             var alumno = _repositorioAlumno.ObtenerPorId(alumnoId);
 
             if (alumno == null)
             {
-                throw new LogicaNegocioException("Alumno no existe");
+                throw new LogicaNegocioException(
+                    "Alumno no existe");
             }
 
             if (alumno.Estado != EstadoUsuario.ACTIVO)
             {
-                throw new LogicaNegocioException("Alumno inactivo");
+                throw new LogicaNegocioException(
+                    "Alumno inactivo");
             }
 
-            var grupo = _repositorioGrupo.ObtenerPorId(grupoId);
+            var clase = _repositorioClase.ObtenerPorId(claseId);
 
-            if (grupo == null)
+            if (clase == null)
             {
-                throw new LogicaNegocioException("Grupo no existe");
+                throw new LogicaNegocioException(
+                    "Clase no existe");
             }
 
-            if (grupo.Estado != EstadoGrupo.ACTIVO)
+            if (clase.Estado != EstadoClase.Programada)
             {
-                throw new LogicaNegocioException("Grupo inactivo");
+                throw new LogicaNegocioException(
+                    "Clase no disponible");
             }
 
-            if (_repositorioInscripcion.Existe(alumnoId, grupoId))
+            if (_repositorioInscripcion.Existe(alumnoId, claseId))
             {
-                throw new LogicaNegocioException("El alumno ya está inscripto");
+                throw new LogicaNegocioException(
+                    "El alumno ya está inscripto");
             }
 
-            if (_repositorioInscripcion.TieneSuperposicion(alumnoId, grupo))
+            if (_repositorioClase.TieneConflictoHorario(
+                alumnoId,
+                clase))
             {
-                throw new LogicaNegocioException("Superposición horaria");
+                throw new LogicaNegocioException(
+                    "Superposición horaria");
             }
 
-            if (_repositorioListaEspera.Existe(alumnoId, grupoId))
+            if (_repositorioListaEspera.Existe(
+                alumnoId,
+                claseId))
             {
-                throw new LogicaNegocioException("Ya está en lista de espera");
+                throw new LogicaNegocioException(
+                    "Ya está en lista de espera");
             }
 
-            if (_repositorioInscripcion.CantidadPorGrupo(grupoId) >= grupo.CupoMaximo)
+            if (!clase.TieneCupoDisponible())
             {
-                _repositorioListaEspera.Agregar(alumnoId, grupoId);
+                _repositorioListaEspera.Agregar(
+                    alumnoId,
+                    claseId);
+
                 return "LISTA_ESPERA";
             }
 
             var inscripcion = new Inscripcion
             {
                 AlumnoId = alumnoId,
-                GrupoId = grupoId,
+                ClaseId = claseId,
                 FechaInscripcion = DateTime.UtcNow
             };
 

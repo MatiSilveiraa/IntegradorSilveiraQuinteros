@@ -1,12 +1,15 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Config
 {
-    public class SolicitudCupoConfig : IEntityTypeConfiguration<SolicitudCupo>
+    public class SolicitudCupoConfig :
+        IEntityTypeConfiguration<SolicitudCupo>
     {
-        public void Configure(EntityTypeBuilder<SolicitudCupo> builder)
+        public void Configure(
+            EntityTypeBuilder<SolicitudCupo> builder)
         {
             builder.ToTable("SolicitudCupo");
 
@@ -27,19 +30,28 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .HasForeignKey(s => s.AlumnoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(s => s.Grupo)
-                .WithMany(g => g.SolicitudesCupo)
-                .HasForeignKey(s => s.GrupoId)
+            builder.HasOne(s => s.Clase)
+                .WithMany(c => c.SolicitudesCupo)
+                .HasForeignKey(s => s.ClaseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(s => new { s.AlumnoId, s.GrupoId })
+            builder.HasIndex(s =>
+                new
+                {
+                    s.AlumnoId,
+                    s.ClaseId
+                })
                 .IsUnique();
 
-            builder.HasIndex(s => new { s.GrupoId, s.Orden })
+            builder.HasIndex(s =>
+                new
+                {
+                    s.ClaseId,
+                    s.Orden
+                })
                 .IsUnique();
 
-
-            builder.HasIndex(s => s.GrupoId);
+            builder.HasIndex(s => s.ClaseId);
         }
     }
 }

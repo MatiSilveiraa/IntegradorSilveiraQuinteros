@@ -131,24 +131,50 @@ namespace Joki.Infraestructura.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CupoMaximo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DiaSemana")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("EsFija")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Fecha")
+                    b.Property<DateTime?>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("GrupoId")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("Hora")
+                    b.Property<TimeSpan>("HoraFin")
                         .HasColumnType("time");
+
+                    b.Property<TimeSpan>("HoraInicio")
+                        .HasColumnType("time");
+
+                    b.Property<decimal>("RadioGeolocalizacion")
+                        .HasColumnType("decimal(8,2)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GrupoId", "Fecha", "Hora");
+                    b.HasIndex("GrupoId", "DiaSemana", "HoraInicio");
 
-                    b.ToTable("Clase", (string)null);
+                    b.ToTable("Clase", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Clase_Cupo", "[CupoMaximo] > 0");
+
+                            t.HasCheckConstraint("CK_Clase_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
+
+                            t.HasCheckConstraint("CK_Clase_Horario", "[HoraFin] > [HoraInicio]");
+                        });
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Cuota", b =>
@@ -231,34 +257,12 @@ namespace Joki.Infraestructura.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CupoMaximo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DiaSemana")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("EntrenadorId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("EsFijo")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("FechaFin")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaInicio")
-                        .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan>("HoraFin")
-                        .HasColumnType("time");
-
-                    b.Property<TimeSpan>("HoraInicio")
-                        .HasColumnType("time");
 
                     b.Property<string>("Nivel")
                         .IsRequired()
@@ -270,21 +274,11 @@ namespace Joki.Infraestructura.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("RadioGeolocalizacion")
-                        .HasColumnType("decimal(8,2)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("EntrenadorId");
 
-                    b.ToTable("Grupo", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Grupo_Cupo", "[CupoMaximo] > 0");
-
-                            t.HasCheckConstraint("CK_Grupo_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
-
-                            t.HasCheckConstraint("CK_Grupo_Horario", "[HoraFin] > [HoraInicio]");
-                        });
+                    b.ToTable("Grupo", (string)null);
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Inscripcion", b =>
@@ -298,17 +292,17 @@ namespace Joki.Infraestructura.Migrations
                     b.Property<int>("AlumnoId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ClaseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("FechaInscripcion")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GrupoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("GrupoId");
+                    b.HasIndex("ClaseId");
 
-                    b.HasIndex("AlumnoId", "GrupoId")
+                    b.HasIndex("AlumnoId", "ClaseId")
                         .IsUnique();
 
                     b.ToTable("Inscripcion", (string)null);
@@ -325,13 +319,17 @@ namespace Joki.Infraestructura.Migrations
                     b.Property<int>("AlumnoId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ClaseId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GrupoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("AlumnoId");
+
+                    b.HasIndex("ClaseId");
 
                     b.ToTable("ListaEspera");
                 });
@@ -530,6 +528,9 @@ namespace Joki.Infraestructura.Migrations
                     b.Property<int>("AlumnoId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ClaseId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -537,20 +538,17 @@ namespace Joki.Infraestructura.Migrations
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("GrupoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Orden")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GrupoId");
+                    b.HasIndex("ClaseId");
 
-                    b.HasIndex("AlumnoId", "GrupoId")
+                    b.HasIndex("AlumnoId", "ClaseId")
                         .IsUnique();
 
-                    b.HasIndex("GrupoId", "Orden")
+                    b.HasIndex("ClaseId", "Orden")
                         .IsUnique();
 
                     b.ToTable("SolicitudCupo", (string)null);
@@ -708,7 +706,37 @@ namespace Joki.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Ubicacion", "Ubicacion", b1 =>
+                        {
+                            b1.Property<int>("ClaseId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("CodigoPostal")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)")
+                                .HasColumnName("CodigoPostal");
+
+                            b1.Property<decimal>("Latitud")
+                                .HasColumnType("decimal(9,6)")
+                                .HasColumnName("Latitud");
+
+                            b1.Property<decimal>("Longitud")
+                                .HasColumnType("decimal(9,6)")
+                                .HasColumnName("Longitud");
+
+                            b1.HasKey("ClaseId");
+
+                            b1.ToTable("Clase");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ClaseId");
+                        });
+
                     b.Navigation("Grupo");
+
+                    b.Navigation("Ubicacion")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Cuota", b =>
@@ -730,37 +758,7 @@ namespace Joki.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Joki.LogicaNegocio.ValueObjects.Ubicacion", "Ubicacion", b1 =>
-                        {
-                            b1.Property<int>("GrupoId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("CodigoPostal")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
-                                .HasColumnName("CodigoPostal");
-
-                            b1.Property<decimal>("Latitud")
-                                .HasColumnType("decimal(9,6)")
-                                .HasColumnName("Latitud");
-
-                            b1.Property<decimal>("Longitud")
-                                .HasColumnType("decimal(9,6)")
-                                .HasColumnName("Longitud");
-
-                            b1.HasKey("GrupoId");
-
-                            b1.ToTable("Grupo");
-
-                            b1.WithOwner()
-                                .HasForeignKey("GrupoId");
-                        });
-
                     b.Navigation("Entrenador");
-
-                    b.Navigation("Ubicacion")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Inscripcion", b =>
@@ -771,15 +769,34 @@ namespace Joki.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Grupo", "Grupo")
+                    b.HasOne("Joki.LogicaNegocio.Entidades.Clase", "Clase")
                         .WithMany("Inscripciones")
-                        .HasForeignKey("GrupoId")
+                        .HasForeignKey("ClaseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Alumno");
 
-                    b.Navigation("Grupo");
+                    b.Navigation("Clase");
+                });
+
+            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.ListaEspera", b =>
+                {
+                    b.HasOne("Joki.LogicaNegocio.Entidades.Alumno", "Alumno")
+                        .WithMany()
+                        .HasForeignKey("AlumnoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Joki.LogicaNegocio.Entidades.Clase", "Clase")
+                        .WithMany()
+                        .HasForeignKey("ClaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Alumno");
+
+                    b.Navigation("Clase");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.MaterialEjercicio", b =>
@@ -853,15 +870,15 @@ namespace Joki.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Grupo", "Grupo")
+                    b.HasOne("Joki.LogicaNegocio.Entidades.Clase", "Clase")
                         .WithMany("SolicitudesCupo")
-                        .HasForeignKey("GrupoId")
+                        .HasForeignKey("ClaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Alumno");
 
-                    b.Navigation("Grupo");
+                    b.Navigation("Clase");
                 });
 
             modelBuilder.Entity("Usuario", b =>
@@ -991,7 +1008,11 @@ namespace Joki.Infraestructura.Migrations
                 {
                     b.Navigation("Asistencias");
 
+                    b.Navigation("Inscripciones");
+
                     b.Navigation("MaterialesEjercicio");
+
+                    b.Navigation("SolicitudesCupo");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Cuota", b =>
@@ -1009,10 +1030,6 @@ namespace Joki.Infraestructura.Migrations
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Grupo", b =>
                 {
                     b.Navigation("Clases");
-
-                    b.Navigation("Inscripciones");
-
-                    b.Navigation("SolicitudesCupo");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Recompensa", b =>

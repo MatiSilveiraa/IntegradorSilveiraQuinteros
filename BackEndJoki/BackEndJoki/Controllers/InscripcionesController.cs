@@ -11,35 +11,46 @@ namespace Joki.WebApi.Controllers
     public class InscripcionesController : ControllerBase
     {
         private readonly IInscribirAlumno _inscribirAlumno;
+
         private readonly IDesinscribirAlumno _desinscribirAlumno;
 
-        public InscripcionesController(IInscribirAlumno inscribirAlumno, IDesinscribirAlumno desinscribirAlumno)
+        public InscripcionesController(
+            IInscribirAlumno inscribirAlumno,
+            IDesinscribirAlumno desinscribirAlumno)
         {
             _inscribirAlumno = inscribirAlumno;
+
             _desinscribirAlumno = desinscribirAlumno;
         }
 
         [Authorize(Roles = "Alumno")]
-        [HttpPost("{grupoId}")]
-        public IActionResult Inscribirse(int grupoId)
+        [HttpPost("{claseId}")]
+        public IActionResult Inscribirse(int claseId)
         {
             try
             {
-                var alumnoId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var alumnoId = int.Parse(
+                    User.FindFirst(
+                        ClaimTypes.NameIdentifier)!.Value);
 
-                var resultado = _inscribirAlumno.Ejecutar(alumnoId, grupoId);
+                var resultado =
+                    _inscribirAlumno.Ejecutar(
+                        alumnoId,
+                        claseId);
 
                 if (resultado == "LISTA_ESPERA")
                 {
                     return Ok(new
                     {
-                        mensaje = "Grupo lleno. Alumno agregado a lista de espera"
+                        mensaje =
+                            "Clase llena. Alumno agregado a lista de espera"
                     });
                 }
 
                 return Ok(new
                 {
-                    mensaje = "Inscripción procesada correctamente"
+                    mensaje =
+                        "Inscripción realizada correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -53,24 +64,30 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
         [Authorize(Roles = "Alumno")]
-        [HttpDelete("{grupoId}")]
-        public IActionResult Desinscribirse(int grupoId)
+        [HttpDelete("{claseId}")]
+        public IActionResult Desinscribirse(int claseId)
         {
             try
             {
-                var alumnoId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var alumnoId = int.Parse(
+                    User.FindFirst(
+                        ClaimTypes.NameIdentifier)!.Value);
 
-                _desinscribirAlumno.Ejecutar(alumnoId, grupoId);
+                _desinscribirAlumno.Ejecutar(
+                    alumnoId,
+                    claseId);
 
                 return Ok(new
                 {
-                    mensaje = "Desinscripción procesada correctamente"
+                    mensaje =
+                        "Desinscripción realizada correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -84,7 +101,8 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }

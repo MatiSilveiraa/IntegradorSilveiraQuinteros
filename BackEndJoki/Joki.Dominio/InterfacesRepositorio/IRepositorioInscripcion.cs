@@ -6,13 +6,11 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
     {
         void Agregar(Inscripcion inscripcion);
 
-        void Remover(int alumnoId, int grupoId);
+        void Remover(int alumnoId, int claseId);
 
-        bool Existe(int alumnoId, int grupoId);
+        bool Existe(int alumnoId, int claseId);
 
-        int CantidadPorGrupo(int grupoId);
-
-        bool TieneSuperposicion(int alumnoId, Grupo grupo);
+        int CantidadPorClase(int claseId);
 
         IEnumerable<Inscripcion> ObtenerPorAlumno(int alumnoId);
     }

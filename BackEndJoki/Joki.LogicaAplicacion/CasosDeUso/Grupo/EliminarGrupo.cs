@@ -1,4 +1,5 @@
 ﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
+using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
@@ -19,10 +20,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
 
             if (grupo == null)
             {
-                throw new LogicaNegocioException("El grupo solicitado no existe.");
+                throw new LogicaNegocioException(
+                    "El grupo solicitado no existe.");
             }
 
-            _repositorioGrupo.Eliminar(id);
+            grupo.Estado = EstadoGrupo.INACTIVO;
+
+            _repositorioGrupo.Actualizar(grupo);
         }
     }
 }
