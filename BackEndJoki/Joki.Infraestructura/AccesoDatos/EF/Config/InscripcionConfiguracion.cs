@@ -1,12 +1,15 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Config
 {
-    public class InscripcionConfig : IEntityTypeConfiguration<Inscripcion>
+    public class InscripcionConfig :
+        IEntityTypeConfiguration<Inscripcion>
     {
-        public void Configure(EntityTypeBuilder<Inscripcion> builder)
+        public void Configure(
+            EntityTypeBuilder<Inscripcion> builder)
         {
             builder.ToTable("Inscripcion");
 
@@ -20,12 +23,17 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .HasForeignKey(i => i.AlumnoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(i => i.Grupo)
-                .WithMany(g => g.Inscripciones)
-                .HasForeignKey(i => i.GrupoId)
+            builder.HasOne(i => i.Clase)
+                .WithMany(c => c.Inscripciones)
+                .HasForeignKey(i => i.ClaseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(i => new { i.AlumnoId, i.GrupoId })
+            builder.HasIndex(i =>
+                new
+                {
+                    i.AlumnoId,
+                    i.ClaseId
+                })
                 .IsUnique();
         }
     }

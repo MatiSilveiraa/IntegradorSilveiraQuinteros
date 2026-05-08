@@ -2,64 +2,98 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using System.Linq;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
 {
     public class DesinscribirAlumno : IDesinscribirAlumno
     {
         private readonly IRepositorioInscripcion _repositorioInscripcion;
+
         private readonly IRepositorioListaEspera _repositorioListaEspera;
+
         private readonly IRepositorioAlumno _repositorioAlumno;
-        private readonly IRepositorioGrupo _repositorioGrupo;
+
+        private readonly IRepositorioClase _repositorioClase;
+
         private readonly IServicioEmail _servicioEmail;
 
         public DesinscribirAlumno(
             IRepositorioInscripcion repositorioInscripcion,
             IRepositorioListaEspera repositorioListaEspera,
             IRepositorioAlumno repositorioAlumno,
-            IRepositorioGrupo repositorioGrupo,
+            IRepositorioClase repositorioClase,
             IServicioEmail servicioEmail)
         {
             _repositorioInscripcion = repositorioInscripcion;
+
             _repositorioListaEspera = repositorioListaEspera;
+
             _repositorioAlumno = repositorioAlumno;
-            _repositorioGrupo = repositorioGrupo;
+
+            _repositorioClase = repositorioClase;
+
             _servicioEmail = servicioEmail;
         }
 
-        public void Ejecutar(int alumnoId, int grupoId)
+        public void Ejecutar(int alumnoId, int claseId)
         {
-            if (!_repositorioInscripcion.Existe(alumnoId, grupoId))
+            if (!_repositorioInscripcion.Existe(alumnoId, claseId))
             {
-                throw new LogicaNegocioException("El alumno no está inscripto en este grupo");
+                throw new LogicaNegocioException(
+                    "El alumno no está inscripto en esta clase");
             }
 
-            _repositorioInscripcion.Remover(alumnoId, grupoId);
+            _repositorioInscripcion.Remover(
+                alumnoId,
+                claseId);
 
-            var alumnosEnEspera = _repositorioListaEspera.ObtenerAlumnosEnEspera(grupoId).ToList();
+            var alumnosEnEspera = _repositorioListaEspera
+                .ObtenerAlumnosEnEspera(claseId)
+                .ToList();
 
-            if (alumnosEnEspera.Any())
+            if (!alumnosEnEspera.Any())
             {
-                var proximoAlumnoId = alumnosEnEspera.First();
-                
-                var nuevaInscripcion = new Inscripcion
-                {
-                    AlumnoId = proximoAlumnoId,
-                    GrupoId = grupoId,
-                    FechaInscripcion = System.DateTime.UtcNow
-                };
+                return;
+            }
 
-                _repositorioInscripcion.Agregar(nuevaInscripcion);
-                _repositorioListaEspera.Remover(proximoAlumnoId, grupoId);
+            var proximoAlumnoId = alumnosEnEspera.First();
 
-                var alumnoHeredado = _repositorioAlumno.ObtenerPorId(proximoAlumnoId);
-                var grupo = _repositorioGrupo.ObtenerPorId(grupoId);
+            var clase = _repositorioClase.ObtenerPorId(claseId);
 
-                if (alumnoHeredado != null && grupo != null)
-                {
-                    _servicioEmail.EnviarNotificacionInscripcion(alumnoHeredado.Email.Valor, grupo.Nombre);
-                }
+            if (clase == null)
+            {
+                throw new LogicaNegocioException(
+                    "Clase no encontrada");
+            }
+
+            if (!clase.TieneCupoDisponible())
+            {
+                return;
+            }
+
+            var nuevaInscripcion = new Inscripcion
+            {
+                AlumnoId = proximoAlumnoId,
+                ClaseId = claseId,
+                FechaInscripcion = DateTime.UtcNow
+            };
+
+            _repositorioInscripcion.Agregar(
+                nuevaInscripcion);
+
+            _repositorioListaEspera.Remover(
+                proximoAlumnoId,
+                claseId);
+
+            var alumnoPromovido =
+                _repositorioAlumno.ObtenerPorId(
+                    proximoAlumnoId);
+
+            if (alumnoPromovido != null)
+            {
+                _servicioEmail.EnviarNotificacionInscripcion(
+                    alumnoPromovido.Email.Valor,
+                    clase.Grupo.Nombre);
             }
         }
     }

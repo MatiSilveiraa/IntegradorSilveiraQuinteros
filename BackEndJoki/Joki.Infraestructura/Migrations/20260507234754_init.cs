@@ -29,21 +29,6 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ListaEspera",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AlumnoId = table.Column<int>(type: "int", nullable: false),
-                    GrupoId = table.Column<int>(type: "int", nullable: false),
-                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ListaEspera", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Rol",
                 columns: table => new
                 {
@@ -209,26 +194,12 @@ namespace Joki.Infraestructura.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Nivel = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CupoMaximo = table.Column<int>(type: "int", nullable: false),
-                    DiaSemana = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    HoraInicio = table.Column<TimeSpan>(type: "time", nullable: false),
-                    HoraFin = table.Column<TimeSpan>(type: "time", nullable: false),
-                    Latitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
-                    Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
-                    CodigoPostal = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    RadioGeolocalizacion = table.Column<decimal>(type: "decimal(8,2)", nullable: false),
-                    EsFijo = table.Column<bool>(type: "bit", nullable: false),
-                    FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EntrenadorId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Grupo", x => x.Id);
-                    table.CheckConstraint("CK_Grupo_Cupo", "[CupoMaximo] > 0");
-                    table.CheckConstraint("CK_Grupo_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
-                    table.CheckConstraint("CK_Grupo_Horario", "[HoraFin] > [HoraInicio]");
                     table.ForeignKey(
                         name: "FK_Grupo_Usuario_EntrenadorId",
                         column: x => x.EntrenadorId,
@@ -317,74 +288,30 @@ namespace Joki.Infraestructura.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GrupoId = table.Column<int>(type: "int", nullable: false),
-                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Hora = table.Column<TimeSpan>(type: "time", nullable: false),
+                    DiaSemana = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HoraInicio = table.Column<TimeSpan>(type: "time", nullable: false),
+                    HoraFin = table.Column<TimeSpan>(type: "time", nullable: false),
+                    Latitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    CodigoPostal = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    RadioGeolocalizacion = table.Column<decimal>(type: "decimal(8,2)", nullable: false),
+                    EsFija = table.Column<bool>(type: "bit", nullable: false),
+                    FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CupoMaximo = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Clase", x => x.Id);
+                    table.CheckConstraint("CK_Clase_Cupo", "[CupoMaximo] > 0");
+                    table.CheckConstraint("CK_Clase_Fechas", "[FechaFin] IS NULL OR [FechaFin] >= [FechaInicio]");
+                    table.CheckConstraint("CK_Clase_Horario", "[HoraFin] > [HoraInicio]");
                     table.ForeignKey(
                         name: "FK_Clase_Grupo_GrupoId",
                         column: x => x.GrupoId,
                         principalTable: "Grupo",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Inscripcion",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AlumnoId = table.Column<int>(type: "int", nullable: false),
-                    GrupoId = table.Column<int>(type: "int", nullable: false),
-                    FechaInscripcion = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Inscripcion", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Inscripcion_Grupo_GrupoId",
-                        column: x => x.GrupoId,
-                        principalTable: "Grupo",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Inscripcion_Usuario_AlumnoId",
-                        column: x => x.AlumnoId,
-                        principalTable: "Usuario",
-                        principalColumn: "UsuarioId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SolicitudCupo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AlumnoId = table.Column<int>(type: "int", nullable: false),
-                    GrupoId = table.Column<int>(type: "int", nullable: false),
-                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Orden = table.Column<int>(type: "int", nullable: false),
-                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SolicitudCupo", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SolicitudCupo_Grupo_GrupoId",
-                        column: x => x.GrupoId,
-                        principalTable: "Grupo",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SolicitudCupo_Usuario_AlumnoId",
-                        column: x => x.AlumnoId,
-                        principalTable: "Usuario",
-                        principalColumn: "UsuarioId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -417,6 +344,60 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Inscripcion",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AlumnoId = table.Column<int>(type: "int", nullable: false),
+                    ClaseId = table.Column<int>(type: "int", nullable: false),
+                    FechaInscripcion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Inscripcion", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Inscripcion_Clase_ClaseId",
+                        column: x => x.ClaseId,
+                        principalTable: "Clase",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Inscripcion_Usuario_AlumnoId",
+                        column: x => x.AlumnoId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListaEspera",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AlumnoId = table.Column<int>(type: "int", nullable: false),
+                    ClaseId = table.Column<int>(type: "int", nullable: false),
+                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListaEspera", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ListaEspera_Clase_ClaseId",
+                        column: x => x.ClaseId,
+                        principalTable: "Clase",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ListaEspera_Usuario_AlumnoId",
+                        column: x => x.AlumnoId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MaterialEjercicio",
                 columns: table => new
                 {
@@ -435,6 +416,35 @@ namespace Joki.Infraestructura.Migrations
                         column: x => x.ClaseId,
                         principalTable: "Clase",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SolicitudCupo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AlumnoId = table.Column<int>(type: "int", nullable: false),
+                    ClaseId = table.Column<int>(type: "int", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Orden = table.Column<int>(type: "int", nullable: false),
+                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SolicitudCupo", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SolicitudCupo_Clase_ClaseId",
+                        column: x => x.ClaseId,
+                        principalTable: "Clase",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SolicitudCupo_Usuario_AlumnoId",
+                        column: x => x.AlumnoId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -475,9 +485,9 @@ namespace Joki.Infraestructura.Migrations
                 column: "RecompensaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Clase_GrupoId_Fecha_Hora",
+                name: "IX_Clase_GrupoId_DiaSemana_HoraInicio",
                 table: "Clase",
-                columns: new[] { "GrupoId", "Fecha", "Hora" });
+                columns: new[] { "GrupoId", "DiaSemana", "HoraInicio" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Cuota_AlumnoId_Mes_Anio",
@@ -496,15 +506,25 @@ namespace Joki.Infraestructura.Migrations
                 column: "EntrenadorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inscripcion_AlumnoId_GrupoId",
+                name: "IX_Inscripcion_AlumnoId_ClaseId",
                 table: "Inscripcion",
-                columns: new[] { "AlumnoId", "GrupoId" },
+                columns: new[] { "AlumnoId", "ClaseId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inscripcion_GrupoId",
+                name: "IX_Inscripcion_ClaseId",
                 table: "Inscripcion",
-                column: "GrupoId");
+                column: "ClaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ListaEspera_AlumnoId",
+                table: "ListaEspera",
+                column: "AlumnoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ListaEspera_ClaseId",
+                table: "ListaEspera",
+                column: "ClaseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MaterialEjercicio_ClaseId",
@@ -559,20 +579,20 @@ namespace Joki.Infraestructura.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SolicitudCupo_AlumnoId_GrupoId",
+                name: "IX_SolicitudCupo_AlumnoId_ClaseId",
                 table: "SolicitudCupo",
-                columns: new[] { "AlumnoId", "GrupoId" },
+                columns: new[] { "AlumnoId", "ClaseId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_SolicitudCupo_GrupoId",
+                name: "IX_SolicitudCupo_ClaseId",
                 table: "SolicitudCupo",
-                column: "GrupoId");
+                column: "ClaseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SolicitudCupo_GrupoId_Orden",
+                name: "IX_SolicitudCupo_ClaseId_Orden",
                 table: "SolicitudCupo",
-                columns: new[] { "GrupoId", "Orden" },
+                columns: new[] { "ClaseId", "Orden" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -627,10 +647,10 @@ namespace Joki.Infraestructura.Migrations
                 name: "Recompensa");
 
             migrationBuilder.DropTable(
-                name: "Clase");
+                name: "Cuota");
 
             migrationBuilder.DropTable(
-                name: "Cuota");
+                name: "Clase");
 
             migrationBuilder.DropTable(
                 name: "Desafio");

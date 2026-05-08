@@ -1,0 +1,187 @@
+﻿using Joki.CasoUsoCompartida.DTOs.Clase;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
+using Joki.Infraestructura.AccesoDatos.Excepciones;
+using Joki.LogicaNegocio.Excepciones;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Joki.WebApi.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ClaseController : ControllerBase
+    {
+        private readonly ICrearClase _crearClase;
+
+        private readonly IEditarClase _editarClase;
+
+        private readonly IEliminarClase _eliminarClase;
+
+        private readonly IObtenerClase _obtenerClase;
+
+        private readonly IObtenerClases _obtenerClases;
+
+        public ClaseController(
+            ICrearClase crearClase,
+            IEditarClase editarClase,
+            IEliminarClase eliminarClase,
+            IObtenerClase obtenerClase,
+            IObtenerClases obtenerClases)
+        {
+            _crearClase = crearClase;
+
+            _editarClase = editarClase;
+
+            _eliminarClase = eliminarClase;
+
+            _obtenerClase = obtenerClase;
+
+            _obtenerClases = obtenerClases;
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public IActionResult Crear(
+            [FromBody] CrearClaseRequest request)
+        {
+            try
+            {
+                var response =
+                    _crearClase.Ejecutar(request);
+
+                return StatusCode(201, response);
+            }
+            catch (InfraestructuraException e)
+            {
+                return StatusCode(
+                    e.StatusCode(),
+                    e.Error());
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            try
+            {
+                var clases =
+                    _obtenerClases.Ejecutar();
+
+                return Ok(clases);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult ObtenerPorId(int id)
+        {
+            try
+            {
+                var clase =
+                    _obtenerClase.Ejecutar(id);
+
+                return Ok(clase);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public IActionResult Editar(
+            int id,
+            [FromBody] EditarClaseRequest request)
+        {
+            try
+            {
+                var clase =
+                    _editarClase.Ejecutar(
+                        id,
+                        request);
+
+                return Ok(clase);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public IActionResult Eliminar(int id)
+        {
+            try
+            {
+                _eliminarClase.Ejecutar(id);
+
+                return Ok(new
+                {
+                    mensaje =
+                        "Clase eliminada correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+    }
+}

@@ -1,22 +1,25 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
+using Joki.Infraestructura.Servicios;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaAplicacion.CasosDeUso.Clase;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
-using Joki.Infraestructura.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,7 +92,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
     builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
-    builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
+builder.Services.AddScoped<IRepositorioClase, RepositorioClase>();
+builder.Services.AddScoped<IEliminarClase, EliminarClase>();
+builder.Services.AddScoped<ICrearClase, CrearClase>();
+builder.Services.AddScoped<IObtenerClase, ObtenerClase>();
+
+builder.Services.AddScoped<IObtenerClases, ObtenerClases>();
+builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>

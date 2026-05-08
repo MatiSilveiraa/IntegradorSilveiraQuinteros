@@ -4,48 +4,42 @@ using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
-namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
+public class CrearGrupo : ICrearGrupo
 {
-    public class CrearGrupo : ICrearGrupo
+    private readonly IRepositorioGrupo _repositorioGrupo;
+
+    public CrearGrupo(IRepositorioGrupo repositorioGrupo)
     {
-        private readonly IRepositorioGrupo _repositorioGrupo;
+        _repositorioGrupo = repositorioGrupo;
+    }
 
-        public CrearGrupo(IRepositorioGrupo repositorioGrupo)
+    public GrupoResponse Ejecutar(CrearGrupoRequest request)
+    {
+        if (request == null)
+            throw new LogicaNegocioException("Datos inválidos.");
+
+        if (string.IsNullOrWhiteSpace(request.Nombre))
+            throw new LogicaNegocioException("El nombre es obligatorio.");
+
+        if (request.Clases.Any(c => c.CupoMaximo <= 0))
         {
-            _repositorioGrupo = repositorioGrupo;
+            throw new LogicaNegocioException(
+                "Cupo inválido.");
         }
 
-        public GrupoResponse Ejecutar(CrearGrupoRequest request)
+        if (request.Clases == null || !request.Clases.Any())
+            throw new LogicaNegocioException("El grupo debe tener al menos una clase.");
+
+        foreach (var clase in request.Clases)
         {
-            if (request == null)
-            {
-                throw new LogicaNegocioException("Los datos del grupo no pueden ser nulos.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Nombre))
-            {
-                throw new LogicaNegocioException("El nombre del grupo es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Nivel))
-            {
-                throw new LogicaNegocioException("El nivel del grupo es obligatorio.");
-            }
-
-            if (request.CupoMaximo <= 0)
-            {
-                throw new LogicaNegocioException("El cupo máximo debe ser mayor a cero.");
-            }
-
-            if (request.HoraFin <= request.HoraInicio)
-            {
-                throw new LogicaNegocioException("La hora de fin debe ser posterior a la hora de inicio.");
-            }
-
-            var grupo = MapperGrupo.ToEntity(request);
-            var grupoCreado = _repositorioGrupo.Agregar(grupo);
-
-            return MapperGrupo.ToResponse(grupoCreado);
+            if (clase.HoraFin <= clase.HoraInicio)
+                throw new LogicaNegocioException("Horario inválido.");
         }
+
+        var grupo = MapperGrupo.ToEntity(request);
+
+        var grupoCreado = _repositorioGrupo.Agregar(grupo);
+
+        return MapperGrupo.ToResponse(grupoCreado);
     }
 }
