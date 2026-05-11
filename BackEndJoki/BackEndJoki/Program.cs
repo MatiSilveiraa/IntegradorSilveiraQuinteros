@@ -98,6 +98,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerClase, ObtenerClase>();
     builder.Services.AddScoped<IEditarClase, EditarClase>();
     builder.Services.AddScoped<IObtenerClases, ObtenerClases>();
+    builder.Services.AddScoped<IObtenerClasesInscripto, ObtenerClasesInscripto>();
     builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
     builder.Services.AddAuthorization();
