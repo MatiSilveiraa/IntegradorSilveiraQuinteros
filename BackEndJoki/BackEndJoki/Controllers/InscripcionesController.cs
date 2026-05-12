@@ -11,16 +11,15 @@ namespace Joki.WebApi.Controllers
     public class InscripcionesController : ControllerBase
     {
         private readonly IInscribirAlumno _inscribirAlumno;
-
         private readonly IDesinscribirAlumno _desinscribirAlumno;
+        private readonly IObtenerClasesInscripto _obtenerClasesInscripto;
 
-        public InscripcionesController(
-            IInscribirAlumno inscribirAlumno,
-            IDesinscribirAlumno desinscribirAlumno)
+        public InscripcionesController(IInscribirAlumno inscribirAlumno,IDesinscribirAlumno desinscribirAlumno,IObtenerClasesInscripto obtenerClasesInscripto)
         {
             _inscribirAlumno = inscribirAlumno;
 
             _desinscribirAlumno = desinscribirAlumno;
+            _obtenerClasesInscripto = obtenerClasesInscripto;
         }
 
         [Authorize(Roles = "Alumno")]
@@ -103,6 +102,35 @@ namespace Joki.WebApi.Controllers
                 {
                     mensaje =
                         "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Alumno")]
+        [HttpGet("mis-clases")]
+        public IActionResult ObtenerMisClases()
+        {
+            try
+            {
+                var alumnoId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                var clases = _obtenerClasesInscripto.Ejecutar(alumnoId);
+
+                return Ok(clases);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
