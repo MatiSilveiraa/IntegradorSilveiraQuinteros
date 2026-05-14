@@ -1,4 +1,5 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
@@ -10,6 +11,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
+using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -91,6 +93,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IEliminarGrupo, EliminarGrupo>();
     builder.Services.AddScoped<IRepositorioListaEspera, RepositorioListaEspera>();
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
+    builder.Services.AddScoped<IRepositorioAsistencia, RepositorioAsistencia>();
+    builder.Services.AddScoped<IRegistrarAsistencia, RegistrarAsistencia>();
     builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
     builder.Services.AddScoped<IRepositorioClase, RepositorioClase>();
     builder.Services.AddScoped<IEliminarClase, EliminarClase>();

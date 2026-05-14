@@ -8,29 +8,38 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
     {
         public void Configure(EntityTypeBuilder<Asistencia> builder)
         {
-            builder.ToTable("Asistencia");
-
             builder.HasKey(a => a.Id);
+
+            builder.Property(a => a.Fecha)
+                .IsRequired();
 
             builder.Property(a => a.Presente)
                 .IsRequired();
 
-            builder.Property(a => a.TipoRegistro)
-                .HasConversion<string>()
+            builder.Property(a => a.FechaRegistro)
                 .IsRequired();
 
             builder.HasOne(a => a.Alumno)
-                .WithMany(a => a.Asistencias)
+                .WithMany()
                 .HasForeignKey(a => a.AlumnoId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(a => a.Clase)
                 .WithMany()
                 .HasForeignKey(a => a.ClaseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(a => new { a.AlumnoId, a.ClaseId })
-                .IsUnique();
+            builder.HasOne(a => a.RegistradoPor)
+                .WithMany()
+                .HasForeignKey(a => a.RegistradoPorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(a => new
+            {
+                a.AlumnoId,
+                a.ClaseId,
+                a.Fecha
+            }).IsUnique();
         }
     }
 }

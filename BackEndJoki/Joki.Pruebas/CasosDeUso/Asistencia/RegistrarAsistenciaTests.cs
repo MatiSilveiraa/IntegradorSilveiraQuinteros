@@ -1,0 +1,172 @@
+﻿using Joki.CasoUsoCompartida.DTOs.Asistencia;
+using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
+using Joki.LogicaNegocio.Excepciones;
+using Joki.LogicaNegocio.InterfacesRepositorio;
+using Moq;
+using Entidades = Joki.LogicaNegocio.Entidades;
+
+namespace Joki.Pruebas.CasosDeUso.Asistencia
+{
+    public class RegistrarAsistenciaTests
+    {
+        private readonly Mock<IRepositorioAsistencia> _repoAsistenciaMock;
+        private readonly Mock<IRepositorioClase> _repoClaseMock;
+        private readonly Mock<IRepositorioAlumno> _repoAlumnoMock;
+
+        private readonly RegistrarAsistencia _casoUso;
+
+        public RegistrarAsistenciaTests()
+        {
+            _repoAsistenciaMock = new Mock<IRepositorioAsistencia>();
+            _repoClaseMock = new Mock<IRepositorioClase>();
+            _repoAlumnoMock = new Mock<IRepositorioAlumno>();
+
+            _casoUso = new RegistrarAsistencia(
+                _repoAsistenciaMock.Object,
+                _repoClaseMock.Object,
+                _repoAlumnoMock.Object
+            );
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaRegistrarAsistencia_CuandoDatosSonValidos()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Alumno());
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            _repoAsistenciaMock.Verify(r => r.Agregar(
+                It.Is<Entidades.Asistencia>(a =>
+                    a.AlumnoId == 1 &&
+                    a.ClaseId == 1 &&
+                    a.Presente == true &&
+                    a.RegistradoPorId == 2
+                )), Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaLanzarExcepcion_CuandoRequestEsNulo()
+        {
+            LogicaNegocioException ex = Assert.Throws<LogicaNegocioException>(() =>
+                _casoUso.Ejecutar(null, 2)
+            );
+
+            Assert.Equal(
+                "Los datos de asistencia no pueden ser nulos",
+                ex.Message);
+
+            _repoAsistenciaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Asistencia>()), Times.Never);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaLanzarExcepcion_CuandoAlumnoNoExiste()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 99,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(99))
+                .Returns((Entidades.Alumno)null);
+
+            LogicaNegocioException ex = Assert.Throws<LogicaNegocioException>(() =>
+                _casoUso.Ejecutar(request, 2)
+            );
+
+            Assert.Equal(
+                "Alumno no encontrado",
+                ex.Message);
+
+            _repoAsistenciaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Asistencia>()), Times.Never);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaLanzarExcepcion_CuandoClaseNoExiste()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 99,
+                Presente = true
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Alumno());
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(99))
+                .Returns((Entidades.Clase)null);
+
+            LogicaNegocioException ex = Assert.Throws<LogicaNegocioException>(() =>
+                _casoUso.Ejecutar(request, 2)
+            );
+
+            Assert.Equal(
+                "Clase no encontrada",
+                ex.Message);
+
+            _repoAsistenciaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Asistencia>()), Times.Never);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaLanzarExcepcion_CuandoAsistenciaYaExiste()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Alumno());
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(
+                    1,
+                    1,
+                    It.IsAny<DateTime>()))
+                .Returns(true);
+
+            LogicaNegocioException ex = Assert.Throws<LogicaNegocioException>(() =>
+                _casoUso.Ejecutar(request, 2)
+            );
+
+            Assert.Equal(
+                "La asistencia ya fue registrada",
+                ex.Message);
+
+            _repoAsistenciaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Asistencia>()), Times.Never);
+        }
+    }
+}
