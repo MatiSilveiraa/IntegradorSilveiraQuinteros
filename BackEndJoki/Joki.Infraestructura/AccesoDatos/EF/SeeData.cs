@@ -285,85 +285,180 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         {
             var grupos =
                 _context.Grupos.ToList();
-
             var grupo1 = grupos.First();
-
             var grupo2 = grupos.Last();
-
             var clases = new List<Clase>
+    {
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+            DiaSemana = DiaSemana.Lunes,
+            HoraInicio =
+                new TimeSpan(9, 0, 0),
+            HoraFin =
+                new TimeSpan(10, 0, 0),
+            CupoMaximo = 5,
+            Ubicacion = new Ubicacion
             {
-                new Clase
-                {
-                    GrupoId = grupo1.Id,
+                Latitud = -34.90m,
 
-                    DiaSemana = DiaSemana.Lunes,
+                Longitud = -56.16m,
 
-                    HoraInicio =
-                        new TimeSpan(9, 0, 0),
+                CodigoPostal = "11000"
+            },
+            RadioGeolocalizacion = 100,
+            EsFija = true,
+            FechaInicio = DateTime.Now,
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+            Estado =
+                EstadoClase.Programada
+        },
 
-                    HoraFin =
-                        new TimeSpan(10, 0, 0),
+        new Clase
+        {
+            GrupoId = grupo1.Id,
 
-                    CupoMaximo = 2,
+            DiaSemana = DiaSemana.Martes,
 
-                    Ubicacion = new Ubicacion
-                    {
-                        Latitud = -34.90m,
+            HoraInicio =
+                new TimeSpan(10, 0, 0),
 
-                        Longitud = -56.16m,
+            HoraFin =
+                new TimeSpan(11, 0, 0),
 
-                        CodigoPostal = "11000"
-                    },
+            CupoMaximo = 5,
 
-                    RadioGeolocalizacion = 100,
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
 
-                    EsFija = true,
+                Longitud = -56.16m,
 
-                    FechaInicio = DateTime.Now,
+                CodigoPostal = "11000"
+            },
 
-                    FechaFin =
-                        DateTime.Now.AddMonths(3),
+            RadioGeolocalizacion = 100,
 
-                    Estado =
-                        EstadoClase.Programada
-                },
+            EsFija = true,
 
-                new Clase
-                {
-                    GrupoId = grupo2.Id,
+            FechaInicio = DateTime.Now,
 
-                    DiaSemana = DiaSemana.Lunes,
+            FechaFin =
+                DateTime.Now.AddMonths(3),
 
-                    HoraInicio =
-                        new TimeSpan(9, 0, 0),
+            Estado =
+                EstadoClase.Programada
+        },
 
-                    HoraFin =
-                        new TimeSpan(10, 0, 0),
+        new Clase
+        {
+            GrupoId = grupo1.Id,
 
-                    CupoMaximo = 5,
+            DiaSemana = DiaSemana.Miercoles,
 
-                    Ubicacion = new Ubicacion
-                    {
-                        Latitud = -34.91m,
+            HoraInicio =
+                new TimeSpan(10, 0, 0),
 
-                        Longitud = -56.17m,
+            HoraFin =
+                new TimeSpan(11, 0, 0),
 
-                        CodigoPostal = "11000"
-                    },
+            CupoMaximo = 5,
 
-                    RadioGeolocalizacion = 100,
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
 
-                    EsFija = true,
+                Longitud = -56.16m,
 
-                    FechaInicio = DateTime.Now,
+                CodigoPostal = "11000"
+            },
 
-                    FechaFin =
-                        DateTime.Now.AddMonths(3),
+            RadioGeolocalizacion = 100,
 
-                    Estado =
-                        EstadoClase.Programada
-                }
-            };
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Jueves,
+
+            HoraInicio =
+                new TimeSpan(10, 0, 0),
+
+            HoraFin =
+                new TimeSpan(11, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Viernes,
+
+            HoraInicio =
+                new TimeSpan(10, 0, 0),
+
+            HoraFin =
+                new TimeSpan(11, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        }
+    };
 
             _context.Clases.AddRange(clases);
 

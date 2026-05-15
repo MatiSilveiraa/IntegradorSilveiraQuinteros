@@ -4,7 +4,6 @@ using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
-
 namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
 {
     public class RegistrarAsistencia : IRegistrarAsistencia
@@ -73,6 +72,25 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
             };
 
             _repoAsistencia.Agregar(asistencia);
+
+            if (!request.Presente)
+            {
+                var ultimasAsistencias =
+                    _repoAsistencia.ObtenerUltimasAsistencias(
+                        request.AlumnoId,
+                        5);
+
+                bool todasSonFaltas =
+                    ultimasAsistencias.Count == 5 &&
+                    ultimasAsistencias.All(a => !a.Presente);
+
+                if (todasSonFaltas)
+                {
+                    alumno.BloqueadoPorInasistencias = true;
+
+                    _repoAlumno.Modificar(alumno);
+                }
+            }
         }
     }
 }

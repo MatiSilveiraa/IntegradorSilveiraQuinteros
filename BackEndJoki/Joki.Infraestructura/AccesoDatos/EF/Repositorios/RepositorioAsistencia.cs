@@ -26,5 +26,14 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 a.ClaseId == claseId &&
                 a.Fecha.Date == fecha.Date);
         }
+
+        public List<Asistencia> ObtenerUltimasAsistencias(int alumnoId, int cantidad)
+        {
+            return _context.Asistencias
+                .Where(a => a.AlumnoId == alumnoId)
+                .OrderByDescending(a => a.Fecha)
+                .Take(cantidad)
+                .ToList();
+        }
     }
 }
