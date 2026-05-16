@@ -47,6 +47,21 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
                 .WithOne()
                 .HasForeignKey("AlumnoId")
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(a => a.BloqueadoPorInasistencias)
+                .IsRequired();
+
+            builder.Property(a => a.RachaAsistenciaMensual)
+                .IsRequired();
+
+            builder.Property(a => a.MesRachaAsistencia)
+                .IsRequired();
+
+            builder.Property(a => a.AnioRachaAsistencia)
+                .IsRequired();
+
+            builder.Property(a => a.DescuentoRachaGenerado)
+                .IsRequired();
         }
     }
 }

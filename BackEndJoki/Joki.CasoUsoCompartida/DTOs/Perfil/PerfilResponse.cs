@@ -11,5 +11,9 @@ namespace Joki.CasoUsoCompartida.DTOs.Perfil
         public string? SociedadMedica { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public int Genero { get; set; }
+
+        public bool BloqueadoPorInasistencias { get; set; }
+        public int RachaAsistenciaMensual { get; set; }
+        public bool DescuentoRachaGenerado { get; set; }
     }
 }

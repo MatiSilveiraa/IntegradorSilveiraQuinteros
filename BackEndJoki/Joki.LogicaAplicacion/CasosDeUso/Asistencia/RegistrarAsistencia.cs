@@ -73,6 +73,37 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
 
             _repoAsistencia.Agregar(asistencia);
 
+            int mesActual = DateTime.Now.Month;
+            int anioActual = DateTime.Now.Year;
+
+            if (alumno.MesRachaAsistencia != mesActual ||
+                alumno.AnioRachaAsistencia != anioActual)
+            {
+                alumno.RachaAsistenciaMensual = 0;
+                alumno.DescuentoRachaGenerado = false;
+                alumno.MesRachaAsistencia = mesActual;
+                alumno.AnioRachaAsistencia = anioActual;
+            }
+
+            if (request.Presente)
+            {
+                alumno.RachaAsistenciaMensual++;
+
+                if (alumno.RachaAsistenciaMensual >= 10 &&
+                    !alumno.DescuentoRachaGenerado)
+                {
+                    alumno.DescuentoRachaGenerado = true;
+                }
+
+                _repoAlumno.Modificar(alumno);
+            }
+            else
+            {
+                alumno.RachaAsistenciaMensual = 0;
+
+                _repoAlumno.Modificar(alumno);
+            }
+
             if (!request.Presente)
             {
                 var ultimasAsistencias =
