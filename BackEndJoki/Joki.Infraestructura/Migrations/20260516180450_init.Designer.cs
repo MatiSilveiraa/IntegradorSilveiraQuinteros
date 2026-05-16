@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    [Migration("20260514180243_AgregarAsistencia")]
-    partial class AgregarAsistencia
+    [Migration("20260516180450_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -645,6 +645,9 @@ namespace Joki.Infraestructura.Migrations
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Alumno", b =>
                 {
                     b.HasBaseType("Usuario");
+
+                    b.Property<bool>("BloqueadoPorInasistencias")
+                        .HasColumnType("bit");
 
                     b.Property<decimal?>("Estatura")
                         .HasColumnType("decimal(5,2)");

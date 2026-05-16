@@ -98,7 +98,8 @@ namespace Joki.Infraestructura.Migrations
                     TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
                     Peso = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
                     Estatura = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    IMC = table.Column<decimal>(type: "decimal(5,2)", nullable: true)
+                    IMC = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
+                    BloqueadoPorInasistencias = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -316,31 +317,45 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Asistencia",
+                name: "Asistencias",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AlumnoId = table.Column<int>(type: "int", nullable: false),
                     ClaseId = table.Column<int>(type: "int", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Presente = table.Column<bool>(type: "bit", nullable: false),
-                    TipoRegistro = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RegistradoPorId = table.Column<int>(type: "int", nullable: false),
+                    AlumnoUsuarioId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Asistencia", x => x.Id);
+                    table.PrimaryKey("PK_Asistencias", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Asistencia_Clase_ClaseId",
+                        name: "FK_Asistencias_Clase_ClaseId",
                         column: x => x.ClaseId,
                         principalTable: "Clase",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Asistencia_Usuario_AlumnoId",
+                        name: "FK_Asistencias_Usuario_AlumnoId",
                         column: x => x.AlumnoId,
                         principalTable: "Usuario",
                         principalColumn: "UsuarioId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Asistencias_Usuario_AlumnoUsuarioId",
+                        column: x => x.AlumnoUsuarioId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId");
+                    table.ForeignKey(
+                        name: "FK_Asistencias_Usuario_RegistradoPorId",
+                        column: x => x.RegistradoPorId,
+                        principalTable: "Usuario",
+                        principalColumn: "UsuarioId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -361,7 +376,7 @@ namespace Joki.Infraestructura.Migrations
                         column: x => x.ClaseId,
                         principalTable: "Clase",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Inscripcion_Usuario_AlumnoId",
                         column: x => x.AlumnoId,
@@ -449,15 +464,25 @@ namespace Joki.Infraestructura.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Asistencia_AlumnoId_ClaseId",
-                table: "Asistencia",
-                columns: new[] { "AlumnoId", "ClaseId" },
+                name: "IX_Asistencias_AlumnoId_ClaseId_Fecha",
+                table: "Asistencias",
+                columns: new[] { "AlumnoId", "ClaseId", "Fecha" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Asistencia_ClaseId",
-                table: "Asistencia",
+                name: "IX_Asistencias_AlumnoUsuarioId",
+                table: "Asistencias",
+                column: "AlumnoUsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Asistencias_ClaseId",
+                table: "Asistencias",
                 column: "ClaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Asistencias_RegistradoPorId",
+                table: "Asistencias",
+                column: "RegistradoPorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Auditoria_Entidad_EntidadId",
@@ -611,7 +636,7 @@ namespace Joki.Infraestructura.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Asistencia");
+                name: "Asistencias");
 
             migrationBuilder.DropTable(
                 name: "Auditoria");
