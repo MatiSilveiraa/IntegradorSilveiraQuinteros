@@ -5,9 +5,11 @@
         public Decimal? Peso { get; set; }
         public Decimal? Estatura { get; set; }
         public Decimal? IMC { get; set; }
-
         public bool BloqueadoPorInasistencias { get; set; }
-
+        public int RachaAsistenciaMensual { get; set; }
+        public int MesRachaAsistencia { get; set; }
+        public int AnioRachaAsistencia { get; set; }
+        public bool DescuentoRachaGenerado { get; set; }
         public virtual ICollection<SolicitudCupo> SolicitudesCupo { get; set; }
         public virtual ICollection<Inscripcion> Inscripciones { get; set; }
         public virtual ICollection<Asistencia> Asistencias { get; set; }

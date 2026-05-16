@@ -211,7 +211,9 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
 
             Assert.True(alumno.BloqueadoPorInasistencias);
 
-            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Once);
+            _repoAlumnoMock.Verify(
+    r => r.Modificar(alumno),
+    Times.AtLeastOnce);
         }
 
         [Fact]
@@ -256,7 +258,254 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
 
             Assert.False(alumno.BloqueadoPorInasistencias);
 
-            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Never);
+            
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaAumentarRacha_CuandoAlumnoEstaPresente()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 3,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(4, alumno.RachaAsistenciaMensual);
+
+            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaReiniciarRacha_CuandoAlumnoEstaAusente()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = false
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 4,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoAsistenciaMock
+                .Setup(r => r.ObtenerUltimasAsistencias(1, 5))
+                .Returns(new List<Entidades.Asistencia>
+                {
+            new Entidades.Asistencia { Presente = false }
+                });
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(0, alumno.RachaAsistenciaMensual);
+
+            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaGenerarDescuento_CuandoRachaLlegaADiez()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 9,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(10, alumno.RachaAsistenciaMensual);
+            Assert.True(alumno.DescuentoRachaGenerado);
+
+            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaAumentarRachaMensual_CuandoAlumnoEstaPresente()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 3,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(4, alumno.RachaAsistenciaMensual);
+            Assert.False(alumno.DescuentoRachaGenerado);
+
+            _repoAlumnoMock.Verify(
+                r => r.Modificar(alumno),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaReiniciarRachaMensual_CuandoAlumnoEstaAusente()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = false
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 4,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoAsistenciaMock
+                .Setup(r => r.ObtenerUltimasAsistencias(1, 5))
+                .Returns(new List<Entidades.Asistencia>
+                {
+            new Entidades.Asistencia { Presente = false }
+                });
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(0, alumno.RachaAsistenciaMensual);
+
+            _repoAlumnoMock.Verify(
+                r => r.Modificar(alumno),
+                Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaReiniciarRachaMensual_CuandoCambioElMes()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                RachaAsistenciaMensual = 8,
+                MesRachaAsistencia = DateTime.Now.AddMonths(-1).Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = true
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(1, alumno.RachaAsistenciaMensual);
+            Assert.Equal(DateTime.Now.Month, alumno.MesRachaAsistencia);
+            Assert.Equal(DateTime.Now.Year, alumno.AnioRachaAsistencia);
+            Assert.False(alumno.DescuentoRachaGenerado);
+
+            _repoAlumnoMock.Verify(
+                r => r.Modificar(alumno),
+                Times.Once);
         }
     }
 }

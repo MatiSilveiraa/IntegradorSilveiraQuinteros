@@ -1,25 +1,49 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Perfil;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Entidades = Joki.LogicaNegocio.Entidades;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
 {
     public class ObtenerPerfilUsuario : IObtenerPerfilUsuario
     {
-        private readonly IRepositorioUsuario _repositorio;
+        private readonly IRepositorioUsuario _repositorioUsuario;
+        private readonly IRepositorioAlumno _repositorioAlumno;
 
-        public ObtenerPerfilUsuario(IRepositorioUsuario repositorio)
+        public ObtenerPerfilUsuario(
+            IRepositorioUsuario repositorioUsuario,
+            IRepositorioAlumno repositorioAlumno)
         {
-            _repositorio = repositorio;
+            _repositorioUsuario = repositorioUsuario;
+            _repositorioAlumno = repositorioAlumno;
         }
 
         public PerfilResponse Ejecutar(int usuarioId)
         {
-            var usuario = _repositorio.ObtenerPorId(usuarioId);
-            
+            var usuario = _repositorioUsuario.ObtenerPorId(usuarioId);
+
             if (usuario == null)
             {
-                throw new InvalidOperationException("El usuario solicitado no existe.");
+                throw new InvalidOperationException(
+                    "El usuario solicitado no existe.");
+            }
+
+            bool bloqueadoPorInasistencias = false;
+            int rachaAsistenciaMensual = 0;
+            bool descuentoRachaGenerado = false;
+
+            var alumno = _repositorioAlumno.ObtenerPorId(usuarioId);
+
+            if (alumno != null)
+            {
+                bloqueadoPorInasistencias =
+                    alumno.BloqueadoPorInasistencias;
+
+                rachaAsistenciaMensual =
+                    alumno.RachaAsistenciaMensual;
+
+                descuentoRachaGenerado =
+                    alumno.DescuentoRachaGenerado;
             }
 
             return new PerfilResponse
@@ -28,10 +52,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
                 Nombre = usuario.Nombre?.Valor ?? "",
                 Apellido = usuario.Apellido?.Valor ?? "",
                 Email = usuario.Email?.Valor ?? "",
-                Celular = usuario.Celular?.Valor ??"",
+                Celular = usuario.Celular?.Valor ?? "",
                 SociedadMedica = usuario.SociedadMedica,
                 FechaNacimiento = usuario.FechaNacimiento,
-                Genero = (int)usuario.Genero
+                Genero = (int)usuario.Genero,
+
+                BloqueadoPorInasistencias =
+                    bloqueadoPorInasistencias,
+
+                RachaAsistenciaMensual =
+                    rachaAsistenciaMensual,
+
+                DescuentoRachaGenerado =
+                    descuentoRachaGenerado
             };
         }
     }

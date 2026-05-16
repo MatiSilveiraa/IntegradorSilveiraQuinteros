@@ -65,175 +65,209 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             var rolAlumno =
                 _context.Roles.First(r => r.Nombre == "Alumno");
 
+            var mesActual = DateTime.Now.Month;
+
+            var anioActual = DateTime.Now.Year;
+
             var usuarios = new List<Usuario>
-            {
-                new Entrenador
-                {
-                    Nombre = new Nombre("Carlos"),
+    {
+        new Entrenador
+        {
+            Nombre = new Nombre("Carlos"),
 
-                    Apellido = new Apellido("Gomez"),
+            Apellido = new Apellido("Gomez"),
 
-                    Email = new Email("admin@joki.com"),
+            Email = new Email("admin@joki.com"),
 
-                    Contrasena =
-                        Contrasena.FromHash(
-                            hasheador.HashPassword(
-                                null,
-                                "Admin#123")),
+            Contrasena =
+                Contrasena.FromHash(
+                    hasheador.HashPassword(
+                        null,
+                        "Admin#123")),
 
-                    ProveedorAutenticacion = "LOCAL",
+            ProveedorAutenticacion = "LOCAL",
 
-                    Estado = EstadoUsuario.ACTIVO,
+            Estado = EstadoUsuario.ACTIVO,
 
-                    RolId = rolAdmin.Id,
+            RolId = rolAdmin.Id,
 
-                    Genero = Genero.MASCULINO,
+            Genero = Genero.MASCULINO,
 
-                    FechaNacimiento =
-                        new DateTime(1988, 5, 10),
+            FechaNacimiento =
+                new DateTime(1988, 5, 10),
 
-                    Celular =
-                        Celular.Crear("099111111"),
+            Celular =
+                Celular.Crear("099111111"),
 
-                    SociedadMedica = "CASMU"
-                },
+            SociedadMedica = "CASMU"
+        },
 
-                new Entrenador
-                {
-                    Nombre = new Nombre("Lucia"),
+        new Entrenador
+        {
+            Nombre = new Nombre("Lucia"),
 
-                    Apellido = new Apellido("Fernandez"),
+            Apellido = new Apellido("Fernandez"),
 
-                    Email = new Email("entrenador@joki.com"),
+            Email = new Email("entrenador@joki.com"),
 
-                    Contrasena =
-                        Contrasena.FromHash(
-                            hasheador.HashPassword(
-                                null,
-                                "Entrenador#123")),
+            Contrasena =
+                Contrasena.FromHash(
+                    hasheador.HashPassword(
+                        null,
+                        "Entrenador#123")),
 
-                    ProveedorAutenticacion = "LOCAL",
+            ProveedorAutenticacion = "LOCAL",
 
-                    Estado = EstadoUsuario.ACTIVO,
+            Estado = EstadoUsuario.ACTIVO,
 
-                    RolId = rolEntrenador.Id,
+            RolId = rolEntrenador.Id,
 
-                    Genero = Genero.FEMENINO,
+            Genero = Genero.FEMENINO,
 
-                    FechaNacimiento =
-                        new DateTime(1992, 9, 22),
+            FechaNacimiento =
+                new DateTime(1992, 9, 22),
 
-                    Celular =
-                        Celular.Crear("099222222"),
+            Celular =
+                Celular.Crear("099222222"),
 
-                    SociedadMedica = "MP"
-                },
+            SociedadMedica = "MP"
+        },
 
-                new Alumno
-                {
-                    Nombre = new Nombre("Juan"),
+        new Alumno
+        {
+            Nombre = new Nombre("Juan"),
 
-                    Apellido = new Apellido("Perez"),
+            Apellido = new Apellido("Perez"),
 
-                    Email = new Email("juan@test.com"),
+            Email = new Email("juan@test.com"),
 
-                    Contrasena =
-                        Contrasena.FromHash(
-                            hasheador.HashPassword(
-                                null,
-                                "Juan#123")),
+            Contrasena =
+                Contrasena.FromHash(
+                    hasheador.HashPassword(
+                        null,
+                        "Juan#123")),
 
-                    ProveedorAutenticacion = "LOCAL",
+            ProveedorAutenticacion = "LOCAL",
 
-                    Estado = EstadoUsuario.ACTIVO,
+            Estado = EstadoUsuario.ACTIVO,
 
-                    RolId = rolAlumno.Id,
+            RolId = rolAlumno.Id,
 
-                    Genero = Genero.MASCULINO,
+            Genero = Genero.MASCULINO,
 
-                    FechaNacimiento =
-                        new DateTime(2000, 3, 15),
+            FechaNacimiento =
+                new DateTime(2000, 3, 15),
 
-                    Celular =
-                        Celular.Crear("099333333"),
+            Celular =
+                Celular.Crear("099333333"),
 
-                    SociedadMedica = "ASSE",
+            SociedadMedica = "ASSE",
 
-                    Peso = 70m,
+            Peso = 70m,
 
-                    Estatura = 1.75m
-                },
+            Estatura = 1.75m,
 
-                new Alumno
-                {
-                    Nombre = new Nombre("Maria"),
+            BloqueadoPorInasistencias = false,
 
-                    Apellido = new Apellido("Lopez"),
+            RachaAsistenciaMensual = 0,
 
-                    Email = new Email("maria@test.com"),
+            MesRachaAsistencia = mesActual,
 
-                    Contrasena =
-                        Contrasena.FromHash(
-                            hasheador.HashPassword(
-                                null,
-                                "Maria#123")),
+            AnioRachaAsistencia = anioActual,
 
-                    ProveedorAutenticacion = "LOCAL",
+            DescuentoRachaGenerado = false
+        },
 
-                    Estado = EstadoUsuario.ACTIVO,
+        new Alumno
+        {
+            Nombre = new Nombre("Maria"),
 
-                    RolId = rolAlumno.Id,
+            Apellido = new Apellido("Lopez"),
 
-                    Genero = Genero.FEMENINO,
+            Email = new Email("maria@test.com"),
 
-                    FechaNacimiento =
-                        new DateTime(1999, 7, 8),
+            Contrasena =
+                Contrasena.FromHash(
+                    hasheador.HashPassword(
+                        null,
+                        "Maria#123")),
 
-                    Celular =
-                        Celular.Crear("099444444"),
+            ProveedorAutenticacion = "LOCAL",
 
-                    SociedadMedica = "SMI",
+            Estado = EstadoUsuario.ACTIVO,
 
-                    Peso = 60m,
+            RolId = rolAlumno.Id,
 
-                    Estatura = 1.65m
-                },
+            Genero = Genero.FEMENINO,
 
-                new Alumno
-                {
-                    Nombre = new Nombre("Pedro"),
+            FechaNacimiento =
+                new DateTime(1999, 7, 8),
 
-                    Apellido = new Apellido("Garcia"),
+            Celular =
+                Celular.Crear("099444444"),
 
-                    Email = new Email("pedro@test.com"),
+            SociedadMedica = "SMI",
 
-                    Contrasena =
-                        Contrasena.FromHash(
-                            hasheador.HashPassword(
-                                null,
-                                "Pedro#123")),
+            Peso = 60m,
 
-                    ProveedorAutenticacion = "LOCAL",
+            Estatura = 1.65m,
 
-                    Estado = EstadoUsuario.ACTIVO,
+            BloqueadoPorInasistencias = false,
 
-                    RolId = rolAlumno.Id,
+            RachaAsistenciaMensual = 0,
 
-                    Genero = Genero.MASCULINO,
+            MesRachaAsistencia = mesActual,
 
-                    FechaNacimiento =
-                        new DateTime(1995, 11, 20),
+            AnioRachaAsistencia = anioActual,
 
-                    Celular =
-                        Celular.Crear("099555555"),
+            DescuentoRachaGenerado = false
+        },
 
-                    SociedadMedica = "MUCAM",
+        new Alumno
+        {
+            Nombre = new Nombre("Pedro"),
 
-                    Peso = 75m,
+            Apellido = new Apellido("Garcia"),
 
-                    Estatura = 1.80m
-                }
-            };
+            Email = new Email("pedro@test.com"),
+
+            Contrasena =
+                Contrasena.FromHash(
+                    hasheador.HashPassword(
+                        null,
+                        "Pedro#123")),
+
+            ProveedorAutenticacion = "LOCAL",
+
+            Estado = EstadoUsuario.ACTIVO,
+
+            RolId = rolAlumno.Id,
+
+            Genero = Genero.MASCULINO,
+
+            FechaNacimiento =
+                new DateTime(1995, 11, 20),
+
+            Celular =
+                Celular.Crear("099555555"),
+
+            SociedadMedica = "MUCAM",
+
+            Peso = 75m,
+
+            Estatura = 1.80m,
+
+            BloqueadoPorInasistencias = false,
+
+            RachaAsistenciaMensual = 0,
+
+            MesRachaAsistencia = mesActual,
+
+            AnioRachaAsistencia = anioActual,
+
+            DescuentoRachaGenerado = false
+        }
+    };
 
             _context.Usuarios.AddRange(usuarios);
 
@@ -285,19 +319,27 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         {
             var grupos =
                 _context.Grupos.ToList();
+
             var grupo1 = grupos.First();
+
             var grupo2 = grupos.Last();
+
             var clases = new List<Clase>
     {
         new Clase
         {
             GrupoId = grupo1.Id,
+
             DiaSemana = DiaSemana.Lunes,
+
             HoraInicio =
                 new TimeSpan(9, 0, 0),
+
             HoraFin =
                 new TimeSpan(10, 0, 0),
+
             CupoMaximo = 5,
+
             Ubicacion = new Ubicacion
             {
                 Latitud = -34.90m,
@@ -306,11 +348,16 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
                 CodigoPostal = "11000"
             },
+
             RadioGeolocalizacion = 100,
+
             EsFija = true,
+
             FechaInicio = DateTime.Now,
+
             FechaFin =
                 DateTime.Now.AddMonths(3),
+
             Estado =
                 EstadoClase.Programada
         },
@@ -434,6 +481,186 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
             HoraFin =
                 new TimeSpan(11, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Lunes,
+
+            HoraInicio =
+                new TimeSpan(18, 0, 0),
+
+            HoraFin =
+                new TimeSpan(19, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Martes,
+
+            HoraInicio =
+                new TimeSpan(18, 0, 0),
+
+            HoraFin =
+                new TimeSpan(19, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Miercoles,
+
+            HoraInicio =
+                new TimeSpan(18, 0, 0),
+
+            HoraFin =
+                new TimeSpan(19, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Jueves,
+
+            HoraInicio =
+                new TimeSpan(18, 0, 0),
+
+            HoraFin =
+                new TimeSpan(19, 0, 0),
+
+            CupoMaximo = 5,
+
+            Ubicacion = new Ubicacion
+            {
+                Latitud = -34.90m,
+
+                Longitud = -56.16m,
+
+                CodigoPostal = "11000"
+            },
+
+            RadioGeolocalizacion = 100,
+
+            EsFija = true,
+
+            FechaInicio = DateTime.Now,
+
+            FechaFin =
+                DateTime.Now.AddMonths(3),
+
+            Estado =
+                EstadoClase.Programada
+        },
+
+        new Clase
+        {
+            GrupoId = grupo1.Id,
+
+            DiaSemana = DiaSemana.Viernes,
+
+            HoraInicio =
+                new TimeSpan(18, 0, 0),
+
+            HoraFin =
+                new TimeSpan(19, 0, 0),
 
             CupoMaximo = 5,
 
