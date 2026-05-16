@@ -6,6 +6,8 @@
         public Decimal? Estatura { get; set; }
         public Decimal? IMC { get; set; }
 
+        public bool BloqueadoPorInasistencias { get; set; }
+
         public virtual ICollection<SolicitudCupo> SolicitudesCupo { get; set; }
         public virtual ICollection<Inscripcion> Inscripciones { get; set; }
         public virtual ICollection<Asistencia> Asistencias { get; set; }

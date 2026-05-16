@@ -7,5 +7,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         void Agregar(Asistencia asistencia);
 
         bool ExisteAsistencia(int alumnoId, int claseId, DateTime fecha);
+
+        List<Asistencia> ObtenerUltimasAsistencias(int alumnoId, int cantidad);
     }
 }

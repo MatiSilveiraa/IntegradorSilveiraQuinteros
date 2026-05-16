@@ -41,6 +41,12 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
                     "Alumno inactivo");
             }
 
+            if (alumno.BloqueadoPorInasistencias)
+            {
+                throw new LogicaNegocioException(
+                    "El alumno se encuentra bloqueado por inasistencias y no puede inscribirse a nuevas clases");
+            }
+
             var clase = _repositorioClase.ObtenerPorId(claseId);
 
             if (clase == null)

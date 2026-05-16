@@ -1,8 +1,5 @@
 ﻿using Moq;
-using Xunit;
-
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
-
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
@@ -72,6 +69,40 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             Assert.Equal(
                 "Alumno inactivo",
                 ex.Message);
+        }
+
+        [Fact]
+        public void AlumnoBloqueadoPorInasistencias_LanzaException()
+        {
+            var alumno = new Alumno
+            {
+                UsuarioId = 1,
+                Estado = EstadoUsuario.ACTIVO,
+                BloqueadoPorInasistencias = true
+            };
+
+            _repoAlumno
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            var cu = CrearCU();
+
+            var ex =
+                Assert.Throws<LogicaNegocioException>(
+                    () => cu.Ejecutar(1, 1));
+
+            Assert.Equal(
+                "El alumno se encuentra bloqueado por inasistencias y no puede inscribirse a nuevas clases",
+                ex.Message);
+
+            _repoInscripcion.Verify(
+                r => r.Agregar(
+                    It.IsAny<Inscripcion>()),
+                Times.Never);
+
+            _repoListaEspera.Verify(
+                r => r.Agregar(1, 1),
+                Times.Never);
         }
 
         [Fact]

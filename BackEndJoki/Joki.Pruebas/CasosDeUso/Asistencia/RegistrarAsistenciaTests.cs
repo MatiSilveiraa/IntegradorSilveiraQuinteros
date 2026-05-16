@@ -168,5 +168,95 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
             _repoAsistenciaMock.Verify(r => r.Agregar(
                 It.IsAny<Entidades.Asistencia>()), Times.Never);
         }
+
+        [Fact]
+        public void Ejecutar_DeberiaBloquearAlumno_CuandoTieneCincoFaltasConsecutivas()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = false
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                BloqueadoPorInasistencias = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoAsistenciaMock
+                .Setup(r => r.ObtenerUltimasAsistencias(1, 5))
+                .Returns(new List<Entidades.Asistencia>
+                {
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false }
+                });
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.True(alumno.BloqueadoPorInasistencias);
+
+            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_NoDeberiaBloquearAlumno_CuandoNoTieneCincoFaltasConsecutivas()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = false
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                BloqueadoPorInasistencias = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoAsistenciaMock
+                .Setup(r => r.ObtenerUltimasAsistencias(1, 5))
+                .Returns(new List<Entidades.Asistencia>
+                {
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = true },
+            new Entidades.Asistencia { Presente = false },
+            new Entidades.Asistencia { Presente = false }
+                });
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.False(alumno.BloqueadoPorInasistencias);
+
+            _repoAlumnoMock.Verify(r => r.Modificar(alumno), Times.Never);
+        }
     }
 }
