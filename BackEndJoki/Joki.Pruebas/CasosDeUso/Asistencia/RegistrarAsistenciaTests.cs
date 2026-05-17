@@ -12,6 +12,7 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
         private readonly Mock<IRepositorioAsistencia> _repoAsistenciaMock;
         private readonly Mock<IRepositorioClase> _repoClaseMock;
         private readonly Mock<IRepositorioAlumno> _repoAlumnoMock;
+        private readonly Mock<IRepositorioCuota> _repoCuotaMock;
 
         private readonly RegistrarAsistencia _casoUso;
 
@@ -20,11 +21,13 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
             _repoAsistenciaMock = new Mock<IRepositorioAsistencia>();
             _repoClaseMock = new Mock<IRepositorioClase>();
             _repoAlumnoMock = new Mock<IRepositorioAlumno>();
+            _repoCuotaMock = new Mock<IRepositorioCuota>();
 
             _casoUso = new RegistrarAsistencia(
                 _repoAsistenciaMock.Object,
                 _repoClaseMock.Object,
                 _repoAlumnoMock.Object
+                , _repoCuotaMock.Object
             );
         }
 
@@ -506,6 +509,157 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
             _repoAlumnoMock.Verify(
                 r => r.Modificar(alumno),
                 Times.Once);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaCrearCuotaConDescuento_CuandoRachaLlegaADiezYNoExisteCuota()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                UsuarioId = 1,
+                RachaAsistenciaMensual = 9,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoCuotaMock
+                .Setup(r => r.ObtenerPorAlumnoMesYAnio(
+                    1,
+                    DateTime.Now.Month,
+                    DateTime.Now.Year))
+                .Returns((Entidades.Cuota)null);
+
+            _casoUso.Ejecutar(request, 2);
+
+            _repoCuotaMock.Verify(r => r.Agregar(
+                It.Is<Entidades.Cuota>(c =>
+                    c.AlumnoId == 1 &&
+                    c.MontoBase == 1390m &&
+                    c.Descuento == 139m &&
+                    c.MontoFinal == 1251m
+                )), Times.Once);
+
+            Assert.True(alumno.DescuentoRachaGenerado);
+        }
+
+        [Fact]
+        public void Ejecutar_DeberiaActualizarCuotaConDescuento_CuandoRachaLlegaADiezYExisteCuota()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                UsuarioId = 1,
+                RachaAsistenciaMensual = 9,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            Entidades.Cuota cuota = new Entidades.Cuota
+            {
+                AlumnoId = 1,
+                Mes = DateTime.Now.Month,
+                Anio = DateTime.Now.Year,
+                MontoBase = 1390m,
+                Descuento = 0m,
+                MontoFinal = 1390m
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _repoCuotaMock
+                .Setup(r => r.ObtenerPorAlumnoMesYAnio(
+                    1,
+                    DateTime.Now.Month,
+                    DateTime.Now.Year))
+                .Returns(cuota);
+
+            _casoUso.Ejecutar(request, 2);
+
+            Assert.Equal(139m, cuota.Descuento);
+            Assert.Equal(1251m, cuota.MontoFinal);
+
+            _repoCuotaMock.Verify(r => r.Modificar(cuota), Times.Once);
+
+            Assert.True(alumno.DescuentoRachaGenerado);
+        }
+
+        [Fact]
+        public void Ejecutar_NoDeberiaAplicarDescuento_CuandoRachaNoLlegaADiez()
+        {
+            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
+            {
+                AlumnoId = 1,
+                ClaseId = 1,
+                Presente = true
+            };
+
+            Entidades.Alumno alumno = new Entidades.Alumno
+            {
+                UsuarioId = 1,
+                RachaAsistenciaMensual = 8,
+                MesRachaAsistencia = DateTime.Now.Month,
+                AnioRachaAsistencia = DateTime.Now.Year,
+                DescuentoRachaGenerado = false
+            };
+
+            _repoAlumnoMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(alumno);
+
+            _repoClaseMock
+                .Setup(r => r.ObtenerPorId(1))
+                .Returns(new Entidades.Clase());
+
+            _repoAsistenciaMock
+                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
+                .Returns(false);
+
+            _casoUso.Ejecutar(request, 2);
+
+            _repoCuotaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Cuota>()), Times.Never);
+
+            _repoCuotaMock.Verify(r => r.Modificar(
+                It.IsAny<Entidades.Cuota>()), Times.Never);
+
+            Assert.False(alumno.DescuentoRachaGenerado);
         }
     }
 }
