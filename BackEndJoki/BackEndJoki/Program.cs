@@ -95,6 +95,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioInscripcion,RepositorioInscripcion > ();
     builder.Services.AddScoped<IRepositorioAsistencia, RepositorioAsistencia>();
     builder.Services.AddScoped<IRegistrarAsistencia, RegistrarAsistencia>();
+    builder.Services.AddScoped<IRepositorioCuota, RepositorioCuota>();
     builder.Services.AddScoped<IInscribirAlumno, InscribirAlumno>();
     builder.Services.AddScoped<IRepositorioClase, RepositorioClase>();
     builder.Services.AddScoped<IEliminarClase, EliminarClase>();
