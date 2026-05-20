@@ -99,7 +99,11 @@ namespace Joki.Infraestructura.Migrations
                     Peso = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
                     Estatura = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
                     IMC = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    BloqueadoPorInasistencias = table.Column<bool>(type: "bit", nullable: true)
+                    BloqueadoPorInasistencias = table.Column<bool>(type: "bit", nullable: true),
+                    RachaAsistenciaMensual = table.Column<int>(type: "int", nullable: true),
+                    MesRachaAsistencia = table.Column<int>(type: "int", nullable: true),
+                    AnioRachaAsistencia = table.Column<int>(type: "int", nullable: true),
+                    DescuentoRachaGenerado = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {

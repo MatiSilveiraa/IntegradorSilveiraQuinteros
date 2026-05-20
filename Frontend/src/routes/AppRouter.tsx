@@ -6,6 +6,8 @@ import {
 
 import LoginPage from "../pages/LoginPage";
 
+import RegisterPage from "../pages/RegisterPage";
+
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 
 import AlumnoDashboard from "../pages/Alumno/AlumnoDashboard";
@@ -23,6 +25,11 @@ export default function AppRouter() {
         <Route
           path="/"
           element={<LoginPage />}
+        />
+
+         <Route
+          path="/register"
+          element={<RegisterPage />}
         />
 
         <Route

@@ -1,7 +1,20 @@
 import axios from "axios";
 
 const API_URL =
-  "http://localhost:5211/api/auth";
+  "http://localhost:5211/api";
+
+export const register = async (
+  usuario: any
+) => {
+
+  const response = await axios.post(
+    `${API_URL}/alumno/registrar`,
+    usuario
+  );
+
+  return response.data;
+
+};
 
 export const login = async (
   email: string,
@@ -9,7 +22,7 @@ export const login = async (
 ) => {
 
   const response = await axios.post(
-    `${API_URL}/login`,
+    `${API_URL}/auth/login`,
     {
       email,
       password,
@@ -17,4 +30,5 @@ export const login = async (
   );
 
   return response.data;
+
 };
