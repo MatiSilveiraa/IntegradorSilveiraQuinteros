@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    [Migration("20260516174741_AgregarRachaAsistenciaMensualAlumno")]
-    partial class AgregarRachaAsistenciaMensualAlumno
+    [Migration("20260518021640_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
