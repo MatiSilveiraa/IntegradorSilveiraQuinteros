@@ -2,6 +2,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
@@ -11,6 +12,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
+using Joki.LogicaAplicacion.CasosDeUso.Cuota;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
@@ -106,6 +108,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerClasesInscripto, ObtenerClasesInscripto>();
     builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
+    builder.Services.AddScoped<IObtenerCuotaActualAlumno, ObtenerCuotaActualAlumno>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
