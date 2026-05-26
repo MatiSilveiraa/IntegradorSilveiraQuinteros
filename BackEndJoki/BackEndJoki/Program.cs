@@ -109,6 +109,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
     builder.Services.AddScoped<IObtenerCuotaActualAlumno, ObtenerCuotaActualAlumno>();
+    builder.Services.AddScoped<IObtenerMisCuotas, ObtenerMisCuotas>();
+    builder.Services.AddScoped<IActualizarCuotasVencidas, ActualizarCuotasVencidas>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

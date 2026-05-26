@@ -4,7 +4,15 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 {
     public interface IRepositorioCuota
     {
-        Cuota? ObtenerPorAlumnoMesYAnio(int alumnoId, int mes, int anio);
+        Cuota? ObtenerPorAlumnoMesYAnio(
+            int alumnoId,
+            int mes,
+            int anio);
+
+        IEnumerable<Cuota> ObtenerPorAlumno(
+            int alumnoId);
+
+        IEnumerable<Cuota> ObtenerPendientes();
 
         void Agregar(Cuota cuota);
 
