@@ -110,7 +110,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
 
                         if (cuota == null)
                         {
-                            cuota = new Cuota
+                            cuota = new LogicaNegocio.Entidades.Cuota
                             {
                                 AlumnoId = alumno.UsuarioId,
                                 Mes = mesActual,
