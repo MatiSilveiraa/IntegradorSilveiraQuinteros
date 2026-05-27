@@ -512,7 +512,7 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
         }
 
         [Fact]
-        public void Ejecutar_DeberiaCrearCuotaConDescuento_CuandoRachaLlegaADiezYNoExisteCuota()
+        public void Ejecutar_NoDeberiaCrearCuota_CuandoRachaLlegaADiezYNoExisteCuota()
         {
             RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
             {
@@ -545,93 +545,23 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
             _repoCuotaMock
                 .Setup(r => r.ObtenerPorAlumnoMesYAnio(
                     1,
-                    DateTime.Now.Month,
-                    DateTime.Now.Year))
+                    It.IsAny<int>(),
+                    It.IsAny<int>()))
                 .Returns((Entidades.Cuota)null);
 
             _casoUso.Ejecutar(request, 2);
 
-            _repoCuotaMock.Verify(r => r.Agregar(
-                It.Is<Entidades.Cuota>(c =>
-                    c.AlumnoId == 1 &&
-                    c.MontoBase == 1390m &&
-                    c.Descuento == 139m &&
-                    c.MontoFinal == 1251m
-                )), Times.Once);
-
-            Assert.True(alumno.DescuentoRachaGenerado);
-        }
-
-        [Fact]
-        public void Ejecutar_DeberiaActualizarCuotaConDescuento_CuandoRachaLlegaADiezYExisteCuota()
-        {
-            RegistrarAsistenciaRequest request = new RegistrarAsistenciaRequest
-            {
-                AlumnoId = 1,
-                ClaseId = 1,
-                Presente = true
-            };
-
-            Entidades.Alumno alumno = new Entidades.Alumno
-            {
-                UsuarioId = 1,
-                RachaAsistenciaMensual = 9,
-                MesRachaAsistencia = DateTime.Now.Month,
-                AnioRachaAsistencia = DateTime.Now.Year,
-                DescuentoRachaGenerado = false
-            };
-
-            Entidades.Cuota cuota = new Entidades.Cuota
-            {
-                AlumnoId = 1,
-
-                Mes = DateTime.Now.Month,
-
-                Anio = DateTime.Now.Year,
-
-                FechaVencimiento =
-            new DateTime(
-             DateTime.Now.Year,
-             DateTime.Now.Month,
-             10),
-
-                MontoBase = 1390m,
-
-                Descuento = 0m,
-
-                MontoFinal = 1390m
-            };
-
-            _repoAlumnoMock
-                .Setup(r => r.ObtenerPorId(1))
-                .Returns(alumno);
-
-            _repoClaseMock
-                .Setup(r => r.ObtenerPorId(1))
-                .Returns(new Entidades.Clase());
-
-            _repoAsistenciaMock
-                .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
-                .Returns(false);
-
-             _repoCuotaMock
-                .Setup(r => r.ObtenerPorAlumnoMesYAnio(
-                    1,
-                    It.IsAny<int>(),
-                    It.IsAny<int>()))
-                .Returns(cuota);
-
-            _casoUso.Ejecutar(request, 2);
             Assert.Equal(10, alumno.RachaAsistenciaMensual);
             Assert.True(alumno.DescuentoRachaGenerado);
 
-            Assert.Equal(139m, cuota.Descuento);
-            Assert.Equal(1251m, cuota.MontoFinal);
+            _repoCuotaMock.Verify(r => r.Agregar(
+                It.IsAny<Entidades.Cuota>()), Times.Never);
 
-            _repoCuotaMock.Verify(r => r.Modificar(cuota), Times.Once);
-
-            Assert.True(alumno.DescuentoRachaGenerado);
+            _repoCuotaMock.Verify(r => r.Modificar(
+                It.IsAny<Entidades.Cuota>()), Times.Never);
         }
+
+        
 
         [Fact]
         public void Ejecutar_NoDeberiaAplicarDescuento_CuandoRachaNoLlegaADiez()

@@ -1,4 +1,5 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
@@ -43,6 +44,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             }
             _contexto.Set<Alumno>().Update(alumno);
             _contexto.SaveChanges();
+        }
+
+        public IEnumerable<Alumno> ObtenerActivos()
+        {
+            return _contexto.Set<Alumno>()
+                .Where(a => a.Estado == EstadoUsuario.ACTIVO)
+                .ToList();
         }
     }
 }

@@ -13,15 +13,18 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerCuotaActualAlumno _obtenerCuotaActualAlumno;
         private readonly IObtenerMisCuotas _obtenerMisCuotas;
         private readonly IActualizarCuotasVencidas _actualizarCuotasVencidas;
+        private readonly IGenerarCuotasMensuales _generarCuotasMensuales;
 
         public CuotaController(
             IObtenerCuotaActualAlumno obtenerCuotaActualAlumno,
             IObtenerMisCuotas obtenerMisCuotas,
-            IActualizarCuotasVencidas actualizarCuotasVencidas)
+            IActualizarCuotasVencidas actualizarCuotasVencidas,
+            IGenerarCuotasMensuales generarCuotasMensuales)
         {
             _obtenerCuotaActualAlumno = obtenerCuotaActualAlumno;
             _obtenerMisCuotas = obtenerMisCuotas;
             _actualizarCuotasVencidas = actualizarCuotasVencidas;
+            _generarCuotasMensuales = generarCuotasMensuales;
         }
 
         [Authorize(Roles = "Alumno")]
@@ -95,6 +98,35 @@ namespace Joki.WebApi.Controllers
                 return Ok(new
                 {
                     mensaje = "Cuotas vencidas actualizadas correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("generar-mensuales")]
+        public IActionResult GenerarCuotasMensuales()
+        {
+            try
+            {
+                _generarCuotasMensuales.Ejecutar();
+
+                return Ok(new
+                {
+                    mensaje = "Cuotas mensuales generadas correctamente"
                 });
             }
             catch (LogicaNegocioException e)
