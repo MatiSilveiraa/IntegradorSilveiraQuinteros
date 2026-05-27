@@ -13,6 +13,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _contexto = contexto;
         }
 
+        public Cuota? ObtenerPorId(int id)
+        {
+            return _contexto.Cuotas
+                .FirstOrDefault(c => c.Id == id);
+        }
+
         public Cuota? ObtenerPorAlumnoMesYAnio(
             int alumnoId,
             int mes,

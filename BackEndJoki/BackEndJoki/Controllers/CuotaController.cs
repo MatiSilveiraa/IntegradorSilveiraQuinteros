@@ -14,17 +14,20 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerMisCuotas _obtenerMisCuotas;
         private readonly IActualizarCuotasVencidas _actualizarCuotasVencidas;
         private readonly IGenerarCuotasMensuales _generarCuotasMensuales;
+        private readonly IMarcarCuotaComoPagada _marcarCuotaComoPagada;
 
         public CuotaController(
             IObtenerCuotaActualAlumno obtenerCuotaActualAlumno,
             IObtenerMisCuotas obtenerMisCuotas,
             IActualizarCuotasVencidas actualizarCuotasVencidas,
-            IGenerarCuotasMensuales generarCuotasMensuales)
+            IGenerarCuotasMensuales generarCuotasMensuales,
+            IMarcarCuotaComoPagada marcarCuotaComoPagada)
         {
             _obtenerCuotaActualAlumno = obtenerCuotaActualAlumno;
             _obtenerMisCuotas = obtenerMisCuotas;
             _actualizarCuotasVencidas = actualizarCuotasVencidas;
             _generarCuotasMensuales = generarCuotasMensuales;
+            _marcarCuotaComoPagada = marcarCuotaComoPagada;
         }
 
         [Authorize(Roles = "Alumno")]
@@ -127,6 +130,35 @@ namespace Joki.WebApi.Controllers
                 return Ok(new
                 {
                     mensaje = "Cuotas mensuales generadas correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/marcar-pagada")]
+        public IActionResult MarcarComoPagada(int id)
+        {
+            try
+            {
+                _marcarCuotaComoPagada.Ejecutar(id);
+
+                return Ok(new
+                {
+                    mensaje = "Cuota marcada como pagada correctamente"
                 });
             }
             catch (LogicaNegocioException e)

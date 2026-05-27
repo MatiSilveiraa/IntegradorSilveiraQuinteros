@@ -4,6 +4,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 {
     public interface IRepositorioCuota
     {
+
+        Cuota? ObtenerPorId(int id);
         Cuota? ObtenerPorAlumnoMesYAnio(
             int alumnoId,
             int mes,

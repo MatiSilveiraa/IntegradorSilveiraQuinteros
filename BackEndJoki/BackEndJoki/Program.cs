@@ -112,6 +112,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerMisCuotas, ObtenerMisCuotas>();
     builder.Services.AddScoped<IActualizarCuotasVencidas, ActualizarCuotasVencidas>();
     builder.Services.AddScoped<IGenerarCuotasMensuales, GenerarCuotasMensuales>();
+    builder.Services.AddScoped<IMarcarCuotaComoPagada, MarcarCuotaComoPagada>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
