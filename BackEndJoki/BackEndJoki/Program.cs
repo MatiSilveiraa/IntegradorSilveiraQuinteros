@@ -111,6 +111,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerCuotaActualAlumno, ObtenerCuotaActualAlumno>();
     builder.Services.AddScoped<IObtenerMisCuotas, ObtenerMisCuotas>();
     builder.Services.AddScoped<IActualizarCuotasVencidas, ActualizarCuotasVencidas>();
+    builder.Services.AddScoped<IGenerarCuotasMensuales, GenerarCuotasMensuales>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

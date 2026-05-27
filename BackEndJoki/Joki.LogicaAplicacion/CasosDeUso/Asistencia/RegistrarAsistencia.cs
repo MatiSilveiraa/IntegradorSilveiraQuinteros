@@ -98,24 +98,10 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
                         mesActual,
                         anioActual);
 
-                    if (cuota == null)
-                    {
-                        cuota = new LogicaNegocio.Entidades.Cuota
-                        {
-                            AlumnoId = alumno.UsuarioId,
-                            Mes = mesActual,
-                            Anio = anioActual,
-                            FechaVencimiento = new DateTime(anioActual, mesActual, 10),
-                            MontoBase = montoBase,
-                            Descuento = descuento,
-                            MontoFinal = montoFinal
-                        };
-
-                        _repoCuota.Agregar(cuota);
-                    }
-                    else
+                    if (cuota != null)
                     {
                         cuota.Descuento = descuento;
+
                         cuota.MontoFinal = montoFinal;
 
                         _repoCuota.Modificar(cuota);

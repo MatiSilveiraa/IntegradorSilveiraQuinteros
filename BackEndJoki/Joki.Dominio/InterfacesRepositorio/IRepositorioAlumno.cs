@@ -8,6 +8,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         IEnumerable<Alumno> ObtenerTodos();
 
+        IEnumerable<Alumno> ObtenerActivos();
+
         Alumno? ObtenerPorId(int id);
         void Modificar(Alumno alumno);
     }
