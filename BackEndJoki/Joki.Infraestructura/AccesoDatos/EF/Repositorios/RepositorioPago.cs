@@ -26,5 +26,18 @@ namespace Joki.Infraestructura.AccesoDatos.Repositorios
                 .Where(p => p.CuotaId == cuotaId)
                 .ToList();
         }
+
+        public void Modificar(Pago pago)
+        {
+            _contexto.Pagos.Update(pago);
+
+            _contexto.SaveChanges();
+        }
+
+        public Pago? ObtenerPorReferenciaExterna(string referenciaExterna)
+        {
+            return _contexto.Pagos
+                .FirstOrDefault(p => p.ReferenciaExterna == referenciaExterna);
+        }
     }
 }

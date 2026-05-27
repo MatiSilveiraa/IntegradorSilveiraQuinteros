@@ -12,6 +12,8 @@
 
         public decimal Monto { get; set; }
 
+        public string Estado { get; set; } = string.Empty;
+
         public string? ReferenciaExterna { get; set; }
     }
 }
