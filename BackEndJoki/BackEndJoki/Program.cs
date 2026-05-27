@@ -4,9 +4,11 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
+using Joki.Infraestructura.AccesoDatos.Repositorios;
 using Joki.Infraestructura.Servicios;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
@@ -15,6 +17,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Clase;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
+using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Services;
@@ -113,6 +116,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IActualizarCuotasVencidas, ActualizarCuotasVencidas>();
     builder.Services.AddScoped<IGenerarCuotasMensuales, GenerarCuotasMensuales>();
     builder.Services.AddScoped<IMarcarCuotaComoPagada, MarcarCuotaComoPagada>();
+    builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
+    builder.Services.AddScoped<IRegistrarPago, RegistrarPago>();
+    builder.Services.AddScoped<IObtenerPagosPorCuota, ObtenerPagosPorCuota>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
