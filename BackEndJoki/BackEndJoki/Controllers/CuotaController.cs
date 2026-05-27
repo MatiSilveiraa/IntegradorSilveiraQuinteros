@@ -11,11 +11,17 @@ namespace Joki.WebApi.Controllers
     public class CuotaController : ControllerBase
     {
         private readonly IObtenerCuotaActualAlumno _obtenerCuotaActualAlumno;
+        private readonly IObtenerMisCuotas _obtenerMisCuotas;
+        private readonly IActualizarCuotasVencidas _actualizarCuotasVencidas;
 
         public CuotaController(
-            IObtenerCuotaActualAlumno obtenerCuotaActualAlumno)
+            IObtenerCuotaActualAlumno obtenerCuotaActualAlumno,
+            IObtenerMisCuotas obtenerMisCuotas,
+            IActualizarCuotasVencidas actualizarCuotasVencidas)
         {
             _obtenerCuotaActualAlumno = obtenerCuotaActualAlumno;
+            _obtenerMisCuotas = obtenerMisCuotas;
+            _actualizarCuotasVencidas = actualizarCuotasVencidas;
         }
 
         [Authorize(Roles = "Alumno")]
@@ -31,6 +37,65 @@ namespace Joki.WebApi.Controllers
                     _obtenerCuotaActualAlumno.Ejecutar(alumnoId);
 
                 return Ok(cuota);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Alumno")]
+        [HttpGet("mis-cuotas")]
+        public IActionResult ObtenerMisCuotas()
+        {
+            try
+            {
+                int alumnoId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                var cuotas =
+                    _obtenerMisCuotas.Ejecutar(alumnoId);
+
+                return Ok(cuotas);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("actualizar-vencidas")]
+        public IActionResult ActualizarVencidas()
+        {
+            try
+            {
+                _actualizarCuotasVencidas.Ejecutar();
+
+                return Ok(new
+                {
+                    mensaje = "Cuotas vencidas actualizadas correctamente"
+                });
             }
             catch (LogicaNegocioException e)
             {

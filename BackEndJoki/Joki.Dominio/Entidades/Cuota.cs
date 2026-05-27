@@ -12,6 +12,8 @@ namespace Joki.LogicaNegocio.Entidades
         public int Mes { get; set; }
         public int Anio { get; set; }
 
+        public DateTime FechaVencimiento { get; set; }
+
         public decimal MontoBase { get; set; }
         public decimal Descuento { get; set; }
         public decimal MontoFinal { get; set; }

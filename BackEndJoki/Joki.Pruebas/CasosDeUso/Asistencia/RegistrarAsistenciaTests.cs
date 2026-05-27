@@ -584,10 +584,21 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
             Entidades.Cuota cuota = new Entidades.Cuota
             {
                 AlumnoId = 1,
+
                 Mes = DateTime.Now.Month,
+
                 Anio = DateTime.Now.Year,
+
+                FechaVencimiento =
+            new DateTime(
+             DateTime.Now.Year,
+             DateTime.Now.Month,
+             10),
+
                 MontoBase = 1390m,
+
                 Descuento = 0m,
+
                 MontoFinal = 1390m
             };
 
@@ -603,14 +614,16 @@ namespace Joki.Pruebas.CasosDeUso.Asistencia
                 .Setup(r => r.ExisteAsistencia(1, 1, It.IsAny<DateTime>()))
                 .Returns(false);
 
-            _repoCuotaMock
+             _repoCuotaMock
                 .Setup(r => r.ObtenerPorAlumnoMesYAnio(
                     1,
-                    DateTime.Now.Month,
-                    DateTime.Now.Year))
+                    It.IsAny<int>(),
+                    It.IsAny<int>()))
                 .Returns(cuota);
 
             _casoUso.Ejecutar(request, 2);
+            Assert.Equal(10, alumno.RachaAsistenciaMensual);
+            Assert.True(alumno.DescuentoRachaGenerado);
 
             Assert.Equal(139m, cuota.Descuento);
             Assert.Equal(1251m, cuota.MontoFinal);
