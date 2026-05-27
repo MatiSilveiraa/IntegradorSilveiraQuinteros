@@ -15,12 +15,15 @@ namespace Joki.LogicaNegocio.Entidades
 
         public decimal Monto { get; set; }
 
+        public EstadoPago Estado { get; set; }
+
         public string? ReferenciaExterna { get; set; }
 
         public Pago()
         {
             MedioPago = MedioPago.EFECTIVO;
             FechaPago = DateTime.UtcNow;
+            Estado = EstadoPago.PENDIENTE;
         }
     }
 }

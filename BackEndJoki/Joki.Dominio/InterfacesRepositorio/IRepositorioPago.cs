@@ -6,6 +6,10 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
     {
         void Agregar(Pago pago);
 
+        Pago? ObtenerPorReferenciaExterna(string referenciaExterna);
+
+        void Modificar(Pago pago);
+
         IEnumerable<Pago> ObtenerPorCuota(int cuotaId);
     }
 }

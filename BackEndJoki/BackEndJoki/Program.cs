@@ -119,6 +119,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
     builder.Services.AddScoped<IRegistrarPago, RegistrarPago>();
     builder.Services.AddScoped<IObtenerPagosPorCuota, ObtenerPagosPorCuota>();
+    builder.Services.AddScoped<ICrearPagoMercadoPago, CrearPagoMercadoPago>();
+    builder.Services.AddScoped<IConfirmarPagoMercadoPago, ConfirmarPagoMercadoPago>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

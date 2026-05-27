@@ -43,6 +43,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
                 MedioPago = request.MedioPago,
                 FechaPago = DateTime.UtcNow,
                 Monto = cuota.MontoFinal,
+                Estado = EstadoPago.APROBADO,
                 ReferenciaExterna = request.ReferenciaExterna
             };
 

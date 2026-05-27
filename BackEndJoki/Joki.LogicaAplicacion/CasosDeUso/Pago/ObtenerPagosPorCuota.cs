@@ -26,6 +26,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
                 MedioPago = p.MedioPago.ToString(),
                 FechaPago = p.FechaPago,
                 Monto = p.Monto,
+                Estado = p.Estado.ToString(),
                 ReferenciaExterna = p.ReferenciaExterna
             });
         }
