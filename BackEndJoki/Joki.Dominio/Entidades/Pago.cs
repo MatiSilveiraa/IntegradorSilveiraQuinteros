@@ -15,6 +15,8 @@ namespace Joki.LogicaNegocio.Entidades
 
         public decimal Monto { get; set; }
 
+        public string? ReferenciaExterna { get; set; }
+
         public Pago()
         {
             MedioPago = MedioPago.EFECTIVO;
