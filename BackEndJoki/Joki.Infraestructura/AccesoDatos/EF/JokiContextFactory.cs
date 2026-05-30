@@ -10,7 +10,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
             var optionsBuilder = new DbContextOptionsBuilder<JokiContext>();
 
             optionsBuilder.UseSqlServer(
-                "Server=(localdb)\\MSSQLLocalDB;Database=JokiDb;Trusted_Connection=True;TrustServerCertificate=True"
+                "Server=tcp:joki-training-server.database.windows.net,1433;Initial Catalog=JokiDB;Persist Security Info=False;User ID=dsharmain;Password=Enero.2020;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
             );
 
             return new JokiContext(optionsBuilder.Options);

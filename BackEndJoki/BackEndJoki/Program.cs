@@ -132,24 +132,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
-    }); 
+    });
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-}
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<JokiContext>();
-    var seed = new SeedData(context);
-    seed.Run();
-}
 
-app.UseHttpsRedirection();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var context = scope.ServiceProvider.GetRequiredService<JokiContext>();
+//    var seed = new SeedData(context);
+//    seed.Run();
+//}
+
+//app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
