@@ -1,28 +1,20 @@
-import axios from "axios";
+import axiosInstance from "../api/axios";
 
-const API_URL =
-  "http://localhost:5211/api";
-
-export const register = async (
-  usuario: any
-) => {
-
-  const response = await axios.post(
-    `${API_URL}/alumno/registrar`,
+export const register = async (usuario: any) => {
+  const response = await axiosInstance.post(
+    "/api/alumno/registrar",
     usuario
   );
 
   return response.data;
-
 };
 
 export const login = async (
   email: string,
   password: string
 ) => {
-
-  const response = await axios.post(
-    `${API_URL}/auth/login`,
+  const response = await axiosInstance.post(
+    "/api/auth/login",
     {
       email,
       password,
@@ -30,5 +22,4 @@ export const login = async (
   );
 
   return response.data;
-
 };
