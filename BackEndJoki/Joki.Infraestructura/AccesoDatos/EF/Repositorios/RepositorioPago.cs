@@ -39,5 +39,13 @@ namespace Joki.Infraestructura.AccesoDatos.Repositorios
             return _contexto.Pagos
                 .FirstOrDefault(p => p.ReferenciaExterna == referenciaExterna);
         }
+
+        public IEnumerable<Pago> ObtenerPorAlumno(int alumnoId)
+        {
+            return _contexto.Pagos
+                .Where(p => p.Cuota.AlumnoId == alumnoId)
+                .OrderByDescending(p => p.FechaPago)
+                .ToList();
+        }
     }
 }

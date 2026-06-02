@@ -9,5 +9,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         bool ExisteAsistencia(int alumnoId, int claseId, DateTime fecha);
 
         List<Asistencia> ObtenerUltimasAsistencias(int alumnoId, int cantidad);
+
+        IEnumerable<Asistencia> ObtenerPorAlumno(int alumnoId);
     }
 }

@@ -35,5 +35,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Take(cantidad)
                 .ToList();
         }
+
+        public IEnumerable<Asistencia> ObtenerPorAlumno(int alumnoId)
+        {
+            return _context.Asistencias
+                .Where(a => a.AlumnoId == alumnoId)
+                .OrderByDescending(a => a.Fecha)
+                .ToList();
+        }
     }
 }
