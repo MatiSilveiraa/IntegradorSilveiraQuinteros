@@ -143,12 +143,12 @@ var app = builder.Build();
     app.UseSwaggerUI();
 
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<JokiContext>();
-//    var seed = new SeedData(context);
-//    seed.Run();
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<JokiContext>();
+    var seed = new SeedData(context);
+    seed.Run();
+}
 
 //app.UseHttpsRedirection();
 app.UseCors("AllowAll");
