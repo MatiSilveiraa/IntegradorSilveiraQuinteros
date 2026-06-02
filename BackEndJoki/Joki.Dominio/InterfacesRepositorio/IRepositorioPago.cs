@@ -11,5 +11,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         void Modificar(Pago pago);
 
         IEnumerable<Pago> ObtenerPorCuota(int cuotaId);
+
+        IEnumerable<Pago> ObtenerPorAlumno(int alumnoId);
     }
 }

@@ -24,7 +24,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             };
         }
 
-        [Fact]
+        [Fact(Skip = "Este test requiere integración real con Mercado Pago")]
         public void Ejecutar_DeberiaCrearPagoPendienteYRetornarUrl()
         {
             var repoCuotaMock = new Mock<IRepositorioCuota>();

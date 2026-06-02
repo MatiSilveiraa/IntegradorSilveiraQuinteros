@@ -1,9 +1,11 @@
+using Joki.CasoUsoCompartida.Configuracion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.Infraestructura.AccesoDatos.EF;
@@ -17,10 +19,10 @@ using Joki.LogicaAplicacion.CasosDeUso.Clase;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
+using Joki.LogicaAplicacion.CasosDeUso.Historial;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using Joki.CasoUsoCompartida.Configuracion;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -122,6 +124,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerPagosPorCuota, ObtenerPagosPorCuota>();
     builder.Services.AddScoped<ICrearPagoMercadoPago, CrearPagoMercadoPago>();
     builder.Services.AddScoped<IConfirmarPagoMercadoPago, ConfirmarPagoMercadoPago>();
+    builder.Services.AddScoped<IObtenerMiHistorial,ObtenerMiHistorial>();
     builder.Services.Configure<MercadoPagoSettings>(builder.Configuration.GetSection("MercadoPago"));
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
