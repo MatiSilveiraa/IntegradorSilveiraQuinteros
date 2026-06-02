@@ -20,6 +20,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Joki.CasoUsoCompartida.Configuracion;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -121,6 +122,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerPagosPorCuota, ObtenerPagosPorCuota>();
     builder.Services.AddScoped<ICrearPagoMercadoPago, CrearPagoMercadoPago>();
     builder.Services.AddScoped<IConfirmarPagoMercadoPago, ConfirmarPagoMercadoPago>();
+    builder.Services.Configure<MercadoPagoSettings>(builder.Configuration.GetSection("MercadoPago"));
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {

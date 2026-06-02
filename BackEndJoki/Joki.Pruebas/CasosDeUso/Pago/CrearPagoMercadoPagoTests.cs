@@ -1,7 +1,9 @@
-﻿using Joki.LogicaAplicacion.CasosDeUso.Pago;
+﻿using Joki.CasoUsoCompartida.Configuracion;
+using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.Extensions.Options;
 using Moq;
 
 using Entidades = Joki.LogicaNegocio.Entidades;
@@ -10,6 +12,18 @@ namespace Joki.Pruebas.CasosDeUso.Pago
 {
     public class CrearPagoMercadoPagoTests
     {
+        private MercadoPagoSettings CrearSettings()
+        {
+            return new MercadoPagoSettings
+            {
+                AccessToken = "TEST-123",
+                SuccessUrl = "https://test.com/success",
+                FailureUrl = "https://test.com/failure",
+                PendingUrl = "https://test.com/pending",
+                WebhookUrl = "https://test.com/webhook"
+            };
+        }
+
         [Fact]
         public void Ejecutar_DeberiaCrearPagoPendienteYRetornarUrl()
         {
@@ -30,7 +44,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var casoUso =
                 new CrearPagoMercadoPago(
                     repoCuotaMock.Object,
-                    repoPagoMock.Object);
+                    repoPagoMock.Object,
+                    Options.Create(CrearSettings()));
 
             var resultado =
                 casoUso.Ejecutar(1);
@@ -61,7 +76,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var casoUso =
                 new CrearPagoMercadoPago(
                     repoCuotaMock.Object,
-                    repoPagoMock.Object);
+                    repoPagoMock.Object,
+                    Options.Create(CrearSettings()));
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(99));
@@ -92,7 +108,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var casoUso =
                 new CrearPagoMercadoPago(
                     repoCuotaMock.Object,
-                    repoPagoMock.Object);
+                    repoPagoMock.Object,
+                    Options.Create(CrearSettings()));
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(1));
