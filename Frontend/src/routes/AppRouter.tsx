@@ -10,7 +10,7 @@ import RegisterPage from "../pages/RegisterPage";
 
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 
-import AlumnoDashboard from "../pages/Alumno/AlumnoDashboard";
+import AlumnoDashboard from "../components/navigation/AlumnoDashboard";
 
 import EntrenadorDashboard from "../pages/entrenador/EntrenadorDashboard";
 
