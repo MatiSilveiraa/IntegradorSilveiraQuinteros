@@ -2,7 +2,6 @@
 using Joki.CasoUsoCompartida.DTOs.Usuario;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.Infraestructura.AccesoDatos.Excepciones;
-using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -17,13 +16,16 @@ namespace Joki.WebApi.Controllers
         private readonly ILoginUsuario _loginUsuario;
         private readonly IJwtGenerator _jwtGenerator;
         private readonly ILogoutUsuario _logoutUsuario;
+        private readonly ISolicitarRecuperacionContrasena _solicitarRecuperacion;
+        private readonly IRestablecerContrasena _restablecerContrasena;
 
-        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario)
+        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario, ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena)
         {
             _loginUsuario = loginUsuario;
             _jwtGenerator = jwtGenerator;
             _logoutUsuario = logoutUsuario;
-
+            _solicitarRecuperacion = solicitarRecuperacion;
+            _restablecerContrasena = restablecerContrasena;
         }
 
         [HttpPost("login")]
@@ -84,6 +86,64 @@ namespace Joki.WebApi.Controllers
             catch (LogicaNegocioException e)
             {
                 return BadRequest(new { mensaje = e.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpPost("solicitar-recuperacion")]
+        public IActionResult SolicitarRecuperacion(
+    SolicitarRecuperacionRequest request)
+        {
+            try
+            {
+                _solicitarRecuperacion.Ejecutar(request);
+
+                return Ok(new
+                {
+                    mensaje = "Código de recuperación generado correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpPost("restablecer-contrasena")]
+        public IActionResult RestablecerContrasena(
+            RestablecerContrasenaRequest request)
+        {
+            try
+            {
+                _restablecerContrasena.Ejecutar(request);
+
+                return Ok(new
+                {
+                    mensaje = "Contraseña restablecida correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (Exception)
             {

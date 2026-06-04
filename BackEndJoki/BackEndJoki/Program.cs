@@ -38,7 +38,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<JokiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions =>
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null)));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -112,8 +118,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IEditarClase, EditarClase>();
     builder.Services.AddScoped<IObtenerClases, ObtenerClases>();
     builder.Services.AddScoped<IObtenerClasesInscripto, ObtenerClasesInscripto>();
-    builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>();
-    builder.Services.AddScoped<IServicioEmail, ServicioEmailMock>();
+    builder.Services.AddScoped<IDesinscribirAlumno, DesinscribirAlumno>(); 
     builder.Services.AddScoped<IObtenerCuotaActualAlumno, ObtenerCuotaActualAlumno>();
     builder.Services.AddScoped<IObtenerMisCuotas, ObtenerMisCuotas>();
     builder.Services.AddScoped<IActualizarCuotasVencidas, ActualizarCuotasVencidas>();
@@ -125,7 +130,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ICrearPagoMercadoPago, CrearPagoMercadoPago>();
     builder.Services.AddScoped<IConfirmarPagoMercadoPago, ConfirmarPagoMercadoPago>();
     builder.Services.AddScoped<IObtenerMiHistorial,ObtenerMiHistorial>();
+    builder.Services.AddScoped<IRepositorioRecuperacionContrasena, RepositorioRecuperacionContrasena>();
+    builder.Services.AddScoped<ISolicitarRecuperacionContrasena, SolicitarRecuperacionContrasena>();
+    builder.Services.AddScoped<IRestablecerContrasena, RestablecerContrasena>();
     builder.Services.Configure<MercadoPagoSettings>(builder.Configuration.GetSection("MercadoPago"));
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+    builder.Services.AddScoped<IServicioEmail, ServicioEmailSendGrid>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
