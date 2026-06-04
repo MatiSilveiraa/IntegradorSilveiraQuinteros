@@ -41,6 +41,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<Auditoria> Auditorias { get; set; }
         public DbSet<MaterialEjercicio> MaterialesEjercicio { get; set; }
 
+        public DbSet<RecuperacionContrasena> RecuperacionesContrasena { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
