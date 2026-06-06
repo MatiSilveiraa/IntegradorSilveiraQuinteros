@@ -4,12 +4,12 @@ import { obtenerMiPerfil } from "../../services/Perfil.service";
 import { obtenerMiCuota } from "../../services/Cuota.service";
 import { obtenerMiHistorial } from "../../services/Historial.service";
 
-import DashboardHeader from "../dashboard/DashboardHeader";
-import ProximaClaseCard from "../dashboard/ProximaClaseCard";
-import CuotaCard from "../dashboard/CuotaCard";
-import RachaCard from "../dashboard/RachaCard";
-import ResumenCard from "../dashboard/ResumenCard";
-import NovedadesCard from "../dashboard/NovedadesCard";
+import DashboardHeader from "../../components/dashboard/DashboardHeader";
+import ProximaClaseCard from "../../components/dashboard/ProximaClaseCard";
+import CuotaCard from "../../components/dashboard/CuotaCard";
+import RachaCard from "../../components/dashboard/RachaCard";
+import ResumenCard from "../../components/dashboard/ResumenCard";
+import NovedadesCard from "../../components/dashboard/NovedadesCard";
 
 import AlumnoTopBar from "../../components/navigation/AlumnoTopBar";
 import AlumnoBottomNav from "../../components/navigation/AlumnoBottomNav";
