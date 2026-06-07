@@ -1,6 +1,5 @@
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-
 import { useNavigate } from "react-router-dom";
 
 type Props = {
@@ -16,14 +15,13 @@ export default function AlumnoTopBar({
   const handleLogout = () => {
 
     localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
 
     navigate("/");
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0e1511] border-b border-[#2d463b] flex items-center justify-between px-4">
-
-      {/* Avatar */}
 
       <div className="flex items-center gap-3">
 
@@ -36,8 +34,6 @@ export default function AlumnoTopBar({
         </div>
 
       </div>
-
-      {/* Acciones */}
 
       <div className="flex items-center gap-2">
 
@@ -69,7 +65,7 @@ export default function AlumnoTopBar({
             justify-center
             rounded-full
             text-gray-400
-            hover:bg-[#1f2d27]
+            hover:bg-red-500/10
             hover:text-red-400
             transition-all
           "
