@@ -1,3 +1,4 @@
+using Hangfire;
 using Joki.CasoUsoCompartida.Configuracion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
@@ -23,6 +24,8 @@ using Joki.LogicaAplicacion.CasosDeUso.Historial;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Joki.WebApi.Filtros;
+using Joki.WebApi.Jobs;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +48,11 @@ builder.Services.AddDbContext<JokiContext>(options =>
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorNumbersToAdd: null)));
+
+
+builder.Services.AddHangfire(config => 
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddHangfireServer();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -136,6 +144,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.Configure<MercadoPagoSettings>(builder.Configuration.GetSection("MercadoPago"));
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     builder.Services.AddScoped<IServicioEmail, ServicioEmailSendGrid>();
+    builder.Services.AddScoped<CuotasJob>();
+    builder.Services.Configure<HangfireSettings>(builder.Configuration.GetSection("HangfireSettings"));
+    builder.Services.AddScoped<HangfireAuthorizationFilter>();
     builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
@@ -154,6 +165,37 @@ var app = builder.Build();
 
     app.UseSwagger();
     app.UseSwaggerUI();
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+ {
+        app.Services.CreateScope()
+            .ServiceProvider
+            .GetRequiredService<HangfireAuthorizationFilter>()
+    }
+});
+
+var zonaHorariaUruguay =
+    TimeZoneInfo.FindSystemTimeZoneById(
+        "Montevideo Standard Time");
+
+RecurringJob.AddOrUpdate<CuotasJob>(
+    "generar-cuotas-mensuales",
+    job => job.GenerarCuotasMensuales(),
+    Cron.Monthly(1),
+    new RecurringJobOptions
+    {
+        TimeZone = zonaHorariaUruguay
+    });
+
+RecurringJob.AddOrUpdate<CuotasJob>(
+    "actualizar-cuotas-vencidas",
+    job => job.ActualizarCuotasVencidas(),
+    Cron.Daily(),
+    new RecurringJobOptions
+    {
+        TimeZone = zonaHorariaUruguay
+    });
 
 
 using (var scope = app.Services.CreateScope())
