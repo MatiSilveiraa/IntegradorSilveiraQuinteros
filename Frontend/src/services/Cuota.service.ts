@@ -5,8 +5,21 @@ export const obtenerMiCuota = async () => {
     "/api/Cuota/mi-cuota",
     {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const obtenerMisCuotas = async () => {
+  const response = await axiosInstance.get(
+    "/api/Cuota/mis-cuotas",
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     }
   );
 
