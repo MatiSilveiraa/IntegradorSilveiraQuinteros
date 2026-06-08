@@ -12,6 +12,9 @@ import PagosPage from "../pages/PagoPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import VerifyCodePage from "../pages/VerifyCodePage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import GruposPage from "../pages/GrupoPage";
+import GrupoDetallePage from "../pages/GrupoDetallePage";
+
 
 export default function AppRouter() {
   return (
@@ -46,6 +49,16 @@ export default function AppRouter() {
         <Route
           path="/reset-password"
           element={<ResetPasswordPage />}
+        />
+
+        <Route
+          path="/alumno/grupos"
+          element={<GruposPage />}
+        />
+        
+        <Route
+          path="/alumno/grupos/:grupoId"
+          element={<GrupoDetallePage />}
         />
 
       </Routes>
