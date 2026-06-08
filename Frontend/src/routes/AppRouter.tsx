@@ -14,6 +14,7 @@ import VerifyCodePage from "../pages/VerifyCodePage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import GruposPage from "../pages/GrupoPage";
 import GrupoDetallePage from "../pages/GrupoDetallePage";
+import PerfilPage from "../pages/PerfilPage";
 
 
 export default function AppRouter() {
@@ -59,6 +60,11 @@ export default function AppRouter() {
         <Route
           path="/alumno/grupos/:grupoId"
           element={<GrupoDetallePage />}
+        />
+
+        <Route
+          path="/alumno/perfil"
+          element={<PerfilPage />}
         />
 
       </Routes>

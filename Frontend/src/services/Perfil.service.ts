@@ -12,3 +12,21 @@ export const obtenerMiPerfil = async () => {
 
   return response.data;
 };
+
+export const actualizarMiPerfil = async (
+  perfil: any
+) => {
+
+  const response =
+    await axiosInstance.put(
+      "/api/Perfil/mi-perfil",
+      perfil,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+  return response.data;
+};
