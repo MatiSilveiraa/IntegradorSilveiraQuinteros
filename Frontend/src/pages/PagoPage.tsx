@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-
-import PagoHeader from "../components/pagos/PagosHeader";
 import ResumenCuentaCard from "../components/pagos/ResumenCuentaCard";
 import MetodoPagoCard from "../components/pagos/MetodoPagoCard";
 import HistorialPagosCard from "../components/pagos/HistorialPagosCard";
@@ -9,12 +7,14 @@ import PagoFooter from "../components/pagos/PageFooter";
 import {
   generarPagoMercadoPago,
 } from "../services/Pago.service";
-
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import {
   obtenerMiCuota,
   obtenerMisCuotas,
 } from "../services/Cuota.service";
+import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
+import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 
 export default function PagosPage() {
 
@@ -102,76 +102,95 @@ export default function PagosPage() {
 };
 
   return (
-    <div className="min-h-screen bg-[#12201b] text-white">
+  <div className="min-h-screen bg-[#12201b] text-white">
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+    <AlumnoTopBar
+      nombre={perfil?.nombre}
+    />
 
-        <PagoHeader
-          nombre={perfil?.nombre}
-        />
+    <AlumnoSidebar />
 
-        <div
-          className="
-            grid
-            gap-6
-            mt-6
-            lg:grid-cols-3
-          "
-        >
+    <main
+      className="
+        pt-20
+        pb-24
+        px-4
+        lg:px-6
+        lg:ml-64
+        max-w-7xl
+        mx-auto
+      "
+    >
 
-          {/* RESUMEN */}
+      <div className="mb-8">
 
-          <div className="lg:col-span-2">
+        <h1 className="text-3xl font-bold">
+          Pagos
+        </h1>
 
-            <ResumenCuentaCard
-              cuota={cuotaActual}
-            />
+        <p className="text-gray-400 mt-2">
+          Gestiona tus cuotas y pagos pendientes.
+        </p>
 
-          </div>
+      </div>
 
-          {/* MÉTODO DE PAGO */}
+      <div
+        className="
+          grid
+          gap-6
+          lg:grid-cols-3
+        "
+      >
 
-          <div>
+        <div className="lg:col-span-2">
 
-            <MetodoPagoCard />
-
-          </div>
-
-          {/* HISTORIAL */}
-
-          <div className="lg:col-span-3">
-
-            <HistorialPagosCard
-              cuotas={cuotas}
-            />
-
-          </div>
-
-        </div>
-
-        <SecurityNote />
-
-        <div className="mt-8 flex justify-center">
-
-          <div className="w-full lg:w-96">
-
-            <PagoFooter
-              onPagar={handlePagar}
-              disabled={
-                !cuotaActual ||
-                cuotaActual?.estado ===
-                  "Pagada" ||
-                cuotaActual?.estado ===
-                  "Sin cuota"
-              }
-            />
-
-          </div>
+          <ResumenCuentaCard
+            cuota={cuotaActual}
+          />
 
         </div>
 
-      </main>
+        <div>
 
-    </div>
-  );
+          <MetodoPagoCard />
+
+        </div>
+
+        <div className="lg:col-span-3">
+
+          <HistorialPagosCard
+            cuotas={cuotas}
+          />
+
+        </div>
+
+      </div>
+
+      <SecurityNote />
+
+      <div className="mt-8 flex justify-center">
+
+        <div className="w-full lg:w-96">
+
+          <PagoFooter
+            onPagar={handlePagar}
+            disabled={
+              !cuotaActual ||
+              cuotaActual?.estado ===
+                "PAGADA" ||
+              cuotaActual?.estado ===
+                "Sin cuota"
+            }
+          />
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <AlumnoBottomNav />
+
+  </div>
+);
 }
