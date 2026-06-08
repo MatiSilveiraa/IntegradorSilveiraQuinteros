@@ -15,11 +15,11 @@ export default function AlumnoBottomNav() {
       path: "/alumno",
       icon: <HomeOutlinedIcon />,
     },
-    {
-      label: "Grupos",
-      path: "/alumno/grupos",
-      icon: <GroupOutlinedIcon />,
-    },
+   {
+  label: "Grupos",
+  path: "/alumno/grupos",
+  icon: <GroupOutlinedIcon />,
+},
     {
       label: "Asistencia",
       path: "/alumno/asistencias",
