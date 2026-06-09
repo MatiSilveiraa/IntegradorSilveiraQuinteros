@@ -23,6 +23,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Alumno> Alumnos { get; set; }
         public DbSet<Entrenador> Entrenadores { get; set; }
+        public DbSet<ConfiguracionCuota> ConfiguracionesCuota { get; set; }
+        public DbSet<Descuento> Descuentos { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Grupo> Grupos { get; set; }
         public DbSet<Clase> Clases { get; set; }
@@ -45,8 +47,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ConfiguracionCuota>()
+                .Property(c => c.MontoMensual)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Descuento>()
+                .Property(d => d.Porcentaje)
+                .HasPrecision(18, 2);
+
+            modelBuilder.ApplyConfigurationsFromAssembly(
+                typeof(JokiContext).Assembly);
+
             base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(JokiContext).Assembly);
         }
     }
 }

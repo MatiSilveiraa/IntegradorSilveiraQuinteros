@@ -4,6 +4,7 @@ using Joki.Infraestructura.AccesoDatos.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    partial class JokiContextModelSnapshot : ModelSnapshot
+    [Migration("20260609200610_DescuentosConfigurables")]
+    partial class DescuentosConfigurables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,7 +221,6 @@ namespace Joki.Infraestructura.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("MontoMensual")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -330,7 +332,6 @@ namespace Joki.Infraestructura.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Porcentaje")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Tipo")

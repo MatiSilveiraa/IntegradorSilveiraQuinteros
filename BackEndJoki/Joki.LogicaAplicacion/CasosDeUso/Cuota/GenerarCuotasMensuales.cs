@@ -1,5 +1,4 @@
 ﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
@@ -9,13 +8,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
     {
         private readonly IRepositorioAlumno _repositorioAlumno;
         private readonly IRepositorioCuota _repositorioCuota;
+        private readonly IRepositorioConfiguracionCuota _repositorioConfiguracionCuota;
+        private readonly IRepositorioBeneficio _repositorioBeneficio;
 
         public GenerarCuotasMensuales(
             IRepositorioAlumno repositorioAlumno,
-            IRepositorioCuota repositorioCuota)
+            IRepositorioCuota repositorioCuota,
+            IRepositorioConfiguracionCuota repositorioConfiguracionCuota,
+            IRepositorioBeneficio repositorioBeneficio)
         {
             _repositorioAlumno = repositorioAlumno;
             _repositorioCuota = repositorioCuota;
+            _repositorioConfiguracionCuota = repositorioConfiguracionCuota;
+            _repositorioBeneficio = repositorioBeneficio;
         }
 
         public void Ejecutar()
@@ -23,7 +28,15 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
             int mesActual = DateTime.Now.Month;
             int anioActual = DateTime.Now.Year;
 
+            var configuracion =
+                _repositorioConfiguracionCuota.ObtenerActiva();
+
             decimal montoBase = 1390m;
+
+            if (configuracion != null)
+            {
+                montoBase = configuracion.MontoMensual;
+            }
 
             var alumnosActivos =
                 _repositorioAlumno.ObtenerActivos();
@@ -38,20 +51,60 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
 
                 if (cuotaExistente == null)
                 {
-                    var cuota = new Joki.LogicaNegocio.Entidades.Cuota
+                    var beneficios =
+                        _repositorioBeneficio
+                            .ObtenerPendientesPorAlumno(
+                                alumno.UsuarioId)
+                            .ToList();
+
+                    decimal porcentajeDescuento =
+                        beneficios.Sum(b =>
+                            b.Descuento!.Porcentaje);
+
+                    if (porcentajeDescuento > 100)
                     {
-                        AlumnoId = alumno.UsuarioId,
-                        Mes = mesActual,
-                        Anio = anioActual,
-                        FechaVencimiento =
-                            new DateTime(anioActual, mesActual, 10),
-                        MontoBase = montoBase,
-                        Descuento = 0m,
-                        MontoFinal = montoBase,
-                        Estado = EstadoCuota.PENDIENTE
-                    };
+                        porcentajeDescuento = 100;
+                    }
+
+                    decimal montoDescuento =
+                        montoBase * porcentajeDescuento / 100;
+
+                    decimal montoFinal =
+                        montoBase - montoDescuento;
+
+                    var cuota =
+                        new Joki.LogicaNegocio.Entidades.Cuota
+                        {
+                            AlumnoId = alumno.UsuarioId,
+                            Mes = mesActual,
+                            Anio = anioActual,
+                            FechaVencimiento =
+                                new DateTime(
+                                    anioActual,
+                                    mesActual,
+                                    10),
+                            MontoBase = montoBase,
+                            Descuento = montoDescuento,
+                            MontoFinal = montoFinal,
+                            Estado = EstadoCuota.PENDIENTE
+                        };
 
                     _repositorioCuota.Agregar(cuota);
+
+                    foreach (var beneficio in beneficios)
+                    {
+                        beneficio.MesesAplicados++;
+
+                        if (beneficio.MesesAplicados >=
+                            beneficio.MesesDuracion)
+                        {
+                            beneficio.Estado =
+                                EstadoBeneficio.OTORGADO;
+                        }
+
+                        _repositorioBeneficio.Modificar(
+                            beneficio);
+                    }
                 }
             }
         }

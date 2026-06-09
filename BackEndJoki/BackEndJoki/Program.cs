@@ -4,7 +4,9 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.ConfiguracionCuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
@@ -17,7 +19,9 @@ using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
+using Joki.LogicaAplicacion.CasosDeUso.ConfiguracionCuota;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
+using Joki.LogicaAplicacion.CasosDeUso.Descuento;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Historial;
@@ -145,9 +149,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     builder.Services.AddScoped<IServicioEmail, ServicioEmailSendGrid>();
     builder.Services.AddScoped<CuotasJob>();
+    builder.Services.AddScoped<IRepositorioConfiguracionCuota, RepositorioConfiguracionCuota>();
+    builder.Services.AddScoped<IObtenerConfiguracionCuota, ObtenerConfiguracionCuota>();
+    builder.Services.AddScoped<IActualizarConfiguracionCuota, ActualizarConfiguracionCuota>();
     builder.Services.Configure<HangfireSettings>(builder.Configuration.GetSection("HangfireSettings"));
     builder.Services.AddScoped<HangfireAuthorizationFilter>();
-    builder.Services.AddAuthorization();
+    builder.Services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
+    builder.Services.AddScoped<IRepositorioDescuento, RepositorioDescuento>();
+    builder.Services.AddScoped<IRepositorioBeneficio, RepositorioBeneficio>();
+    builder.Services.AddScoped<ICrearDescuento, CrearDescuento>();
+    builder.Services.AddScoped<IObtenerDescuentos, ObtenerDescuentos>();
+    builder.Services.AddScoped<IObtenerDescuentoPorId,ObtenerDescuentoPorId>();
+    builder.Services.AddScoped<IActualizarDescuento,ActualizarDescuento>();
+
+
+builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll",
