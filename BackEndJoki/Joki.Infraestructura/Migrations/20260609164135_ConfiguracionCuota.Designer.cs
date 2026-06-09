@@ -4,6 +4,7 @@ using Joki.Infraestructura.AccesoDatos.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    partial class JokiContextModelSnapshot : ModelSnapshot
+    [Migration("20260609164135_ConfiguracionCuota")]
+    partial class ConfiguracionCuota
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,21 +122,9 @@ namespace Joki.Infraestructura.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int?>("DescuentoId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("FechaAsignacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MesesAplicados")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MesesDuracion")
-                        .HasColumnType("int");
 
                     b.Property<int?>("RecompensaId")
                         .HasColumnType("int");
@@ -141,8 +132,6 @@ namespace Joki.Infraestructura.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AlumnoId");
-
-                    b.HasIndex("DescuentoId");
 
                     b.HasIndex("RecompensaId");
 
@@ -218,7 +207,6 @@ namespace Joki.Infraestructura.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("MontoMensual")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -299,48 +287,6 @@ namespace Joki.Infraestructura.Migrations
                         {
                             t.HasCheckConstraint("CK_Desafio_Fechas", "[FechaFin] >= [FechaInicio]");
                         });
-                });
-
-            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Descuento", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Alcance")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DesafioId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MesesDuracion")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Porcentaje")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Tipo")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DesafioId");
-
-                    b.ToTable("Descuentos");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Grupo", b =>
@@ -846,18 +792,12 @@ namespace Joki.Infraestructura.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Descuento", "Descuento")
-                        .WithMany()
-                        .HasForeignKey("DescuentoId");
-
                     b.HasOne("Joki.LogicaNegocio.Entidades.Recompensa", "Recompensa")
                         .WithMany("Beneficios")
                         .HasForeignKey("RecompensaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Alumno");
-
-                    b.Navigation("Descuento");
 
                     b.Navigation("Recompensa");
                 });
@@ -912,15 +852,6 @@ namespace Joki.Infraestructura.Migrations
                         .IsRequired();
 
                     b.Navigation("Alumno");
-                });
-
-            modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Descuento", b =>
-                {
-                    b.HasOne("Joki.LogicaNegocio.Entidades.Desafio", "Desafio")
-                        .WithMany()
-                        .HasForeignKey("DesafioId");
-
-                    b.Navigation("Desafio");
                 });
 
             modelBuilder.Entity("Joki.LogicaNegocio.Entidades.Grupo", b =>
