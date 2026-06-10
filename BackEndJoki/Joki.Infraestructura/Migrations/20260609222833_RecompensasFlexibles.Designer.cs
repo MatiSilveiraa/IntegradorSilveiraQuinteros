@@ -4,6 +4,7 @@ using Joki.Infraestructura.AccesoDatos.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Joki.Infraestructura.Migrations
 {
     [DbContext(typeof(JokiContext))]
-    partial class JokiContextModelSnapshot : ModelSnapshot
+    [Migration("20260609222833_RecompensasFlexibles")]
+    partial class RecompensasFlexibles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,9 +280,6 @@ namespace Joki.Infraestructura.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -582,9 +582,6 @@ namespace Joki.Infraestructura.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
 
                     b.Property<int>("DesafioId")
                         .HasColumnType("int");

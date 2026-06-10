@@ -9,6 +9,7 @@
 
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public bool Activo { get; set; }
 
         public virtual ICollection<ParticipacionDesafio> Participaciones { get; set; }
         public virtual ICollection<Recompensa> Recompensas { get; set; }
@@ -17,8 +18,9 @@
         {
             Titulo = string.Empty;
             Descripcion = string.Empty;
+            Activo = true;
             Participaciones = new List<ParticipacionDesafio>();
-            Recompensas = new List<Recompensa>();
+            Recompensas = new List<Recompensa>();   
         }
     }
 }

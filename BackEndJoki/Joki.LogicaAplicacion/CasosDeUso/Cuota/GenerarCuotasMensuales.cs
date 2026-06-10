@@ -57,9 +57,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
                                 alumno.UsuarioId)
                             .ToList();
 
+                    bool tieneCuotaGratis =
+                            beneficios.Any(b => b.CuotaGratis);
+
                     decimal porcentajeDescuento =
-                        beneficios.Sum(b =>
-                            b.Descuento!.Porcentaje);
+                        beneficios
+                            .Where(b => b.Descuento != null)
+                            .Sum(b => b.Descuento!.Porcentaje);
 
                     if (porcentajeDescuento > 100)
                     {
@@ -72,8 +76,14 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
                     decimal montoFinal =
                         montoBase - montoDescuento;
 
+                    if (tieneCuotaGratis)
+                    {
+                        montoDescuento = montoBase;
+                        montoFinal = 0m;
+                    }
+
                     var cuota =
-                        new Joki.LogicaNegocio.Entidades.Cuota
+                        new LogicaNegocio.Entidades.Cuota
                         {
                             AlumnoId = alumno.UsuarioId,
                             Mes = mesActual,

@@ -31,15 +31,19 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public IEnumerable<Beneficio> ObtenerPendientesPorAlumno(
-            int alumnoId)
+    int alumnoId)
         {
             return _context.Beneficios
                 .Include(b => b.Descuento)
                 .Where(b =>
                     b.AlumnoId == alumnoId &&
                     b.Estado == EstadoBeneficio.PENDIENTE &&
-                    b.Descuento != null &&
-                    b.Descuento.Activo &&
+                    (
+                        (b.Descuento != null &&
+                         b.Descuento.Activo)
+                        ||
+                        b.CuotaGratis
+                    ) &&
                     b.MesesAplicados < b.MesesDuracion)
                 .ToList();
         }
