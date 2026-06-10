@@ -19,6 +19,7 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerGanadoresDesafio _obtenerGanadoresDesafio;
         private readonly IParticiparDesafio _participarDesafio;
         private readonly IObtenerParticipantesDesafio _obtenerParticipantesDesafio;
+        private readonly IObtenerMisDesafios _obtenerMisDesafios;
 
         public DesafioController(
             ICrearDesafio crearDesafio,
@@ -28,7 +29,8 @@ namespace Joki.WebApi.Controllers
             IAsignarGanadoresDesafio asignarGanadoresDesafio,
             IObtenerGanadoresDesafio obtenerGanadoresDesafio,
             IParticiparDesafio participarDesafio,
-            IObtenerParticipantesDesafio obtenerParticipantesDesafio)
+            IObtenerParticipantesDesafio obtenerParticipantesDesafio,
+            IObtenerMisDesafios obtenerMisDesafios)
         {
             _crearDesafio = crearDesafio;
             _obtenerDesafios = obtenerDesafios;
@@ -38,6 +40,7 @@ namespace Joki.WebApi.Controllers
             _obtenerGanadoresDesafio = obtenerGanadoresDesafio;
             _participarDesafio = participarDesafio;
             _obtenerParticipantesDesafio = obtenerParticipantesDesafio;
+            _obtenerMisDesafios = obtenerMisDesafios;
         }
 
 
@@ -260,6 +263,30 @@ namespace Joki.WebApi.Controllers
                 {
                     mensaje = e.Message
                 });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("mis-desafios")]
+        public IActionResult ObtenerMisDesafios()
+        {
+            try
+            {
+                int alumnoId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                var desafios =
+                    _obtenerMisDesafios.Ejecutar(alumnoId);
+
+                return Ok(desafios);
             }
             catch (Exception)
             {

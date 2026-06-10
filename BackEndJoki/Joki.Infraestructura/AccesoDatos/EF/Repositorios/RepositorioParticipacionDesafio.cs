@@ -60,5 +60,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Where(p => p.DesafioId == desafioId)
                 .ToList();
         }
+
+        public IEnumerable<ParticipacionDesafio> ObtenerPorAlumno(
+    int alumnoId)
+        {
+            return _context.ParticipacionesDesafio
+                .Where(p => p.AlumnoId == alumnoId)
+                .ToList();
+        }
     }
 }
