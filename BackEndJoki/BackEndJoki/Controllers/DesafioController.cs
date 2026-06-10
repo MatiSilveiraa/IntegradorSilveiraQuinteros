@@ -3,6 +3,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Joki.WebApi.Controllers
 {
@@ -16,6 +17,8 @@ namespace Joki.WebApi.Controllers
         private readonly IEliminarDesafio _eliminarDesafio;
         private readonly IAsignarGanadoresDesafio _asignarGanadoresDesafio;
         private readonly IObtenerGanadoresDesafio _obtenerGanadoresDesafio;
+        private readonly IParticiparDesafio _participarDesafio;
+        private readonly IObtenerParticipantesDesafio _obtenerParticipantesDesafio;
 
         public DesafioController(
             ICrearDesafio crearDesafio,
@@ -23,7 +26,9 @@ namespace Joki.WebApi.Controllers
             IActualizarDesafio actualizarDesafio,
             IEliminarDesafio eliminarDesafio,
             IAsignarGanadoresDesafio asignarGanadoresDesafio,
-            IObtenerGanadoresDesafio obtenerGanadoresDesafio)
+            IObtenerGanadoresDesafio obtenerGanadoresDesafio,
+            IParticiparDesafio participarDesafio,
+            IObtenerParticipantesDesafio obtenerParticipantesDesafio)
         {
             _crearDesafio = crearDesafio;
             _obtenerDesafios = obtenerDesafios;
@@ -31,6 +36,8 @@ namespace Joki.WebApi.Controllers
             _eliminarDesafio = eliminarDesafio;
             _asignarGanadoresDesafio = asignarGanadoresDesafio;
             _obtenerGanadoresDesafio = obtenerGanadoresDesafio;
+            _participarDesafio = participarDesafio;
+            _obtenerParticipantesDesafio = obtenerParticipantesDesafio;
         }
 
 
@@ -184,6 +191,68 @@ namespace Joki.WebApi.Controllers
                     _obtenerGanadoresDesafio.Ejecutar(id);
 
                 return Ok(ganadores);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("{id}/participar")]
+        public IActionResult Participar(int id)
+        {
+            try
+            {
+                int alumnoId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _participarDesafio.Ejecutar(
+                    id,
+                    alumnoId);
+
+                return Ok(new
+                {
+                    mensaje = "Participación registrada correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id}/participantes")]
+        public IActionResult ObtenerParticipantes(int id)
+        {
+            try
+            {
+                var participantes =
+                    _obtenerParticipantesDesafio.Ejecutar(id);
+
+                return Ok(participantes);
             }
             catch (LogicaNegocioException e)
             {

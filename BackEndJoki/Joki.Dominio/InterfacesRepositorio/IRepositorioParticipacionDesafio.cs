@@ -10,6 +10,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         IEnumerable<ParticipacionDesafio> ObtenerGanadoresPorDesafio(
     int desafioId);
 
+        IEnumerable<ParticipacionDesafio> ObtenerParticipantesPorDesafio(
+    int desafioId);
+
         ParticipacionDesafio? Obtener(
             int alumnoId,
             int desafioId);

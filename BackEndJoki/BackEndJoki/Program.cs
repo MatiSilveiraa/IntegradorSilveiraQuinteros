@@ -178,6 +178,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IActualizarRecompensa, ActualizarRecompensa>();
     builder.Services.AddScoped<IEliminarRecompensa, EliminarRecompensa>();
     builder.Services.AddScoped<IObtenerGanadoresDesafio, ObtenerGanadoresDesafio>();
+    builder.Services.AddScoped<IParticiparDesafio, ParticiparDesafio>();
+    builder.Services.AddScoped<IObtenerParticipantesDesafio, ObtenerParticipantesDesafio>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
