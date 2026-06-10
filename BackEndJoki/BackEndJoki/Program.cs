@@ -6,11 +6,13 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.ConfiguracionCuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Recompensa;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
 using Joki.Infraestructura.AccesoDatos.Repositorios;
@@ -21,12 +23,14 @@ using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
 using Joki.LogicaAplicacion.CasosDeUso.ConfiguracionCuota;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
+using Joki.LogicaAplicacion.CasosDeUso.Desafio;
 using Joki.LogicaAplicacion.CasosDeUso.Descuento;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Historial;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
+using Joki.LogicaAplicacion.CasosDeUso.Recompensa;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Filtros;
 using Joki.WebApi.Jobs;
@@ -161,9 +165,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerDescuentos, ObtenerDescuentos>();
     builder.Services.AddScoped<IObtenerDescuentoPorId,ObtenerDescuentoPorId>();
     builder.Services.AddScoped<IActualizarDescuento,ActualizarDescuento>();
+    builder.Services.AddScoped<IRepositorioDesafio, RepositorioDesafio>();
+    builder.Services.AddScoped<IRepositorioRecompensa, RepositorioRecompensa>();
+    builder.Services.AddScoped<ICrearDesafio,CrearDesafio>();
+    builder.Services.AddScoped<IObtenerDesafios,ObtenerDesafios>();
+    builder.Services.AddScoped<IActualizarDesafio, ActualizarDesafio>();
+    builder.Services.AddScoped<IEliminarDesafio, EliminarDesafio>();
+    builder.Services.AddScoped<ICrearRecompensa, CrearRecompensa>();
+    builder.Services.AddScoped<IObtenerRecompensasPorDesafio, ObtenerRecompensasPorDesafio>();
+    builder.Services.AddScoped<IRepositorioParticipacionDesafio, RepositorioParticipacionDesafio>();
+    builder.Services.AddScoped<IAsignarGanadoresDesafio, AsignarGanadoresDesafio>();
+    builder.Services.AddScoped<IActualizarRecompensa, ActualizarRecompensa>();
+    builder.Services.AddScoped<IEliminarRecompensa, EliminarRecompensa>();
+    builder.Services.AddScoped<IObtenerGanadoresDesafio, ObtenerGanadoresDesafio>();
+    builder.Services.AddAuthorization();
 
-
-builder.Services.AddAuthorization();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll",

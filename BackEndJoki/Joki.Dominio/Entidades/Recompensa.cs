@@ -15,10 +15,20 @@ namespace Joki.LogicaNegocio.Entidades
 
         public virtual ICollection<Beneficio> Beneficios { get; set; }
 
+        public string? PremioFisico { get; set; }
+
+        public int? DescuentoId { get; set; }
+
+        public virtual Descuento? Descuento { get; set; }
+
+        public bool OtorgaCuotaGratis { get; set; }
+        public bool Activo { get; set; }
+
         public Recompensa()
         {
             Descripcion = string.Empty;
             Beneficios = new List<Beneficio>();
+            Activo = true;
         }
     }
 }

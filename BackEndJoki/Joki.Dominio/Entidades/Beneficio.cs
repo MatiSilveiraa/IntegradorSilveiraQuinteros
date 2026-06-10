@@ -14,6 +14,7 @@ namespace Joki.LogicaNegocio.Entidades
 
         public int? DescuentoId { get; set; }
         public virtual Descuento? Descuento { get; set; }
+        public bool CuotaGratis { get; set; }
 
         public EstadoBeneficio Estado { get; set; }
 
@@ -32,6 +33,7 @@ namespace Joki.LogicaNegocio.Entidades
             MesesDuracion = 1;
             MesesAplicados = 0;
             FechaAsignacion = DateTime.UtcNow;
+            CuotaGratis = false;
         }
     }
 }
