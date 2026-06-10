@@ -3,6 +3,7 @@ using Joki.CasoUsoCompartida.Configuracion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Beneficio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.ConfiguracionCuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
@@ -20,6 +21,7 @@ using Joki.Infraestructura.Servicios;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
+using Joki.LogicaAplicacion.CasosDeUso.Beneficio;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
 using Joki.LogicaAplicacion.CasosDeUso.ConfiguracionCuota;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
@@ -180,6 +182,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerGanadoresDesafio, ObtenerGanadoresDesafio>();
     builder.Services.AddScoped<IParticiparDesafio, ParticiparDesafio>();
     builder.Services.AddScoped<IObtenerParticipantesDesafio, ObtenerParticipantesDesafio>();
+    builder.Services.AddScoped<IObtenerMisDesafios, ObtenerMisDesafios>();
+    builder.Services.AddScoped<IObtenerMisBeneficios, ObtenerMisBeneficios>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>

@@ -1,9 +1,9 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Desafio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Entidades = Joki.LogicaNegocio.Entidades;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
@@ -79,33 +79,22 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 
                 if (participacion == null)
                 {
-                    participacion =
-                        new ParticipacionDesafio
-                        {
-                            AlumnoId = alumnoId,
-                            DesafioId = request.DesafioId,
-                            Resultado = "Ganador asignado manualmente",
-                            Ganador = true
-                        };
-
-                    _repositorioParticipacion.Agregar(
-                        participacion);
+                    throw new LogicaNegocioException(
+                        "El alumno no participa en el desafío");
                 }
-                else
-                {
-                    participacion.Ganador = true;
-                    participacion.Resultado =
-                        "Ganador asignado manualmente";
 
-                    _repositorioParticipacion.Modificar(
-                        participacion);
-                }
+                participacion.Ganador = true;
+                participacion.Resultado =
+                    "Ganador asignado manualmente";
+
+                _repositorioParticipacion.Modificar(
+                    participacion);
 
                 foreach (var recompensa in recompensas)
                 {
                     var beneficio =
-                        new Beneficio
-                        {
+                        new Entidades.Beneficio
+    {
                             AlumnoId = alumnoId,
                             RecompensaId = recompensa.Id,
                             DescuentoId = recompensa.DescuentoId,
