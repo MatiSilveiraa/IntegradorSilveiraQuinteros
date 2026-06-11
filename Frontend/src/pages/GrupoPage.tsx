@@ -3,61 +3,59 @@ import BuscadorGrupos from "../components/grupos/BuscadorGrupos";
 import GrupoCard from "../components/grupos/GrupoCard";
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerGrupos } from "../../src/services/Grupo.Service";
-import {
-  obtenerDias,
-  obtenerHora,
-} from "../utils/grupoUtils";
+import { obtenerDias, obtenerHora } from "../utils/grupoUtils";
 import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import { obtenerMisClases } from "../services/Inscripciones.Service";
+import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
+import { desinscribirseClase } from "../services/Inscripciones.Service";
 
 export default function GruposPage() {
+  const [perfil, setPerfil] = useState<any>(null);
 
-  const [perfil, setPerfil] =
-    useState<any>(null);
+  const [grupos, setGrupos] = useState<any[]>([]);
+  const [misClases, setMisClases] = useState<any[]>([]);
 
-  const [grupos, setGrupos] =
-    useState<any[]>([]);
-
-  const [busqueda, setBusqueda] =
-    useState("");
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
-
-    obtenerMiPerfil()
-      .then(setPerfil)
-      .catch(console.error);
-
+    obtenerMiPerfil().then(setPerfil).catch(console.error);
   }, []);
 
   useEffect(() => {
-
-    obtenerGrupos()
-      .then(setGrupos)
-      .catch(console.error);
-
+    obtenerGrupos().then(setGrupos).catch(console.error);
   }, []);
 
-  const gruposFiltrados =
-    grupos.filter((grupo) =>
-      grupo.nombre
-        .toLowerCase()
-        .includes(
-          busqueda.toLowerCase()
-        )
-    );
+  useEffect(() => {
+    obtenerMisClases().then(setMisClases).catch(console.error);
+  }, []);
+
+  const handleDesinscribirse = async (claseId: number) => {
+    try {
+      await desinscribirseClase(claseId);
+
+      setMisClases((prev) => prev.filter((c) => c.id !== claseId));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const gruposFiltrados = grupos.filter((grupo) =>
+    grupo.nombre.toLowerCase().includes(busqueda.toLowerCase()),
+  );
+
+  const obtenerNombreGrupo = (grupoId: number) => {
+    return grupos.find((g) => g.id === grupoId)?.nombre || "Grupo";
+  };
 
   return (
-  <div className="min-h-screen bg-[#12201b] text-white">
+    <div className="min-h-screen bg-[#12201b] text-white">
+      <AlumnoTopBar nombre={perfil?.nombre} />
 
-    <AlumnoTopBar
-      nombre={perfil?.nombre}
-    />
+      <AlumnoSidebar />
 
-    <AlumnoSidebar />
-
-    <main
-      className="
+      <main
+        className="
         pt-20
         pb-24
         px-4
@@ -66,49 +64,199 @@ export default function GruposPage() {
         max-w-7xl
         mx-auto
       "
-    >
+      >
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Grupos</h1>
 
-      <div className="mb-8">
-
-        <h1 className="text-3xl font-bold">
-          Grupos
-        </h1>
-
-        <p className="text-gray-400 mt-2">
-          Encuentra e inscríbete a los grupos disponibles.
-        </p>
-
-      </div>
-
-      <BuscadorGrupos
-        value={busqueda}
-        onChange={(e) =>
-          setBusqueda(
-            e.target.value
-          )
-        }
-      />
-
-      <section className="mt-8">
-
-        <div className="flex justify-between items-center mb-5">
-
-          <h2 className="text-2xl font-bold">
-            Grupos Disponibles
-          </h2>
-
-          <span className="text-gray-400 text-sm">
-            {gruposFiltrados.length}
-            {" "}
-            grupos encontrados
-          </span>
-
+          <p className="text-gray-400 mt-2">
+            Encuentra e inscríbete a los grupos disponibles.
+          </p>
         </div>
 
-        {gruposFiltrados.length === 0 ? (
+        <BuscadorGrupos
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+        {/* PRÓXIMA CLASE */}
 
-          <div
+        <div
+          className="
+    mt-8
+    rounded-3xl
+    border
+    border-[#4adea8]/20
+    bg-gradient-to-r
+    from-[#1a2b24]
+    to-[#163129]
+    p-6
+    shadow-lg
+  "
+        >
+          <span
             className="
+      inline-block
+      px-3
+      py-1
+      rounded-full
+      bg-[#4adea8]
+      text-[#12201b]
+      text-xs
+      font-bold
+    "
+          >
+            PRÓXIMA CLASE
+          </span>
+
+          <h3 className="text-3xl font-bold mt-4">
+            {misClases.length > 0
+              ? misClases[0].diaSemana
+              : "Sin clases programadas"}
+          </h3>
+
+          <p className="text-gray-300 mt-2 text-lg">
+            {misClases.length > 0
+              ? `${misClases[0].horaInicio.substring(
+                  0,
+                  5,
+                )} - ${misClases[0].horaFin.substring(0, 5)}`
+              : "No tienes clases registradas"}
+          </p>
+        </div>
+
+        {/* MIS CLASES */}
+
+        <section className="mt-10">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-3xl font-bold">Mis clases</h2>
+
+            <span className="text-gray-400 text-sm">
+              {misClases.length} clases
+            </span>
+          </div>
+
+          {misClases.length === 0 ? (
+            <div
+              className="
+        bg-[#1a2b24]
+        border
+        border-[#2d463b]
+        rounded-2xl
+        p-8
+        text-center
+      "
+            >
+              <p className="text-gray-400">
+                No estás inscripto a ninguna clase.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {misClases.map((clase) => (
+                <div
+                  key={clase.id}
+                  className="
+            bg-[#1a2b24]
+            border
+            border-[#2d463b]
+            rounded-2xl
+            overflow-hidden
+            hover:border-[#4adea8]/40
+            transition-all
+          "
+                >
+                  <div className="flex">
+                    <div className="w-32 h-32 flex-shrink-0">
+                      <img
+                        src={obtenerImagenGrupo(
+                          obtenerNombreGrupo(clase.grupoId),
+                        )}
+                        alt="Clase"
+                        className="
+      w-full
+      h-full
+      object-cover
+    "
+                      />
+                    </div>
+
+                    <div className="flex-1 p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-lg">
+                            {clase.diaSemana}
+                          </h3>
+
+                          <p className="text-gray-400 mt-1">
+                            {clase.horaInicio.substring(0, 5)}
+
+                            {" - "}
+
+                            {clase.horaFin.substring(0, 5)}
+                          </p>
+
+                          <p className="text-gray-500 text-sm mt-2">
+                            Clase #{clase.id}
+                          </p>
+                        </div>
+
+                        <span
+                          className="
+                    px-3
+                    py-1
+                    rounded-full
+                    text-xs
+                    font-semibold
+                    bg-[#4adea8]/10
+                    text-[#4adea8]
+                  "
+                        >
+                          Activa
+                        </span>
+                        <button
+                          onClick={() => handleDesinscribirse(clase.id)}
+                          className="
+    mt-4
+    px-4
+    py-2
+    rounded-lg
+    bg-red-500/20
+    text-red-400
+    hover:bg-red-500/30
+    transition-all
+    text-sm
+    font-semibold
+  "
+                        >
+                          Desinscribirme
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div
+          className="
+    border-t
+    border-[#2d463b]
+    my-10
+  "
+        />
+        <section className="mt-8">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-bold">Grupos Disponibles</h2>
+
+            <span className="text-gray-400 text-sm">
+              {gruposFiltrados.length} grupos encontrados
+            </span>
+          </div>
+
+          {gruposFiltrados.length === 0 ? (
+            <div
+              className="
               bg-[#1a2b24]
               border
               border-[#2d463b]
@@ -116,66 +264,44 @@ export default function GruposPage() {
               p-8
               text-center
             "
-          >
-
-            <p className="text-gray-400">
-              No se encontraron grupos.
-            </p>
-
-          </div>
-
-        ) : (
-
-          <div
-            className="
+            >
+              <p className="text-gray-400">No se encontraron grupos.</p>
+            </div>
+          ) : (
+            <div
+              className="
               grid
               gap-6
               md:grid-cols-2
               xl:grid-cols-3
             "
-          >
-
-            {gruposFiltrados.map(
-              (grupo) => (
-
+            >
+              {gruposFiltrados.map((grupo) => (
                 <GrupoCard
                   key={grupo.id}
                   id={grupo.id}
                   nombre={grupo.nombre}
-                  horario={`${obtenerDias(
-                    grupo.clases
-                  )} — ${obtenerHora(
-                    grupo.clases
+                  horario={`${obtenerDias(grupo.clases)} — ${obtenerHora(
+                    grupo.clases,
                   )}`}
                   ubicacion={
                     grupo.clases?.length
-                      ? grupo.clases[0]
-                          .codigoPostal
+                      ? grupo.clases[0].codigoPostal
                       : "Sin ubicación"
                   }
                   nivel={grupo.nivel}
                   cuposOcupados={0}
                   cuposTotales={
-                    grupo.clases?.length
-                      ? grupo.clases[0]
-                          .cupoMaximo
-                      : 0
+                    grupo.clases?.length ? grupo.clases[0].cupoMaximo : 0
                   }
                 />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
 
-              )
-            )}
-
-          </div>
-
-        )}
-
-      </section>
-
-    </main>
-
-    <AlumnoBottomNav />
-
-  </div>
-);
+      <AlumnoBottomNav />
+    </div>
+  );
 }

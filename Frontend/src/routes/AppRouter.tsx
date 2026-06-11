@@ -15,6 +15,7 @@ import ResetPasswordPage from "../pages/ResetPasswordPage";
 import GruposPage from "../pages/GrupoPage";
 import GrupoDetallePage from "../pages/GrupoDetallePage";
 import PerfilPage from "../pages/PerfilPage";
+import NotificacionPage from "../pages/NotificacionPage";
 
 
 export default function AppRouter() {
@@ -66,6 +67,11 @@ export default function AppRouter() {
           path="/alumno/perfil"
           element={<PerfilPage />}
         />
+
+        <Route
+    path="/alumno/notificaciones"
+    element={<NotificacionPage />}
+/>
 
       </Routes>
     </BrowserRouter>
