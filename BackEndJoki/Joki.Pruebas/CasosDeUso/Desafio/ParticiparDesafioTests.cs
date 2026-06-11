@@ -37,10 +37,14 @@ namespace Joki.Pruebas.CasosDeUso.Desafio
                 .Setup(r => r.Obtener(7, 2))
                 .Returns((Entidades.ParticipacionDesafio?)null);
 
+            var repoNotificacionMock =
+    new Mock<IRepositorioNotificacion>();
+
             var casoUso = new ParticiparDesafio(
                 repoDesafioMock.Object,
                 repoAlumnoMock.Object,
-                repoParticipacionMock.Object);
+                repoParticipacionMock.Object,
+                repoNotificacionMock.Object);
 
             casoUso.Ejecutar(2, 7);
 
@@ -57,9 +61,10 @@ namespace Joki.Pruebas.CasosDeUso.Desafio
         public void Ejecutar_DeberiaLanzarExcepcion_CuandoDesafioNoExiste()
         {
             var casoUso = new ParticiparDesafio(
-                new Mock<IRepositorioDesafio>().Object,
-                new Mock<IRepositorioAlumno>().Object,
-                new Mock<IRepositorioParticipacionDesafio>().Object);
+    new Mock<IRepositorioDesafio>().Object,
+    new Mock<IRepositorioAlumno>().Object,
+    new Mock<IRepositorioParticipacionDesafio>().Object,
+    new Mock<IRepositorioNotificacion>().Object);
 
             Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(99, 7));
@@ -97,10 +102,14 @@ namespace Joki.Pruebas.CasosDeUso.Desafio
                     DesafioId = 2
                 });
 
+            var repoNotificacionMock =
+     new Mock<IRepositorioNotificacion>();
+
             var casoUso = new ParticiparDesafio(
                 repoDesafioMock.Object,
                 repoAlumnoMock.Object,
-                repoParticipacionMock.Object);
+                repoParticipacionMock.Object,
+                repoNotificacionMock.Object);
 
             Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(2, 7));
