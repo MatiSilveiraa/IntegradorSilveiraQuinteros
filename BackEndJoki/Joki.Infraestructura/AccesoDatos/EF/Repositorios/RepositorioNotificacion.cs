@@ -33,6 +33,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             return _context.Notificaciones
                 .FirstOrDefault(n => n.Id == id);
         }
+        public int ContarNoLeidas()
+        {
+            return _context.Notificaciones
+                .Count(n => !n.Leida);
+        }
 
         public IEnumerable<Notificacion> ObtenerPorUsuario(int usuarioId)
         {

@@ -16,6 +16,10 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         IEnumerable<Cuota> ObtenerPendientes();
 
+        int ContarPendientes();
+
+        int ContarVencidas(DateTime fecha);
+
         void Agregar(Cuota cuota);
 
         void Modificar(Cuota cuota);

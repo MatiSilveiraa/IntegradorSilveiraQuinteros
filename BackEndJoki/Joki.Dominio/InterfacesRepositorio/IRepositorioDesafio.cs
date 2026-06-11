@@ -9,6 +9,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         void Modificar(Desafio desafio);
 
         Desafio? ObtenerPorId(int id);
+        int ContarActivos();
 
         IEnumerable<Desafio> ObtenerTodos();
         IEnumerable<Desafio> ObtenerActivos();

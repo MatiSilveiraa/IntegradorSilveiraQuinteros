@@ -57,6 +57,22 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .ToList();
         }
 
+        public int ContarPendientes()
+        {
+            return _context.Beneficios
+                .Count(b =>
+                    b.Estado == EstadoBeneficio.PENDIENTE);
+        }
+
+        public int ContarFisicosPendientes()
+        {
+            return _context.Beneficios
+                .Count(b =>
+                    b.Estado == EstadoBeneficio.PENDIENTE &&
+                    !b.CuotaGratis &&
+                    b.DescuentoId == null);
+        }
+
         public IEnumerable<Beneficio> ObtenerPendientesPorDescuento(
              int descuentoId)
         {

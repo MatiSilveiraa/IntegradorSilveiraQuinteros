@@ -15,6 +15,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context = context;
         }
 
+        public int ContarActivos()
+        {
+            return _context.Desafios
+                .Count(d => d.Activo);
+        }
         public void Agregar(Desafio desafio)
         {
             _context.Desafios.Add(desafio);
