@@ -10,6 +10,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         void Modificar(Notificacion notificacion);
 
         Notificacion? ObtenerPorId(int id);
+        int ContarNoLeidas();
 
         IEnumerable<Notificacion> ObtenerPorUsuario(int usuarioId);
 

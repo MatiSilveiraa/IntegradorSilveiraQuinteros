@@ -8,6 +8,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         void Modificar(Beneficio beneficio);
         Beneficio? ObtenerPorId(int id);
+        int ContarPendientes();
+
+        int ContarFisicosPendientes();
 
         IEnumerable<Beneficio> ObtenerPendientesPorAlumno(
             int alumnoId);

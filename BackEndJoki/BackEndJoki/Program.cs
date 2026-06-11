@@ -1,5 +1,6 @@
 using Hangfire;
 using Joki.CasoUsoCompartida.Configuracion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Admin;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
@@ -19,6 +20,7 @@ using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
 using Joki.Infraestructura.AccesoDatos.Repositorios;
 using Joki.Infraestructura.Servicios;
+using Joki.LogicaAplicacion.CasosDeUso.Admin;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
@@ -192,6 +194,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerMisNotificaciones,ObtenerMisNotificaciones>();
     builder.Services.AddScoped<IMarcarNotificacionComoLeida,MarcarNotificacionComoLeida>();
     builder.Services.AddScoped<GenerarNotificacionesCuotas>();
+    builder.Services.AddScoped<IObtenerAdminDashboard, ObtenerAdminDashboard>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>

@@ -61,6 +61,20 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .ToList();
         }
 
+        public int ContarPendientes()
+        {
+            return _contexto.Cuotas
+                .Count(c => c.Estado == EstadoCuota.PENDIENTE);
+        }
+
+        public int ContarVencidas(DateTime fecha)
+        {
+            return _contexto.Cuotas
+                .Count(c =>
+                    c.Estado == EstadoCuota.PENDIENTE &&
+                    c.FechaVencimiento.Date < fecha.Date);
+        }
+
         public IEnumerable<Cuota> ObtenerPendientesPorVencer(
     DateTime desde,
     DateTime hasta)

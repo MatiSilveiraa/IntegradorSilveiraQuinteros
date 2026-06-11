@@ -6,6 +6,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
     {
         int Agregar(Alumno alumno);
 
+        int ContarActivos();
+
         IEnumerable<Alumno> ObtenerTodos();
 
         IEnumerable<Alumno> ObtenerActivos();

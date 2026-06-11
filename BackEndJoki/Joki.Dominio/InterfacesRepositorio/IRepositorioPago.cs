@@ -9,6 +9,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         Pago? ObtenerPorReferenciaExterna(string referenciaExterna);
 
         void Modificar(Pago pago);
+        decimal ObtenerIngresosDelMes(
+    int mes,
+    int anio);
 
         IEnumerable<Pago> ObtenerPorCuota(int cuotaId);
 

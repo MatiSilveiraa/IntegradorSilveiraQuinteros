@@ -25,6 +25,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             return alumno.UsuarioId;
         }
 
+        public int ContarActivos()
+        {
+            return _contexto.Alumnos
+                .Count(a => a.Estado == EstadoUsuario.ACTIVO);
+        }
+
         public IEnumerable<Alumno> ObtenerTodos()
         {
             return _contexto.Set<Alumno>().ToList();

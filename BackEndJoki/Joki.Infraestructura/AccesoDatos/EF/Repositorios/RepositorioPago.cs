@@ -1,5 +1,6 @@
 ﻿using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.Infraestructura.AccesoDatos.Repositorios
@@ -18,6 +19,18 @@ namespace Joki.Infraestructura.AccesoDatos.Repositorios
             _contexto.Pagos.Add(pago);
 
             _contexto.SaveChanges();
+        }
+
+        public decimal ObtenerIngresosDelMes(
+    int mes,
+    int anio)
+        {
+            return _contexto.Pagos
+                .Where(p =>
+                    p.Estado == EstadoPago.APROBADO &&
+                    p.FechaPago.Month == mes &&
+                    p.FechaPago.Year == anio)
+                .Sum(p => p.Monto);
         }
 
         public IEnumerable<Pago> ObtenerPorCuota(int cuotaId)
