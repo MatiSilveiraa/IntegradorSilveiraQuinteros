@@ -66,5 +66,23 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     b.Estado == EstadoBeneficio.PENDIENTE)
                 .ToList();
         }
+
+        public Beneficio? ObtenerPorId(int id)
+        {
+            return _context.Beneficios
+                .Include(b => b.Descuento)
+                .FirstOrDefault(b => b.Id == id);
+        }
+
+        public IEnumerable<Beneficio> ObtenerFisicosPendientes()
+        {
+            return _context.Beneficios
+                .Include(b => b.Alumno)
+                .Where(b =>
+                    b.Estado == EstadoBeneficio.PENDIENTE &&
+                    !b.CuotaGratis &&
+                    b.DescuentoId == null)
+                .ToList();
+        }
     }
 }

@@ -60,5 +60,27 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Where(c => c.Estado == EstadoCuota.PENDIENTE)
                 .ToList();
         }
+
+        public IEnumerable<Cuota> ObtenerPendientesPorVencer(
+    DateTime desde,
+    DateTime hasta)
+        {
+            return _contexto.Cuotas
+                .Where(c =>
+                    c.Estado == EstadoCuota.PENDIENTE &&
+                    c.FechaVencimiento.Date >= desde.Date &&
+                    c.FechaVencimiento.Date <= hasta.Date)
+                .ToList();
+        }
+
+        public IEnumerable<Cuota> ObtenerPendientesVencidas(
+            DateTime fecha)
+        {
+            return _contexto.Cuotas
+                .Where(c =>
+                    c.Estado == EstadoCuota.PENDIENTE &&
+                    c.FechaVencimiento.Date < fecha.Date)
+                .ToList();
+        }
     }
 }

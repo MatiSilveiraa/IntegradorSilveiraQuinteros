@@ -11,6 +11,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Notificacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Recompensa;
@@ -30,6 +31,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Descuento;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Historial;
+using Joki.LogicaAplicacion.CasosDeUso.Notificacion;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
 using Joki.LogicaAplicacion.CasosDeUso.Recompensa;
@@ -184,6 +186,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerParticipantesDesafio, ObtenerParticipantesDesafio>();
     builder.Services.AddScoped<IObtenerMisDesafios, ObtenerMisDesafios>();
     builder.Services.AddScoped<IObtenerMisBeneficios, ObtenerMisBeneficios>();
+    builder.Services.AddScoped<IEntregarBeneficioFisico, EntregarBeneficioFisico>();
+    builder.Services.AddScoped<IObtenerBeneficiosFisicosPendientes,ObtenerBeneficiosFisicosPendientes>();
+    builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+    builder.Services.AddScoped<IObtenerMisNotificaciones,ObtenerMisNotificaciones>();
+    builder.Services.AddScoped<IMarcarNotificacionComoLeida,MarcarNotificacionComoLeida>();
+    builder.Services.AddScoped<GenerarNotificacionesCuotas>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
@@ -230,6 +238,15 @@ RecurringJob.AddOrUpdate<CuotasJob>(
     "actualizar-cuotas-vencidas",
     job => job.ActualizarCuotasVencidas(),
     Cron.Daily(),
+    new RecurringJobOptions
+    {
+        TimeZone = zonaHorariaUruguay
+    });
+
+RecurringJob.AddOrUpdate<GenerarNotificacionesCuotas>(
+    "generar-notificaciones-cuotas",
+    job => job.Ejecutar(),
+    Cron.Daily(9),
     new RecurringJobOptions
     {
         TimeZone = zonaHorariaUruguay

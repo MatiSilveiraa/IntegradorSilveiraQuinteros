@@ -15,19 +15,22 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
         private readonly IRepositorioParticipacionDesafio _repositorioParticipacion;
         private readonly IRepositorioRecompensa _repositorioRecompensa;
         private readonly IRepositorioBeneficio _repositorioBeneficio;
+        private readonly IRepositorioNotificacion _repositorioNotificacion;
 
         public AsignarGanadoresDesafio(
             IRepositorioDesafio repositorioDesafio,
             IRepositorioAlumno repositorioAlumno,
             IRepositorioParticipacionDesafio repositorioParticipacion,
             IRepositorioRecompensa repositorioRecompensa,
-            IRepositorioBeneficio repositorioBeneficio)
+            IRepositorioBeneficio repositorioBeneficio,
+            IRepositorioNotificacion repositorioNotificacion)
         {
             _repositorioDesafio = repositorioDesafio;
             _repositorioAlumno = repositorioAlumno;
             _repositorioParticipacion = repositorioParticipacion;
             _repositorioRecompensa = repositorioRecompensa;
             _repositorioBeneficio = repositorioBeneficio;
+            _repositorioNotificacion = repositorioNotificacion;
         }
 
         public void Ejecutar(
@@ -90,18 +93,29 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                 _repositorioParticipacion.Modificar(
                     participacion);
 
+                _repositorioNotificacion.Agregar(
+                    new Entidades.Notificacion
+                    {
+                        UsuarioId = alumnoId,
+                        Titulo = "Ganaste un desafío",
+                        Mensaje =
+                            $"Felicitaciones, fuiste seleccionado como ganador del desafío {desafio.Titulo}.",
+                        Tipo = TipoNotificacion.Desafio,
+                        UrlDestino = $"/desafios/{desafio.Id}",
+                        EntidadReferencia = "Desafio",
+                        EntidadReferenciaId = desafio.Id
+                    });
+
                 foreach (var recompensa in recompensas)
                 {
                     var beneficio =
                         new Entidades.Beneficio
-    {
+                        {
                             AlumnoId = alumnoId,
                             RecompensaId = recompensa.Id,
                             DescuentoId = recompensa.DescuentoId,
-                            CuotaGratis =
-                                recompensa.OtorgaCuotaGratis,
-                            DescripcionBeneficio =
-                                recompensa.Descripcion,
+                            CuotaGratis = recompensa.OtorgaCuotaGratis,
+                            DescripcionBeneficio = recompensa.Descripcion,
                             MesesDuracion = 1,
                             MesesAplicados = 0,
                             Estado = EstadoBeneficio.PENDIENTE
@@ -115,6 +129,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 
                     _repositorioBeneficio.Agregar(
                         beneficio);
+
+                    _repositorioNotificacion.Agregar(
+                        new Entidades.Notificacion
+                        {
+                            UsuarioId = alumnoId,
+                            Titulo = "Nuevo beneficio disponible",
+                            Mensaje =
+                                $"Recibiste un beneficio: {beneficio.DescripcionBeneficio}.",
+                            Tipo = TipoNotificacion.Beneficio,
+                            UrlDestino = "/beneficios",
+                            EntidadReferencia = "Beneficio",
+                            EntidadReferenciaId = beneficio.Id
+                        });
                 }
             }
         }

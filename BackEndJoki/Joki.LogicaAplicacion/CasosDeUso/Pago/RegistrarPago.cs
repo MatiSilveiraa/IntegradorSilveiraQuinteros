@@ -11,13 +11,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
     {
         private readonly IRepositorioPago _repositorioPago;
         private readonly IRepositorioCuota _repositorioCuota;
+        private readonly IRepositorioNotificacion _repositorioNotificacion;
 
         public RegistrarPago(
             IRepositorioPago repositorioPago,
-            IRepositorioCuota repositorioCuota)
+            IRepositorioCuota repositorioCuota,
+            IRepositorioNotificacion repositorioNotificacion)
         {
             _repositorioPago = repositorioPago;
             _repositorioCuota = repositorioCuota;
+            _repositorioNotificacion = repositorioNotificacion;
         }
 
         public void Ejecutar(RegistrarPagoRequest request)
@@ -52,6 +55,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
             cuota.Estado = EstadoCuota.PAGADA;
 
             _repositorioCuota.Modificar(cuota);
+
+            _repositorioNotificacion.Agregar(
+                new Entidades.Notificacion
+                {
+                    UsuarioId = cuota.AlumnoId,
+                    Titulo = "Pago registrado",
+                    Mensaje =
+                        $"Tu pago de la cuota {cuota.Mes}/{cuota.Anio} fue registrado correctamente.",
+                    Tipo = TipoNotificacion.Pago,
+                    UrlDestino = "/cuotas",
+                    EntidadReferencia = "Pago",
+                    EntidadReferenciaId = pago.Id
+                });
         }
     }
 }

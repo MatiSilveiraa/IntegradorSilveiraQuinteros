@@ -7,14 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Joki.CasoUsoCompartida\Joki.CasoUsoCompartida.csproj" />
-    <ProjectReference Include="..\Joki.Dominio\Joki.LogicaNegocio.csproj" />
-    <ProjectReference Include="..\Joki.LogicaAplicacion\Joki.LogicaAplicacion.csproj" />
+    <Compile Remove="Postman\**" />
+    <Compile Remove="ServiciosExternos\**" />
+    <EmbeddedResource Remove="Postman\**" />
+    <EmbeddedResource Remove="ServiciosExternos\**" />
+    <None Remove="Postman\**" />
+    <None Remove="ServiciosExternos\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ServiciosExternos\" />
-    <Folder Include="Postman\" />
+    <ProjectReference Include="..\Joki.CasoUsoCompartida\Joki.CasoUsoCompartida.csproj" />
+    <ProjectReference Include="..\Joki.Dominio\Joki.LogicaNegocio.csproj" />
+    <ProjectReference Include="..\Joki.LogicaAplicacion\Joki.LogicaAplicacion.csproj" />
   </ItemGroup>
 
   <ItemGroup>

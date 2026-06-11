@@ -1,7 +1,8 @@
-﻿using System.Security.Claims;
-using Joki.CasoUsoCompartida.InterfacesCasosUso.Beneficio;
+﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Beneficio;
+using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Joki.WebApi.Controllers
 {
@@ -10,11 +11,17 @@ namespace Joki.WebApi.Controllers
     public class BeneficioController : ControllerBase
     {
         private readonly IObtenerMisBeneficios _obtenerMisBeneficios;
+        private readonly IEntregarBeneficioFisico _entregarBeneficioFisico;
+        private readonly IObtenerBeneficiosFisicosPendientes _obtenerBeneficiosFisicosPendientes;
 
         public BeneficioController(
-            IObtenerMisBeneficios obtenerMisBeneficios)
+            IObtenerMisBeneficios obtenerMisBeneficios,
+            IEntregarBeneficioFisico entregarBeneficioFisico,
+            IObtenerBeneficiosFisicosPendientes obtenerBeneficiosFisicosPendientes)
         {
             _obtenerMisBeneficios = obtenerMisBeneficios;
+            _entregarBeneficioFisico = entregarBeneficioFisico;
+            _obtenerBeneficiosFisicosPendientes = obtenerBeneficiosFisicosPendientes;
         }
 
         [Authorize]
@@ -29,6 +36,55 @@ namespace Joki.WebApi.Controllers
 
                 var beneficios =
                     _obtenerMisBeneficios.Ejecutar(alumnoId);
+
+                return Ok(beneficios);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/entregar")]
+        public IActionResult Entregar(int id)
+        {
+            try
+            {
+                _entregarBeneficioFisico.Ejecutar(id);
+
+                return Ok(new
+                {
+                    mensaje = "Beneficio entregado correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("fisicos-pendientes")]
+        public IActionResult ObtenerFisicosPendientes()
+        {
+            try
+            {
+                var beneficios =
+                    _obtenerBeneficiosFisicosPendientes.Ejecutar();
 
                 return Ok(beneficios);
             }
