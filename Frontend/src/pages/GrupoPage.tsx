@@ -9,15 +9,25 @@ import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
+<<<<<<< Updated upstream
 import { desinscribirseClase } from "../services/Inscripciones.Service";
+=======
+>>>>>>> Stashed changes
 
 export default function GruposPage() {
   const [perfil, setPerfil] = useState<any>(null);
 
   const [grupos, setGrupos] = useState<any[]>([]);
+<<<<<<< Updated upstream
   const [misClases, setMisClases] = useState<any[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
+=======
+
+  const [busqueda, setBusqueda] = useState("");
+
+  const [misClases, setMisClases] = useState<any[]>([]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);
@@ -31,6 +41,7 @@ export default function GruposPage() {
     obtenerMisClases().then(setMisClases).catch(console.error);
   }, []);
 
+<<<<<<< Updated upstream
   const handleDesinscribirse = async (claseId: number) => {
     try {
       await desinscribirseClase(claseId);
@@ -47,6 +58,11 @@ export default function GruposPage() {
   const obtenerNombreGrupo = (grupoId: number) => {
     return grupos.find((g) => g.id === grupoId)?.nombre || "Grupo";
   };
+=======
+  const gruposFiltrados = grupos.filter((grupo) =>
+    grupo.nombre.toLowerCase().includes(busqueda.toLowerCase()),
+  );
+>>>>>>> Stashed changes
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
@@ -77,8 +93,14 @@ export default function GruposPage() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+<<<<<<< Updated upstream
         {/* PRÓXIMA CLASE */}
 
+=======
+
+        {/* PRÓXIMA CLASE */}
+
+>>>>>>> Stashed changes
         <div
           className="
     mt-8
@@ -165,6 +187,7 @@ export default function GruposPage() {
           "
                 >
                   <div className="flex">
+<<<<<<< Updated upstream
                     <div className="w-32 h-32 flex-shrink-0">
                       <img
                         src={obtenerImagenGrupo(
@@ -177,6 +200,19 @@ export default function GruposPage() {
       object-cover
     "
                       />
+=======
+                    <div
+                      className="
+                w-24
+                bg-[#163129]
+                flex
+                items-center
+                justify-center
+                text-4xl
+              "
+                    >
+                      
+>>>>>>> Stashed changes
                     </div>
 
                     <div className="flex-1 p-4">
@@ -212,6 +248,7 @@ export default function GruposPage() {
                         >
                           Activa
                         </span>
+<<<<<<< Updated upstream
                         <button
                           onClick={() => handleDesinscribirse(clase.id)}
                           className="
@@ -229,6 +266,8 @@ export default function GruposPage() {
                         >
                           Desinscribirme
                         </button>
+=======
+>>>>>>> Stashed changes
                       </div>
                     </div>
                   </div>

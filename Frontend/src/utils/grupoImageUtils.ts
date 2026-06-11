@@ -1,7 +1,11 @@
 import funcionalImg from "../assets/clases/funcional.jpg";
 import crossfitImg from "../assets/clases/crossfit.jpg";
 import hiitImg from "../assets/clases/hiit.jpg";
+<<<<<<< Updated upstream
 import defaultImg from "../assets/clases/default.jpeg";
+=======
+import defaultImg from "../assets/clases/default.jpg";
+>>>>>>> Stashed changes
 
 export const obtenerImagenGrupo = (
   nombreGrupo: string
@@ -35,4 +39,8 @@ export const obtenerImagenGrupo = (
   }
 
   return defaultImg;
+<<<<<<< Updated upstream
 };
+=======
+};
+>>>>>>> Stashed changes
