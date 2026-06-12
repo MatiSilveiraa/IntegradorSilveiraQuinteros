@@ -18,14 +18,16 @@ namespace Joki.WebApi.Controllers
         private readonly ILogoutUsuario _logoutUsuario;
         private readonly ISolicitarRecuperacionContrasena _solicitarRecuperacion;
         private readonly IRestablecerContrasena _restablecerContrasena;
+        private readonly ILoginGoogle _loginGoogle;
 
-        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario, ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena)
+        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario, ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena, ILoginGoogle loginGoogle)
         {
             _loginUsuario = loginUsuario;
             _jwtGenerator = jwtGenerator;
             _logoutUsuario = logoutUsuario;
             _solicitarRecuperacion = solicitarRecuperacion;
             _restablecerContrasena = restablecerContrasena;
+            _loginGoogle = loginGoogle;
         }
 
         [HttpPost("login")]
@@ -152,6 +154,31 @@ namespace Joki.WebApi.Controllers
                     mensaje = "Hubo un problema. Prueba nuevamente"
                 });
             }
+        }
+
+        [HttpPost("google")]
+        public IActionResult LoginGoogle(
+    LoginGoogleRequest request)
+        {
+            var usuario =
+                _loginGoogle.Ejecutar(request);
+
+            if (usuario == null)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = "No se pudo iniciar sesión con Google"
+                });
+            }
+
+            var token =
+                _jwtGenerator.GenerateToken(usuario);
+
+            return Ok(new
+            {
+                token,
+                usuario
+            });
         }
     }
 }

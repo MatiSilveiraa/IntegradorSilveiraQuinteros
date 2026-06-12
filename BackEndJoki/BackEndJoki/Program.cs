@@ -157,6 +157,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRestablecerContrasena, RestablecerContrasena>();
     builder.Services.Configure<MercadoPagoSettings>(builder.Configuration.GetSection("MercadoPago"));
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+    builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("GoogleAuth"));
+    builder.Services.AddScoped<ILoginGoogle, LoginGoogle>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailSendGrid>();
     builder.Services.AddScoped<CuotasJob>();
     builder.Services.AddScoped<IRepositorioConfiguracionCuota, RepositorioConfiguracionCuota>();
