@@ -16,6 +16,8 @@ import GruposPage from "../pages/GrupoPage";
 import GrupoDetallePage from "../pages/GrupoDetallePage";
 import PerfilPage from "../pages/PerfilPage";
 import NotificacionPage from "../pages/NotificacionPage";
+import BeneficiosPage from "../pages/BeneficiosPage";
+import DesafiosPage from "../pages/DesafioPage";
 
 
 export default function AppRouter() {
@@ -71,6 +73,15 @@ export default function AppRouter() {
         <Route
     path="/alumno/notificaciones"
     element={<NotificacionPage />}
+/>
+
+<Route path="/alumno/beneficios"
+  element={<BeneficiosPage />}
+/>
+
+<Route
+  path="/alumno/desafios"
+  element={<DesafiosPage />}
 />
 
       </Routes>
