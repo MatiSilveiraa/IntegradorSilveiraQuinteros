@@ -18,6 +18,11 @@ import PerfilPage from "../pages/PerfilPage";
 import NotificacionPage from "../pages/NotificacionPage";
 import BeneficiosPage from "../pages/BeneficiosPage";
 import DesafiosPage from "../pages/DesafioPage";
+import AdminDesafiosPage from "../pages/AdminDesafiosPage";
+import AdminRecompensasPage from "../pages/AdminRecompensasPage";
+import AdminAlumnosPage from "../pages/AdminAlumnosPage";
+// import AdminPremiosPage from "../pages/AdminPremiosPage";
+import AdminPremiosPage from "../pages/AdminPremiosPage";
 
 
 export default function AppRouter() {
@@ -82,6 +87,30 @@ export default function AppRouter() {
 <Route
   path="/alumno/desafios"
   element={<DesafiosPage />}
+/>
+
+<Route
+  path="/admin/desafios"
+  element={<AdminDesafiosPage />}
+/>
+
+<Route
+  path="/admin/recompensas"
+  element={<AdminRecompensasPage />}
+/>
+
+{/* <Route
+  path="/admin/premios"
+  element={<AdminPremiosPage />}
+/> */}
+<Route
+  path="/admin/alumnos"
+  element={<AdminAlumnosPage />}
+/>
+
+<Route
+  path="/admin/premios"
+  element={<AdminPremiosPage />}
 />
 
       </Routes>
