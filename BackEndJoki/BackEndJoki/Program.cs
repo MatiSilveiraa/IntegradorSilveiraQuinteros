@@ -197,6 +197,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IMarcarNotificacionComoLeida,MarcarNotificacionComoLeida>();
     builder.Services.AddScoped<GenerarNotificacionesCuotas>();
     builder.Services.AddScoped<IObtenerAdminDashboard, ObtenerAdminDashboard>();
+    builder.Services.AddScoped<IGenerar2FA, Generar2FA>();      
+    builder.Services.AddScoped<IConfirmar2FA, Confirmar2FA>();
+    builder.Services.AddScoped<IValidar2FA, Validar2FA>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>

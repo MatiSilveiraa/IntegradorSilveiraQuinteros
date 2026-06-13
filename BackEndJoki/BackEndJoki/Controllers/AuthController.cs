@@ -6,6 +6,8 @@ using Joki.LogicaNegocio.Excepciones;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.WebApi.Controllers
 {
@@ -19,8 +21,14 @@ namespace Joki.WebApi.Controllers
         private readonly ISolicitarRecuperacionContrasena _solicitarRecuperacion;
         private readonly IRestablecerContrasena _restablecerContrasena;
         private readonly ILoginGoogle _loginGoogle;
+        private readonly IGenerar2FA _generar2FA;
+        private readonly IConfirmar2FA _confirmar2FA;
+        private readonly IValidar2FA _validar2FA;
+        private readonly IRepositorioUsuario _repositorioUsuario;
 
-        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario, ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena, ILoginGoogle loginGoogle)
+        public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario,
+            ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena, ILoginGoogle loginGoogle,
+            IGenerar2FA generar2FA, IConfirmar2FA confirmar2FA, IValidar2FA validar2FA, IRepositorioUsuario repositorioUsuario)
         {
             _loginUsuario = loginUsuario;
             _jwtGenerator = jwtGenerator;
@@ -28,6 +36,10 @@ namespace Joki.WebApi.Controllers
             _solicitarRecuperacion = solicitarRecuperacion;
             _restablecerContrasena = restablecerContrasena;
             _loginGoogle = loginGoogle;
+            _generar2FA = generar2FA;
+            _confirmar2FA = confirmar2FA;
+            _validar2FA = validar2FA;
+            _repositorioUsuario = repositorioUsuario;
         }
 
         [HttpPost("login")]
@@ -53,9 +65,29 @@ namespace Joki.WebApi.Controllers
                     throw new TokenInvalidoException("Credenciales incorrectas.");
                 }
 
-                string token = _jwtGenerator.GenerateToken(usuario);
+                var usuarioEntidad =
+     _repositorioUsuario.ObtenerPorEmail(
+         usuario.Email);
 
-                return StatusCode(200, new { usuario, token });
+                if (usuarioEntidad != null &&
+                    usuarioEntidad.TwoFactorEnabled)
+                {
+                    return Ok(new LoginResponse
+                    {
+                        Requiere2FA = true,
+                        Email = usuario.Email
+                    });
+                }
+
+                string token =
+                    _jwtGenerator.GenerateToken(usuario);
+
+                return Ok(new LoginResponse
+                {
+                    Requiere2FA = false,
+                    Usuario = usuario,
+                    Token = token
+                });
             }
             catch (InfraestructuraException e)
             {
@@ -178,6 +210,98 @@ namespace Joki.WebApi.Controllers
             {
                 token,
                 usuario
+            });
+        }
+
+        [Authorize]
+        [HttpPost("2fa/setup")]
+        public IActionResult Generar2FA()
+        {
+            try
+            {
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                var resultado =
+                    _generar2FA.Ejecutar(usuarioId);
+
+                return Ok(resultado);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("2fa/confirmar")]
+        public IActionResult Confirmar2FA(
+    Confirmar2FARequest request)
+        {
+            try
+            {
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _confirmar2FA.Ejecutar(
+                    usuarioId,
+                    request);
+
+                return Ok(new
+                {
+                    mensaje = "2FA activado correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpPost("2fa/validar")]
+        public IActionResult Validar2FA(
+    Validar2FARequest request)
+        {
+            var usuario =
+                _validar2FA.Ejecutar(request);
+
+            if (usuario == null)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = "Código 2FA inválido"
+                });
+            }
+
+            string token =
+                _jwtGenerator.GenerateToken(usuario);
+
+            return Ok(new
+            {
+                usuario,
+                token
             });
         }
     }
