@@ -14,6 +14,10 @@ public abstract class Usuario
     public int RolId { get; set; }
     public Rol Rol { get; set; } = null!;
 
+    public bool TwoFactorEnabled { get; set; }
+
+    public string? TwoFactorSecret { get; set; }
+
     public string? GoogleId { get; set; }
     public string ProveedorAutenticacion { get; set; }
     public DateTime? UltimoAcceso { get; set; }
@@ -38,5 +42,6 @@ public abstract class Usuario
         Estado = EstadoUsuario.ACTIVO;
         Notificaciones = new List<Notificacion>();
         Auditorias = new List<Auditoria>();
+        TwoFactorEnabled = false;
     }
 }
