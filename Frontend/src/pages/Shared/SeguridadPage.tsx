@@ -11,11 +11,12 @@ import {
   confirmar2FA,
 } from "../../services/Auth2FA.Service";
 
+import type { Perfil } from "../../types";
+
 export default function SeguridadPage() {
 
   const [perfil, setPerfil] =
-    useState<any>(null);
-
+    useState<Perfil | null>(null);
   const [qrCode, setQrCode] =
     useState("");
 

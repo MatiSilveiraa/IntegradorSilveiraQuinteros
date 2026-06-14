@@ -1,7 +1,9 @@
 import Card from "../ui/Card";
 
+import type { Cuota } from "../../types";
+
 type Props = {
-  cuota?: any;
+  cuota?: Cuota;
 };
 
 export default function CuotaCard({

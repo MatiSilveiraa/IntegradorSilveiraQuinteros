@@ -7,12 +7,14 @@ import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMisBeneficios } from "../services/Beneficio.Service";
 
+import type { Perfil, Beneficio } from "../types";
+
 export default function BeneficiosPage() {
   const [perfil, setPerfil] =
-    useState<any>(null);
+    useState<Perfil | null>(null);
 
   const [beneficios, setBeneficios] =
-    useState<any[]>([]);
+    useState<Beneficio[]>([]);
 
   useEffect(() => {
     obtenerMiPerfil()

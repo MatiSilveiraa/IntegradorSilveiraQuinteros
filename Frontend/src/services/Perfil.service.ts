@@ -13,8 +13,10 @@ export const obtenerMiPerfil = async () => {
   return response.data;
 };
 
+import type { Perfil } from "../types";
+
 export const actualizarMiPerfil = async (
-  perfil: any
+  perfil: Perfil
 ) => {
 
   const response =

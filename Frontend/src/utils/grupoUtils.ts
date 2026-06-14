@@ -1,5 +1,7 @@
+import type { Clase } from "../types";
+
 export const obtenerDias = (
-  clases: any[]
+  clases: Clase[]
 ) => {
 
   const dias =
@@ -13,7 +15,7 @@ export const obtenerDias = (
 };
 
 export const obtenerHora = (
-  clases: any[]
+  clases: Clase[]
 ) => {
 
   if (!clases?.length) {

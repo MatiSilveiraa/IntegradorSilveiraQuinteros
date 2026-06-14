@@ -1,7 +1,9 @@
 import Card from "../ui/Card";
 
+import type { Clase } from "../../types";
+
 type Props = {
-  clase?: any;
+  clase?: Clase;
 };
 
 export default function ProximaClaseCard({

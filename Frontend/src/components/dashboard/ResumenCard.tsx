@@ -1,7 +1,9 @@
 import Card from "../ui/Card";
 
+import type { Historial } from "../../types";
+
 type Props = {
-  historial?: any;
+  historial?: Historial;
 };
 
 export default function ResumenCard({

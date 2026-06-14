@@ -3,8 +3,10 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { nombreMes } from "../../utils/dateUtils";
 
 
+import type { Cuota } from "../../types";
+
 type Props = {
-  cuota: any;
+  cuota: Cuota;
 };
 
 export default function ResumenCuentaCard({

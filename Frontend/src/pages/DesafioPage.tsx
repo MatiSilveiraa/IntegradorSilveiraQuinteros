@@ -11,13 +11,13 @@ import {
   obtenerMisDesafios,
   participarDesafio,
 } from "../services/Desafio.Service";
-
+import type { Perfil, Desafio } from "../types";
 export default function DesafiosPage() {
-  const [perfil, setPerfil] = useState<any>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
-  const [desafios, setDesafios] = useState<any[]>([]);
+  const [desafios, setDesafios] = useState<Desafio[]>([]);
 
-  const [misDesafios, setMisDesafios] = useState<any[]>([]);
+  const [misDesafios, setMisDesafios] = useState<Desafio[]>([]);
 
   useEffect(() => {
     obtenerMiPerfil()

@@ -11,11 +11,13 @@ import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
 
-export default function GruposPage() {
-  const [perfil, setPerfil] = useState<any>(null);
+import type { Perfil, Grupo, Clase } from "../types";
 
-  const [grupos, setGrupos] = useState<any[]>([]);
-  const [misClases, setMisClases] = useState<any[]>([]);
+export default function GruposPage() {
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [misClases, setMisClases] = useState<Clase[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
 

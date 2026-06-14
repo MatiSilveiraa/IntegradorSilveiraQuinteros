@@ -16,16 +16,18 @@ import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 
+import type { Perfil, Cuota } from "../types";
+
 export default function PagosPage() {
 
   const [perfil, setPerfil] =
-    useState<any>(null);
+    useState<Perfil | null>(null);
 
   const [cuotaActual, setCuotaActual] =
-    useState<any>(null);
+    useState<Cuota | null>(null);
 
   const [cuotas, setCuotas] =
-    useState<any[]>([]);
+    useState<Cuota[]>([]);
 
   useEffect(() => {
 

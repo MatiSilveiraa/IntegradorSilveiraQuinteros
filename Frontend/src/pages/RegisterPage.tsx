@@ -4,6 +4,8 @@ import logo from "../assets/logo.png";
 import { obtenerGeneros } from "../services/enums.service";
 import { register } from "../services/Auth.service";
 
+import type { ApiError, Grupo } from "../types";
+
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -123,7 +125,7 @@ export default function RegisterPage() {
       setError("");
 
       alert("Usuario registrado correctamente");
-    } catch (error: any) {
+    } catch (error: ApiError) {
       console.log(error);
 
       if (
@@ -311,7 +313,7 @@ export default function RegisterPage() {
                     </option>
 
                     {generos.map(
-                      (g: any) => (
+                      (g: Grupo) => (
                         <option
                           key={g.id}
                           value={g.id}

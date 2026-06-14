@@ -6,13 +6,15 @@ import {
   eliminarAlumno,
 } from "../services/AdminAlumno.Service";
 
+import type { Alumno } from "../types";
+
 export default function AdminAlumnosPage() {
 
   const [alumnos, setAlumnos] =
-    useState<any[]>([]);
+    useState<Alumno[]>([]);
 
   const [detalle, setDetalle] =
-    useState<any>(null);
+    useState<Alumno | null>(null);
 
   const cargarDatos =
     async () => {

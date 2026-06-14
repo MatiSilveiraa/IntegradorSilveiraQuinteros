@@ -9,13 +9,15 @@ import {
   eliminarRecompensa,
 } from "../services/AdminRecompensa.Service";
 
+import type { Desafio, Recompensa } from "../types";
+
 export default function AdminRecompensasPage() {
 
   const [desafios, setDesafios] =
-    useState<any[]>([]);
+    useState<Desafio[]>([]);
 
   const [recompensas, setRecompensas] =
-    useState<any[]>([]);
+    useState<Recompensa[]>([]);
 
   const [desafioSeleccionado,
     setDesafioSeleccionado] =
@@ -198,13 +200,25 @@ export default function AdminRecompensasPage() {
 
                 <div
                   key={recompensa.id}
-                  className="
-                    bg-[#1a2b24]
-                    border
-                    border-[#2d463b]
+                  className={
+                    `
                     rounded-2xl
+                    border
                     p-5
-                  "
+                    transition-all
+                    ${
+                      recompensa.leida
+                        ? `
+                          bg-[#1a2b24]
+                          border-[#2d463b]
+                        `
+                        : `
+                          bg-[#163129]
+                          border-[#4adea8]
+                        `
+                    }
+                  `
+                  }
                 >
 
                   <div className="flex justify-between items-start">

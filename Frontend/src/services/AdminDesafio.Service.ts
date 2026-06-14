@@ -11,8 +11,10 @@ export const obtenerDesafios =
     return response.data;
   };
 
+import type { Desafio } from "../types";
+
 export const crearDesafio =
-  async (data: any) => {
+  async (data: Desafio) => {
 
     const response =
       await axiosInstance.post(
@@ -26,7 +28,7 @@ export const crearDesafio =
 export const editarDesafio =
   async (
     id: number,
-    data: any
+    data: Desafio
   ) => {
 
     const response =

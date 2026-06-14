@@ -13,10 +13,12 @@ import {
   marcarComoLeida,
 } from "../services/Notificacion.Service";
 
-export default function NotificacionPage() {
-  const [perfil, setPerfil] = useState<any>(null);
+import type { Perfil, Notificacion } from "../types";
 
-  const [notificaciones, setNotificaciones] = useState<any[]>([]);
+export default function NotificacionPage() {
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);
@@ -28,7 +30,7 @@ export default function NotificacionPage() {
 
   const cargarNotificaciones = async () => {
     try {
-      const data = await obtenerMisNotificaciones();
+      const data: Notificacion[] = await obtenerMisNotificaciones();
 
       setNotificaciones(data);
     } catch (error) {

@@ -16,14 +16,16 @@ import AlumnoTopBar from "../../components/navigation/DashboardTopBar";
 import AlumnoBottomNav from "../../components/navigation/AlumnoBottomNav";
 import AlumnoSidebar from "../../components/navigation/AlumnoSidebar";
 
+import type { Perfil, Cuota, Historial, Clase } from "../../types";
+
 export default function AlumnoDashboard() {
-  const [perfil, setPerfil] = useState<any>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
-  const [cuota, setCuota] = useState<any>(null);
+  const [cuota, setCuota] = useState<Cuota | null>(null);
 
-  const [historial, setHistorial] = useState<any>(null);
+  const [historial, setHistorial] = useState<Historial | null>(null);
 
-  const [misClases, setMisClases] = useState<any[]>([]);
+  const [misClases, setMisClases] = useState<Clase[]>([]);
 
   const diasSemana = [
     "Domingo",
@@ -35,7 +37,7 @@ export default function AlumnoDashboard() {
     "Sabado",
   ];
 
-  const obtenerProximaClase = (clases: any[]) => {
+  const obtenerProximaClase = (clases: Clase[]): Clase | null => {
     if (!clases.length) {
       return null;
     }

@@ -5,16 +5,22 @@ import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 
+import type { Perfil } from "../types";
+
 export default function PerfilPage() {
 
   const [perfil, setPerfil] =
-    useState<any>(null);
+    useState<Perfil | null>(null);
 
   const [editando, setEditando] =
     useState(false);
 
   const [form, setForm] =
-    useState<any>({});
+    useState<Perfil>({
+      nombre: '',
+      apellido: '',
+      email: '',
+    });
 
   useEffect(() => {
 

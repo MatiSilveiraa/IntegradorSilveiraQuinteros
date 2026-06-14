@@ -13,12 +13,15 @@ import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 
+import type { Grupo, Clase } from "../types";
+import type { ApiError } from "../types";
+
 export default function GrupoDetallePage() {
   const navigate = useNavigate();
 
   const { grupoId } = useParams();
 
-  const [grupo, setGrupo] = useState<any>(null);
+  const [grupo, setGrupo] = useState<Grupo | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -27,10 +30,10 @@ export default function GrupoDetallePage() {
   useEffect(() => {
     const cargarGrupo = async () => {
       try {
-        const grupos = await obtenerGrupos();
+        const grupos: Grupo[] = await obtenerGrupos();
 
         const grupoEncontrado = grupos.find(
-          (g: any) => g.id === Number(grupoId),
+          (g: Grupo) => g.id === Number(grupoId),
         );
 
         setGrupo(grupoEncontrado);
@@ -47,7 +50,7 @@ export default function GrupoDetallePage() {
   useEffect(() => {
     obtenerMisClases()
       .then((data) => {
-        const ids = data.map((clase: any) => clase.id);
+        const ids = data.map((clase: Clase) => clase.id);
 
         setClasesInscritas(ids);
       })
@@ -61,7 +64,7 @@ export default function GrupoDetallePage() {
       setClasesInscritas((prev) => [...prev, claseId]);
 
       alert("Inscripción realizada correctamente");
-    } catch (error: any) {
+    } catch (error: ApiError) {
       console.error(error);
 
       alert(
@@ -78,7 +81,7 @@ export default function GrupoDetallePage() {
       setClasesInscritas((prev) => prev.filter((id) => id !== claseId));
 
       alert("Te desinscribiste correctamente");
-    } catch (error: any) {
+    } catch (error: ApiError) {
       console.error(error);
 
       alert(error?.response?.data?.mensaje || "No fue posible desinscribirse");
@@ -150,7 +153,7 @@ export default function GrupoDetallePage() {
 
         {grupo.clases?.length > 0 ? (
 
-          grupo.clases.map((clase: any) => {
+          grupo.clases?.map((clase: Clase) => {
 
             const estaInscripto =
               clasesInscritas.includes(
