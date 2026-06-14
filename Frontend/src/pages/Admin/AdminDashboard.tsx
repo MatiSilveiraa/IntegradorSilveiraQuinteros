@@ -11,98 +11,133 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 
 import { obtenerDashboardAdmin } from "../../services/Admin.Service";
+import { obtenerMiPerfil } from "../../services/Perfil.service";
+import TopBar from "../../components/navigation/DashboardTopBar";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [dashboard, setDashboard] =
-    useState<any>(null);
+  const [dashboard, setDashboard] = useState<any>(null);
 
   useEffect(() => {
-    obtenerDashboardAdmin()
-      .then(setDashboard)
-      .catch(console.error);
+    obtenerDashboardAdmin().then(setDashboard).catch(console.error);
+  }, []);
+
+  const [perfil, setPerfil] = useState<any>(null);
+
+  useEffect(() => {
+    obtenerMiPerfil().then(setPerfil).catch(console.error);
   }, []);
 
   const cards = [
     {
       titulo: "Alumnos Activos",
-      valor:
-        dashboard?.alumnosActivos ?? 0,
-      icono:
-        <PeopleOutlineOutlinedIcon />,
+      valor: dashboard?.alumnosActivos ?? 0,
+      icono: <PeopleOutlineOutlinedIcon />,
     },
     {
       titulo: "Desafíos Activos",
-      valor:
-        dashboard?.desafiosActivos ?? 0,
-      icono:
-        <EmojiEventsOutlinedIcon />,
+      valor: dashboard?.desafiosActivos ?? 0,
+      icono: <EmojiEventsOutlinedIcon />,
     },
     {
       titulo: "Cuotas Pendientes",
-      valor:
-        dashboard?.cuotasPendientes ?? 0,
-      icono:
-        <PaymentsOutlinedIcon />,
+      valor: dashboard?.cuotasPendientes ?? 0,
+      icono: <PaymentsOutlinedIcon />,
     },
     {
       titulo: "Cuotas Vencidas",
-      valor:
-        dashboard?.cuotasVencidas ?? 0,
-      icono:
-        <WarningAmberOutlinedIcon />,
+      valor: dashboard?.cuotasVencidas ?? 0,
+      icono: <WarningAmberOutlinedIcon />,
     },
     {
       titulo: "Beneficios Pendientes",
-      valor:
-        dashboard?.beneficiosPendientes ?? 0,
-      icono:
-        <CardGiftcardOutlinedIcon />,
+      valor: dashboard?.beneficiosPendientes ?? 0,
+      icono: <CardGiftcardOutlinedIcon />,
     },
     {
       titulo: "Premios Físicos",
-      valor:
-        dashboard?.premiosFisicosPendientes ??
-        0,
-      icono:
-        <Inventory2OutlinedIcon />,
+      valor: dashboard?.premiosFisicosPendientes ?? 0,
+      icono: <Inventory2OutlinedIcon />,
     },
     {
       titulo: "Notificaciones",
-      valor:
-        dashboard?.notificacionesNoLeidas ??
-        0,
-      icono:
-        <NotificationsOutlinedIcon />,
+      valor: dashboard?.notificacionesNoLeidas ?? 0,
+      icono: <NotificationsOutlinedIcon />,
     },
     {
       titulo: "Ingresos del Mes",
-      valor: `$ ${
-        dashboard?.ingresosMesActual ?? 0
-      }`,
-      icono:
-        <MonetizationOnOutlinedIcon />,
+      valor: `$ ${dashboard?.ingresosMesActual ?? 0}`,
+      icono: <MonetizationOnOutlinedIcon />,
     },
   ];
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
+      <TopBar nombre={perfil?.nombre} />
       <main
         className="
-          max-w-7xl
-          mx-auto
-          px-6
-          py-8
-        "
+    max-w-7xl
+    mx-auto
+    px-6
+    pt-24
+    pb-8
+  "
       >
-        <h1 className="text-4xl font-bold mb-2">
-          Dashboard Admin
-        </h1>
+        <h1 className="text-4xl font-bold mb-2">Dashboard Admin</h1>
 
-        <p className="text-gray-400 mb-10">
-          Resumen general del gimnasio.
-        </p>
+        <p className="text-gray-400 mb-10">Resumen general del gimnasio.</p>
+
+        {perfil && !perfil.twoFactorEnabled && (
+          <div
+            className="
+      mb-8
+      bg-amber-500/10
+      border
+      border-amber-500/30
+      rounded-2xl
+      p-5
+      flex
+      items-center
+      justify-between
+      gap-4
+    "
+          >
+            <div>
+              <h3
+                className="
+          text-amber-400
+          text-lg
+          font-bold
+        "
+              >
+                🔐 Seguridad recomendada
+              </h3>
+
+              <p className="text-gray-300 mt-1">
+                Tu cuenta de administrador no tiene autenticación de dos
+                factores activa. Activala para proteger el acceso al panel.
+              </p>
+            </div>
+
+            <button
+             onClick={() => {
+  console.log("click");
+  navigate("/admin/seguridad");
+}}
+              className="
+        px-5
+        py-3
+        rounded-xl
+        bg-[#4adea8]
+        text-[#12201b]
+        font-bold
+      "
+            >
+              Activar 2FA
+            </button>
+          </div>
+        )}
 
         <div
           className="
@@ -127,13 +162,9 @@ export default function AdminDashboard() {
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-gray-400 text-sm">
-                    {card.titulo}
-                  </p>
+                  <p className="text-gray-400 text-sm">{card.titulo}</p>
 
-                  <h2 className="text-3xl font-bold mt-2">
-                    {card.valor}
-                  </h2>
+                  <h2 className="text-3xl font-bold mt-2">{card.valor}</h2>
                 </div>
 
                 <div
@@ -150,9 +181,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-5">
-            Accesos rápidos
-          </h2>
+          <h2 className="text-2xl font-bold mb-5">Accesos rápidos</h2>
 
           <div
             className="
@@ -163,11 +192,7 @@ export default function AdminDashboard() {
             "
           >
             <button
-              onClick={() =>
-                navigate(
-                  "/admin/desafios"
-                )
-              }
+              onClick={() => navigate("/admin/desafios")}
               className="
                 bg-[#1a2b24]
                 border
@@ -179,26 +204,17 @@ export default function AdminDashboard() {
                 transition-all
               "
             >
-              <div className="text-2xl mb-2">
-                🎯
-              </div>
+              <div className="text-2xl mb-2">🎯</div>
 
-              <h3 className="font-semibold">
-                Gestionar Desafíos
-              </h3>
+              <h3 className="font-semibold">Gestionar Desafíos</h3>
 
               <p className="text-sm text-gray-400 mt-1">
-                Crear, editar y eliminar
-                desafíos.
+                Crear, editar y eliminar desafíos.
               </p>
             </button>
 
             <button
-              onClick={() =>
-                navigate(
-                  "/admin/recompensas"
-                )
-              }
+              onClick={() => navigate("/admin/recompensas")}
               className="
                 bg-[#1a2b24]
                 border
@@ -210,26 +226,17 @@ export default function AdminDashboard() {
                 transition-all
               "
             >
-              <div className="text-2xl mb-2">
-                🎁
-              </div>
+              <div className="text-2xl mb-2">🎁</div>
 
-              <h3 className="font-semibold">
-                Gestionar Recompensas
-              </h3>
+              <h3 className="font-semibold">Gestionar Recompensas</h3>
 
               <p className="text-sm text-gray-400 mt-1">
-                Administrar recompensas
-                de desafíos.
+                Administrar recompensas de desafíos.
               </p>
             </button>
 
             <button
-              onClick={() =>
-                navigate(
-                  "/admin/premios"
-                )
-              }
+              onClick={() => navigate("/admin/premios")}
               className="
                 bg-[#1a2b24]
                 border
@@ -241,26 +248,17 @@ export default function AdminDashboard() {
                 transition-all
               "
             >
-              <div className="text-2xl mb-2">
-                📦
-              </div>
+              <div className="text-2xl mb-2">📦</div>
 
-              <h3 className="font-semibold">
-                Premios Pendientes
-              </h3>
+              <h3 className="font-semibold">Premios Pendientes</h3>
 
               <p className="text-sm text-gray-400 mt-1">
-                Entrega de premios
-                físicos.
+                Entrega de premios físicos.
               </p>
             </button>
 
             <button
-              onClick={() =>
-                navigate(
-                  "/admin/alumnos"
-                )
-              }
+              onClick={() => navigate("/admin/alumnos")}
               className="
                 bg-[#1a2b24]
                 border
@@ -272,17 +270,12 @@ export default function AdminDashboard() {
                 transition-all
               "
             >
-              <div className="text-2xl mb-2">
-                👥
-              </div>
+              <div className="text-2xl mb-2">👥</div>
 
-              <h3 className="font-semibold">
-                Gestionar Alumnos
-              </h3>
+              <h3 className="font-semibold">Gestionar Alumnos</h3>
 
               <p className="text-sm text-gray-400 mt-1">
-                Consulta y gestión de
-                alumnos.
+                Consulta y gestión de alumnos.
               </p>
             </button>
           </div>

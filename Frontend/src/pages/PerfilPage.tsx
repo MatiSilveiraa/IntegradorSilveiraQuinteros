@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { obtenerMiPerfil, actualizarMiPerfil }
 from "../services/Perfil.service";
-import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 

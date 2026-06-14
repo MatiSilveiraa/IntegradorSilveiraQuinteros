@@ -23,13 +23,15 @@ import AdminRecompensasPage from "../pages/AdminRecompensasPage";
 import AdminAlumnosPage from "../pages/AdminAlumnosPage";
 // import AdminPremiosPage from "../pages/AdminPremiosPage";
 import AdminPremiosPage from "../pages/AdminPremiosPage";
+import SeguridadPage from "../pages/Shared/SeguridadPage";
+import TwoFactorLoginPage from "./../pages/TwoFactorLoginPage";
+import SeguridadPage from "../pages/SeguridadPage";
 
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<LoginPage />} />
 
         <Route path="/register" element={<RegisterPage />} />
@@ -40,77 +42,44 @@ export default function AppRouter() {
 
         <Route path="/alumno/pagos" element={<PagosPage />} />
 
-        <Route
-          path="/entrenador"
-          element={<EntrenadorDashboard />}
-        />
+        <Route path="/entrenador" element={<EntrenadorDashboard />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordPage />}
-        />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        <Route
-          path="/verify-code"
-          element={<VerifyCodePage />}
-        />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
 
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />}
-        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        <Route
-          path="/alumno/grupos"
-          element={<GruposPage />}
-        />
-        
-        <Route
-          path="/alumno/grupos/:grupoId"
-          element={<GrupoDetallePage />}
-        />
+        <Route path="/alumno/grupos" element={<GruposPage />} />
 
-        <Route
-          path="/alumno/perfil"
-          element={<PerfilPage />}
-        />
+        <Route path="/alumno/grupos/:grupoId" element={<GrupoDetallePage />} />
 
-        <Route
-    path="/alumno/notificaciones"
-    element={<NotificacionPage />}
-/>
+        <Route path="/alumno/perfil" element={<PerfilPage />} />
 
-<Route path="/alumno/beneficios"
-  element={<BeneficiosPage />}
-/>
+        <Route path="/alumno/notificaciones" element={<NotificacionPage />} />
 
-<Route
-  path="/alumno/desafios"
-  element={<DesafiosPage />}
-/>
+        <Route path="/alumno/beneficios" element={<BeneficiosPage />} />
 
-<Route
-  path="/admin/desafios"
-  element={<AdminDesafiosPage />}
-/>
+        <Route path="/alumno/desafios" element={<DesafiosPage />} />
 
-<Route
-  path="/admin/recompensas"
-  element={<AdminRecompensasPage />}
-/>
+        <Route path="/admin/desafios" element={<AdminDesafiosPage />} />
 
-{/* <Route
+        <Route path="/admin/recompensas" element={<AdminRecompensasPage />} />
+
+        {/* <Route
   path="/admin/premios"
   element={<AdminPremiosPage />}
 /> */}
-<Route
-  path="/admin/alumnos"
-  element={<AdminAlumnosPage />}
-/>
+        <Route path="/admin/alumnos" element={<AdminAlumnosPage />} />
 
-<Route
-  path="/admin/premios"
-  element={<AdminPremiosPage />}
+        <Route path="/admin/premios" element={<AdminPremiosPage />} />
+
+        <Route path="/alumno/seguridad" element={<SeguridadPage />} />
+        <Route path="/admin/seguridad" element={<SeguridadPage />} />
+
+        <Route path="/2fa-login" element={<TwoFactorLoginPage />} />
+<Route path="/alumno/seguridad" 
+  element={<SeguridadPage />}
 />
 
       </Routes>

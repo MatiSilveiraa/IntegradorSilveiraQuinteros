@@ -15,5 +15,7 @@ namespace Joki.CasoUsoCompartida.DTOs.Perfil
         public bool BloqueadoPorInasistencias { get; set; }
         public int RachaAsistenciaMensual { get; set; }
         public bool DescuentoRachaGenerado { get; set; }
+
+        public bool TwoFactorEnabled { get; set; }
     }
 }

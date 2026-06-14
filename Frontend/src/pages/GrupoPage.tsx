@@ -4,7 +4,7 @@ import GrupoCard from "../components/grupos/GrupoCard";
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerGrupos } from "../../src/services/Grupo.Service";
 import { obtenerDias, obtenerHora } from "../utils/grupoUtils";
-import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 import { obtenerMisClases } from "../services/Inscripciones.Service";

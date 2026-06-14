@@ -27,7 +27,15 @@ export default function LoginPage() {
 
       const response = await login(email, password);
 
-      console.log(response);
+      if (response.requiere2FA) {
+        navigate("/2fa-login", {
+          state: {
+            email: response.email,
+          },
+        });
+
+        return;
+      }
 
       localStorage.setItem("token", response.token);
 
