@@ -9,7 +9,7 @@ import {
   desinscribirseClase,
 } from "../services/Inscripciones.Service";
 
-import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import AlumnoTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 

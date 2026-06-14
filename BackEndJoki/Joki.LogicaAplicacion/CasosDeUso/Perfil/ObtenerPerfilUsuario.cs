@@ -64,7 +64,10 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
                     rachaAsistenciaMensual,
 
                 DescuentoRachaGenerado =
-                    descuentoRachaGenerado
+                    descuentoRachaGenerado,
+
+                TwoFactorEnabled =
+        usuario.TwoFactorEnabled
             };
         }
     }

@@ -7,6 +7,7 @@ import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import CardGiftcardOutlinedIcon from "@mui/icons-material/CardGiftcardOutlined";
 import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
+import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 
 export default function AlumnoSidebar() {
   const location = useLocation();
@@ -32,19 +33,24 @@ export default function AlumnoSidebar() {
       path: "/alumno/pagos",
       icon: <PaymentsOutlinedIcon />,
     },
-    
+
     {
       label: "Beneficios",
       path: "/alumno/beneficios",
       icon: <CardGiftcardOutlinedIcon />,
     },
-    
+
     {
       label: "Desafios",
       path: "/alumno/desafios",
       icon: <EmojiEventsOutlinedIcon />,
     },
-    
+    {
+      label: "Seguridad",
+      path: "/alumno/seguridad",
+      icon: <SecurityOutlinedIcon />,
+    },
+
     {
       label: "Perfil",
       path: "/alumno/perfil",
@@ -54,7 +60,6 @@ export default function AlumnoSidebar() {
 
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-[#0e1511] border-r border-[#2d463b] flex-col">
-
       <div className="h-20 flex items-center px-6 border-b border-[#2d463b]">
         <h2 className="text-[#4adea8] text-xl font-bold">Joki Training</h2>
       </div>
