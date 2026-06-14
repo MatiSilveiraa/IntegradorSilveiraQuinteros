@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import DashboardTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 
@@ -44,7 +44,7 @@ export default function SeguridadPage() {
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
-      <AlumnoTopBar />
+      <DashboardTopBar />
 
       <AlumnoSidebar />
 
@@ -246,18 +246,18 @@ export default function SeguridadPage() {
 
                   {!activado && !mostrarQR && (
                     <button
-                      onClick={activar2FA}
+                      onClick={confirmar}
                       className="
-      mt-6
-      px-6
-      py-3
-      rounded-xl
-      bg-[#4adea8]
-      text-[#12201b]
-      font-bold
-    "
+    mt-4
+    w-full
+    h-14
+    rounded-xl
+    bg-[#4adea8]
+    text-[#12201b]
+    font-bold
+  "
                     >
-                      Activar 2FA
+                      Confirmar
                     </button>
                   )}
                 </div>
