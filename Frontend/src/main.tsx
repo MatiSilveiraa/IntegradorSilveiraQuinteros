@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 
 import "./index.css";
+import "leaflet/dist/leaflet.css";
 
 import { GoogleOAuthProvider }
 from "@react-oauth/google";

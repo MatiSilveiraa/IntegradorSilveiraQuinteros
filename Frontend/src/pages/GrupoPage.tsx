@@ -9,13 +9,13 @@ import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
 
-import type { Perfil, Grupo, Clase } from "../types";
+import type { Perfil} from "../types";
 
 export default function GruposPage() {
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<Perfil | any>(null);
 
-  const [grupos, setGrupos] = useState<Grupo[]>([]);
-  const [misClases, setMisClases] = useState<Clase[]>([]);
+  const [grupos, setGrupos] = useState<any[]>([]);
+  const [misClases, setMisClases] = useState<any[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
 
@@ -28,8 +28,14 @@ export default function GruposPage() {
   }, []);
 
   useEffect(() => {
-    obtenerMisClases().then(setMisClases).catch(console.error);
-  }, []);
+  obtenerMisClases()
+    .then((data) => {
+      console.log("MIS CLASES:", data);
+
+      setMisClases(data);
+    })
+    .catch(console.error);
+}, []);
 
   const handleDesinscribirse = async (claseId: number) => {
     try {
