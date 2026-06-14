@@ -13,8 +13,10 @@ export const obtenerRecompensasPorDesafio =
     return response.data;
   };
 
+import type { Recompensa } from "../types";
+
 export const crearRecompensa =
-  async (data: any) => {
+  async (data: Recompensa) => {
 
     const response =
       await axiosInstance.post(
@@ -28,7 +30,7 @@ export const crearRecompensa =
 export const editarRecompensa =
   async (
     id: number,
-    data: any
+    data: Recompensa
   ) => {
 
     const response =

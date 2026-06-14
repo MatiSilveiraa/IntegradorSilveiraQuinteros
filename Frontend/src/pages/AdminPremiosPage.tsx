@@ -8,10 +8,12 @@ import {
   marcarPremioEntregado,
 } from "../services/AdminBeneficio.Service";
 
+import type { Recompensa } from "../types";
+
 export default function AdminPremiosPage() {
 
   const [premios, setPremios] =
-    useState<any[]>([]);
+    useState<Recompensa[]>([]);
 
   const cargarDatos =
     async () => {

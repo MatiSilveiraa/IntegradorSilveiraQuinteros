@@ -1,6 +1,8 @@
 import axiosInstance from "../api/axios";
 
-export const register = async (usuario: any) => {
+import type { Perfil } from "../types";
+
+export const register = async (usuario: Perfil) => {
   const response = await axiosInstance.post(
     "/api/alumno/registrar",
     usuario

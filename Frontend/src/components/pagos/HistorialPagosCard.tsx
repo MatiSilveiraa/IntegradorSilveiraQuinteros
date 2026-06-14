@@ -2,8 +2,10 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import { nombreMes } from "../../utils/dateUtils";
 
 
+import type { Cuota } from "../../types";
+
 type Props = {
-  cuotas: any[];
+  cuotas: Cuota[];
 };
 
 export default function HistorialPagosCard({ cuotas }: Props) {

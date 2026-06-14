@@ -8,6 +8,8 @@ import {
   obtenerMisNotificaciones,
 } from "../../services/Notificacion.Service";
 
+import type { Notificacion } from "../../types";
+
 type Props = {
   nombre?: string;
 };
@@ -26,11 +28,11 @@ export default function AlumnoTopBar({ nombre }: Props) {
 useEffect(() => {
 
   obtenerMisNotificaciones()
-    .then((data) => {
+    .then((data: Notificacion[]) => {
 
       const pendientes =
         data.filter(
-          (n: any) =>
+          (n: Notificacion) =>
             !n.leida
         ).length;
 

@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMisBeneficios } from "../services/Beneficio.Service";
 
+import type { Perfil, Beneficio } from "../types";
+
 export default function BeneficiosPage() {
   const [perfil, setPerfil] =
-    useState<any>(null);
+    useState<Perfil | null>(null);
 
   const [beneficios, setBeneficios] =
-    useState<any[]>([]);
+    useState<Beneficio[]>([]);
 
   useEffect(() => {
     obtenerMiPerfil()
@@ -92,24 +92,8 @@ export default function BeneficiosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#12201b] text-white">
-      <AlumnoTopBar
-        nombre={perfil?.nombre}
-      />
-
-      <AlumnoSidebar />
-
-      <main
-        className="
-          pt-20
-          pb-24
-          px-4
-          lg:px-6
-          lg:ml-64
-          max-w-6xl
-          mx-auto
-        "
-      >
+    <AlumnoLayout nombre={perfil?.nombre}>
+      <main className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">
           Mis Beneficios
         </h1>
@@ -311,8 +295,6 @@ export default function BeneficiosPage() {
           </div>
         )}
       </main>
-
-      <AlumnoBottomNav />
-    </div>
+    </AlumnoLayout>
   );
 }

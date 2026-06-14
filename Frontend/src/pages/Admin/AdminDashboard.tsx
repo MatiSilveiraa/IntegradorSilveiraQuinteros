@@ -14,6 +14,8 @@ import { obtenerDashboardAdmin } from "../../services/Admin.Service";
 import { obtenerMiPerfil } from "../../services/Perfil.service";
 import TopBar from "../../components/navigation/DashboardTopBar";
 
+import type { Perfil } from "../../types";
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -23,7 +25,7 @@ export default function AdminDashboard() {
     obtenerDashboardAdmin().then(setDashboard).catch(console.error);
   }, []);
 
-  const [perfil, setPerfil] = useState<any>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);

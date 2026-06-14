@@ -12,18 +12,18 @@ import RachaCard from "../../components/dashboard/RachaCard";
 import ResumenCard from "../../components/dashboard/ResumenCard";
 import NovedadesCard from "../../components/dashboard/NovedadesCard";
 
-import AlumnoTopBar from "../../components/navigation/DashboardTopBar";
-import AlumnoBottomNav from "../../components/navigation/AlumnoBottomNav";
-import AlumnoSidebar from "../../components/navigation/AlumnoSidebar";
+import AlumnoLayout from "../../components/layout/AlumnoLayout";
+
+import type { Perfil, Cuota, Historial, Clase } from "../../types";
 
 export default function AlumnoDashboard() {
-  const [perfil, setPerfil] = useState<any>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
-  const [cuota, setCuota] = useState<any>(null);
+  const [cuota, setCuota] = useState<Cuota | any>(null);
 
-  const [historial, setHistorial] = useState<any>(null);
+  const [historial, setHistorial] = useState<Historial | any>(null);
 
-  const [misClases, setMisClases] = useState<any[]>([]);
+  const [misClases, setMisClases] = useState<Clase[]>([]);
 
   const diasSemana = [
     "Domingo",
@@ -35,7 +35,7 @@ export default function AlumnoDashboard() {
     "Sabado",
   ];
 
-  const obtenerProximaClase = (clases: any[]) => {
+  const obtenerProximaClase = (clases: Clase[]): any | null => {
     if (!clases.length) {
       return null;
     }
@@ -83,18 +83,8 @@ export default function AlumnoDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0e1511] text-white">
-      {/* TOP BAR */}
-
-      <AlumnoTopBar nombre={perfil?.nombre} />
-
-      <AlumnoTopBar
-        nombre={perfil?.nombre}
-      />
-
-      <AlumnoSidebar />
-
-      <main className="pt-20 pb-24 px-4 lg:px-6 lg:ml-64 max-w-7xl mx-auto">
+    <AlumnoLayout nombre={perfil?.nombre}>
+      <main className="max-w-7xl mx-auto">
         <DashboardHeader nombre={perfil?.nombre} />
 
         {perfil && !perfil.twoFactorEnabled && (
@@ -159,8 +149,6 @@ export default function AlumnoDashboard() {
           <NovedadesCard />
         </div>
       </main>
-
-      <AlumnoBottomNav />
-    </div>
+    </AlumnoLayout>
   );
 }

@@ -7,16 +7,18 @@ import {
   eliminarDesafio,
 } from "../services/AdminDesafio.Service";
 
+import type { Desafio } from "../types";
+
 export default function AdminDesafiosPage() {
 
   const [desafios, setDesafios] =
-    useState<any[]>([]);
+    useState<Desafio[]>([]);
 
   const [modalAbierto, setModalAbierto] =
     useState(false);
 
   const [editando, setEditando] =
-    useState<any>(null);
+    useState<Desafio | null>(null);
 
   const [form, setForm] =
     useState({
@@ -65,7 +67,7 @@ export default function AdminDesafiosPage() {
   };
 
   const abrirEditar = (
-    desafio: any
+    desafio: Desafio
   ) => {
 
     setEditando(desafio);
