@@ -19,6 +19,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Config
             builder.Property(a => a.FechaRegistro)
                 .IsRequired();
 
+            builder.Property(a => a.Latitud)
+                .HasPrecision(18, 10);
+
+            builder.Property(a => a.Longitud)
+                .HasPrecision(18, 10);
+
+            builder.Property(a => a.DistanciaMetros)
+                .HasPrecision(18, 2);
+
+            builder.Property(a => a.RegistradaPorGeolocalizacion)
+                .IsRequired();
+
             builder.HasOne(a => a.Alumno)
                 .WithMany()
                 .HasForeignKey(a => a.AlumnoId)

@@ -1,8 +1,8 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AsistenciaEntidad = Joki.LogicaNegocio.Entidades.Asistencia;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
 {
@@ -56,7 +56,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
                 throw new LogicaNegocioException("La asistencia ya fue registrada");
             }
 
-            Asistencia asistencia = new Asistencia
+            AsistenciaEntidad asistencia = new AsistenciaEntidad
             {
                 AlumnoId = request.AlumnoId,
                 ClaseId = request.ClaseId,
