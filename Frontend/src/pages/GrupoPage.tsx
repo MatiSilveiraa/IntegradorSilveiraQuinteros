@@ -4,9 +4,7 @@ import GrupoCard from "../components/grupos/GrupoCard";
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerGrupos } from "../../src/services/Grupo.Service";
 import { obtenerDias, obtenerHora } from "../utils/grupoUtils";
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
@@ -51,22 +49,8 @@ export default function GruposPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#12201b] text-white">
-      <AlumnoTopBar nombre={perfil?.nombre} />
-
-      <AlumnoSidebar />
-
-      <main
-        className="
-        pt-20
-        pb-24
-        px-4
-        lg:px-6
-        lg:ml-64
-        max-w-7xl
-        mx-auto
-      "
-      >
+    <AlumnoLayout nombre={perfil?.nombre}>
+      <main className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Grupos</h1>
 
@@ -302,8 +286,6 @@ export default function GruposPage() {
           )}
         </section>
       </main>
-
-      <AlumnoBottomNav />
-    </div>
+    </AlumnoLayout>
   );
 }

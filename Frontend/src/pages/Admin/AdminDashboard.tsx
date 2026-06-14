@@ -19,7 +19,7 @@ import type { Perfil } from "../../types";
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [dashboard, setDashboard] = useState<unknown>(null);
+  const [dashboard, setDashboard] = useState<any>(null);
 
   useEffect(() => {
     obtenerDashboardAdmin().then(setDashboard).catch(console.error);

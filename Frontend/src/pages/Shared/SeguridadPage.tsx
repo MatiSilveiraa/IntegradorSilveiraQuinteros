@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { obtenerMiPerfil } from "../../services/Perfil.service";
-import AlumnoTopBar from "../../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../../components/layout/AlumnoLayout";
 
 import {
   setup2FA,
@@ -16,7 +14,7 @@ import type { Perfil } from "../../types";
 export default function SeguridadPage() {
 
   const [perfil, setPerfil] =
-    useState<Perfil | null>(null);
+    useState<Perfil | any>(null);
   const [qrCode, setQrCode] =
     useState("");
 
@@ -126,29 +124,16 @@ export default function SeguridadPage() {
     };
 
   return (
-  <div className="min-h-screen bg-[#12201b] text-white">
-
-    {esAlumno && (
-      <>
-        <AlumnoTopBar
-          nombre={perfil?.nombre}
-        />
-
-        <AlumnoSidebar />
-      </>
-    )}
-
+    <AlumnoLayout
+      nombre={perfil?.nombre}
+      mostrarNavegacion={esAlumno}
+    >
     <main
-      className={`
-        px-4
-        max-w-6xl
-        mx-auto
-        ${
-          esAlumno
-            ? "pt-20 pb-24 lg:px-6 lg:ml-64"
-            : "py-10"
-        }
-      `}
+      className={
+        esAlumno
+          ? "max-w-6xl mx-auto"
+          : "py-10 max-w-6xl mx-auto"
+      }
     >
 
       {!esAlumno && (
@@ -438,13 +423,7 @@ export default function SeguridadPage() {
           </div>
 
         )}
-
             </main>
-
-      {esAlumno && (
-        <AlumnoBottomNav />
-      )}
-
-    </div>
+    </AlumnoLayout>
   );
 }

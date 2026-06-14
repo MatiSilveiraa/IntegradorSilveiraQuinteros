@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 
@@ -92,24 +90,8 @@ export default function DesafiosPage() {
     );
 
   return (
-    <div className="min-h-screen bg-[#12201b] text-white">
-      <AlumnoTopBar
-        nombre={perfil?.nombre}
-      />
-
-      <AlumnoSidebar />
-
-      <main
-        className="
-          pt-20
-          pb-24
-          px-4
-          lg:px-6
-          lg:ml-64
-          max-w-6xl
-          mx-auto
-        "
-      >
+    <AlumnoLayout nombre={perfil?.nombre}>
+      <main className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">
           Desafíos
         </h1>
@@ -406,8 +388,6 @@ export default function DesafiosPage() {
           )}
         </section>
       </main>
-
-      <AlumnoBottomNav />
-    </div>
+    </AlumnoLayout>
   );
 }

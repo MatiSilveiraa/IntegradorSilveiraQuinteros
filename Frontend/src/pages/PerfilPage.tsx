@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { obtenerMiPerfil, actualizarMiPerfil }
 from "../services/Perfil.service";
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import type { Perfil } from "../types";
 
@@ -73,24 +71,9 @@ const handleCancelar = () => {
 };
 
  return (
-  <div className="min-h-screen bg-[#0e1511] text-white">
-
-    <AlumnoTopBar
-      nombre={perfil?.nombre}
-    />
-
-    <AlumnoSidebar />
-
+    <AlumnoLayout nombre={perfil?.nombre}>
     <main
-      className="
-        pt-20
-        pb-24
-        px-4
-        lg:px-6
-        lg:ml-64
-        max-w-4xl
-        mx-auto
-      "
+      className="max-w-4xl mx-auto"
     >
 
       <div className="flex items-center justify-between mb-8">
@@ -412,10 +395,7 @@ const handleCancelar = () => {
       )}
 
     </main>
-
-    <AlumnoBottomNav />
-
-  </div>
+    </AlumnoLayout>
 );
 
   

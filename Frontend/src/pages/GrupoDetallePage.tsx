@@ -9,9 +9,7 @@ import {
   desinscribirseClase,
 } from "../services/Inscripciones.Service";
 
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import type { Grupo, Clase } from "../types";
 import type { ApiError } from "../types";
@@ -119,23 +117,8 @@ export default function GrupoDetallePage() {
   }
 
   return (
-  <div className="min-h-screen bg-[#12201b] text-white">
-
-    <AlumnoTopBar />
-
-    <AlumnoSidebar />
-
-    <main
-      className="
-        pt-20
-        pb-24
-        px-4
-        lg:px-6
-        lg:ml-64
-        max-w-5xl
-        mx-auto
-      "
-    >
+    <AlumnoLayout nombre={undefined}>
+      <main className="max-w-5xl mx-auto">
 
       <header className="mb-8">
 
@@ -288,10 +271,7 @@ export default function GrupoDetallePage() {
 
       </div>
 
-    </main>
-
-    <AlumnoBottomNav />
-
-  </div>
+      </main>
+    </AlumnoLayout>
 );
 }

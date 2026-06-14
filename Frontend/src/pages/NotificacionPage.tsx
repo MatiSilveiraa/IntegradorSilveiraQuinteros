@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 
-import AlumnoTopBar from "../components/navigation/DashboardTopBar";
-import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
-import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
+import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 
@@ -62,23 +60,12 @@ export default function NotificacionPage() {
   const esAlumno = usuario.rol === "Alumno";
 
   return (
-    <div className="min-h-screen bg-[#12201b] text-white">
-      {esAlumno && (
-        <>
-          <AlumnoTopBar nombre={perfil?.nombre} />
-
-          <AlumnoSidebar />
-        </>
-      )}
-
-      <main
-        className={`
-    px-4
-    max-w-5xl
-    mx-auto
-    ${esAlumno ? "pt-20 pb-24 lg:px-6 lg:ml-64" : "pt-24 pb-8"}
-  `}
-      >
+    <AlumnoLayout
+      nombre={perfil?.nombre}
+      mostrarNavegacion={esAlumno}
+      contentClassName={esAlumno ? "" : "pt-24 pb-8"}
+    >
+      <main className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Notificaciones</h1>
 
@@ -188,7 +175,6 @@ export default function NotificacionPage() {
           </div>
         )}
       </main>
-      {esAlumno && <AlumnoBottomNav />}
-    </div>
+    </AlumnoLayout>
   );
 }
