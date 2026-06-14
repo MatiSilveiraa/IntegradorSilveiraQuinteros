@@ -12,11 +12,14 @@ namespace Joki.WebApi.Controllers
     public class AsistenciaController : ControllerBase
     {
         private readonly IRegistrarAsistencia _registrarAsistencia;
+        private readonly IRegistrarAsistenciaGeolocalizacion _registrarAsistenciaGeolocalizacion;
 
         public AsistenciaController(
-            IRegistrarAsistencia registrarAsistencia)
+            IRegistrarAsistencia registrarAsistencia,
+            IRegistrarAsistenciaGeolocalizacion registrarAsistenciaGeolocalizacion)
         {
             _registrarAsistencia = registrarAsistencia;
+            _registrarAsistenciaGeolocalizacion = registrarAsistenciaGeolocalizacion;
         }
 
         [Authorize(Roles = "Entrenador,Admin")]
@@ -36,6 +39,42 @@ namespace Joki.WebApi.Controllers
                 return Ok(new
                 {
                     mensaje = "Asistencia registrada correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("geolocalizacion")]
+        public IActionResult RegistrarPorGeolocalizacion(
+    RegistrarAsistenciaGeolocalizacionRequest request)
+        {
+            try
+            {
+                int alumnoId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _registrarAsistenciaGeolocalizacion.Ejecutar(
+                    request,
+                    alumnoId);
+
+                return Ok(new
+                {
+                    mensaje = "Asistencia registrada por geolocalización correctamente"
                 });
             }
             catch (LogicaNegocioException e)

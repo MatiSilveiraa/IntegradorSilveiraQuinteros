@@ -23,6 +23,7 @@ using Joki.Infraestructura.Servicios;
 using Joki.LogicaAplicacion.CasosDeUso.Admin;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
+using Joki.LogicaAplicacion.CasosDeUso.Asistencia;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Beneficio;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
@@ -200,6 +201,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IGenerar2FA, Generar2FA>();      
     builder.Services.AddScoped<IConfirmar2FA, Confirmar2FA>();
     builder.Services.AddScoped<IValidar2FA, Validar2FA>();
+    builder.Services.AddScoped<IRegistrarAsistenciaGeolocalizacion,RegistrarAsistenciaGeolocalizacion>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
