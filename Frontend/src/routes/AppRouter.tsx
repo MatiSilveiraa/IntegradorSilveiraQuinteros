@@ -25,7 +25,7 @@ import AdminAlumnosPage from "../pages/AdminAlumnosPage";
 import AdminPremiosPage from "../pages/AdminPremiosPage";
 import SeguridadPage from "../pages/Shared/SeguridadPage";
 import TwoFactorLoginPage from "./../pages/TwoFactorLoginPage";
-import SeguridadPage from "../pages/SeguridadPage";
+
 
 
 export default function AppRouter() {

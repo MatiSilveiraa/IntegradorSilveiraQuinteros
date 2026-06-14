@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import AlumnoTopBar from "../components/navigation/AlumnoTopBar";
+import DashboardTopBar from "../components/navigation/DashboardTopBar";
 import AlumnoSidebar from "../components/navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../components/navigation/AlumnoBottomNav";
 
@@ -44,7 +44,7 @@ export default function SeguridadPage() {
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
-      <AlumnoTopBar />
+      <DashboardTopBar />
 
       <AlumnoSidebar />
 
@@ -231,18 +231,33 @@ export default function SeguridadPage() {
                     onChange={(e) => setCodigo(e.target.value)}
                     placeholder="Código de 6 dígitos"
                     className="
-                w-full
-                mt-6
-                h-14
-                px-4
-                rounded-xl
-                bg-[#0e1511]
-                border
-                border-[#2d463b]
-                focus:border-[#4adea8]
-                outline-none
-              "
+    w-full
+    mt-6
+    h-14
+    px-4
+    rounded-xl
+    bg-[#0e1511]
+    border
+    border-[#2d463b]
+    focus:border-[#4adea8]
+    outline-none
+  "
                   />
+
+                  <button
+                    onClick={confirmar}
+                    className="
+    mt-4
+    w-full
+    h-14
+    rounded-xl
+    bg-[#4adea8]
+    text-[#12201b]
+    font-bold
+  "
+                  >
+                    Confirmar
+                  </button>
 
                   {!activado && !mostrarQR && (
                     <button
