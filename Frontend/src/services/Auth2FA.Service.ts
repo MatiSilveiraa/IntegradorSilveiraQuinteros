@@ -1,5 +1,6 @@
 import axiosInstance
 from "../api/axios";
+import axiosInstance from "../api/axios";
 
 export const setup2FA =
   async () => {
@@ -31,6 +32,14 @@ export const confirmar2FA =
 export const validar2FA =
   async (
     email: string,
+        "/api/auth/2fa/setup"
+      );
+
+    return response.data;
+  };
+
+export const confirmar2FA =
+  async (
     codigo: string
   ) => {
 
@@ -39,6 +48,8 @@ export const validar2FA =
         "/api/Auth/2fa/validar",
         {
           email,
+        "/api/auth/2fa/confirmar",
+        {
           codigo,
         }
       );

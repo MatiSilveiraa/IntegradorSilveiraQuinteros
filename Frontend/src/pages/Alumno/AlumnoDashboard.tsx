@@ -88,11 +88,11 @@ export default function AlumnoDashboard() {
 
       <AlumnoTopBar nombre={perfil?.nombre} />
 
-      {/* SIDEBAR */}
+      <AlumnoTopBar
+        nombre={perfil?.nombre}
+      />
 
       <AlumnoSidebar />
-
-      {/* CONTENIDO */}
 
       <main className="pt-20 pb-24 px-4 lg:px-6 lg:ml-64 max-w-7xl mx-auto">
         <DashboardHeader nombre={perfil?.nombre} />
@@ -159,8 +159,6 @@ export default function AlumnoDashboard() {
           <NovedadesCard />
         </div>
       </main>
-
-      {/* NAV MOBILE */}
 
       <AlumnoBottomNav />
     </div>

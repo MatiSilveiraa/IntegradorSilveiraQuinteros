@@ -25,6 +25,8 @@ import AdminAlumnosPage from "../pages/AdminAlumnosPage";
 import AdminPremiosPage from "../pages/AdminPremiosPage";
 import SeguridadPage from "../pages/Shared/SeguridadPage";
 import TwoFactorLoginPage from "./../pages/TwoFactorLoginPage";
+import SeguridadPage from "../pages/SeguridadPage";
+
 
 export default function AppRouter() {
   return (
@@ -76,6 +78,10 @@ export default function AppRouter() {
         <Route path="/admin/seguridad" element={<SeguridadPage />} />
 
         <Route path="/2fa-login" element={<TwoFactorLoginPage />} />
+<Route path="/alumno/seguridad" 
+  element={<SeguridadPage />}
+/>
+
       </Routes>
     </BrowserRouter>
   );
