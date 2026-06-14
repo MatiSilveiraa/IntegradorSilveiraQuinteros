@@ -192,6 +192,16 @@ export default function LoginPage() {
                   credentialResponse.credential!,
                 );
 
+                if (response.requiere2FA) {
+                  navigate("/2fa-login", {
+                    state: {
+                      email: response.email,
+                    },
+                  });
+
+                  return;
+                }
+
                 localStorage.setItem("token", response.token);
 
                 localStorage.setItem(

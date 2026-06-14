@@ -40,16 +40,7 @@ export default function NotificacionPage() {
     try {
       await marcarComoLeida(id);
 
-      setNotificaciones((prev) =>
-        prev.map((n) =>
-          n.id === id
-            ? {
-                ...n,
-                leida: true,
-              }
-            : n,
-        ),
-      );
+      setNotificaciones((prev) => prev.filter((n) => n.id !== id));
     } catch (error) {
       console.error(error);
     }
@@ -106,10 +97,12 @@ export default function NotificacionPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {notificaciones.map((notificacion) => (
-              <div
-                key={notificacion.id}
-                className={`
+            {notificaciones
+              .filter((n) => !n.leida)
+              .map((notificacion) => (
+                <div
+                  key={notificacion.id}
+                  className={`
                     rounded-2xl
                     border
                     p-5
@@ -126,17 +119,17 @@ export default function NotificacionPage() {
                         `
                     }
                   `}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-bold text-lg">
-                        {notificacion.titulo}
-                      </h3>
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-bold text-lg">
+                          {notificacion.titulo}
+                        </h3>
 
-                      {!notificacion.leida && (
-                        <span
-                          className="
+                        {!notificacion.leida && (
+                          <span
+                            className="
                               px-2
                               py-1
                               rounded-full
@@ -145,29 +138,31 @@ export default function NotificacionPage() {
                               text-xs
                               font-bold
                             "
-                        >
-                          NUEVA
+                          >
+                            NUEVA
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-gray-300 mt-2">
+                        {notificacion.mensaje}
+                      </p>
+
+                      <div className="flex gap-4 mt-3 text-sm text-gray-500">
+                        <span>{notificacion.tipo}</span>
+
+                        <span>
+                          {new Date(
+                            notificacion.fechaCreacion,
+                          ).toLocaleDateString("es-UY")}
                         </span>
-                      )}
+                      </div>
                     </div>
 
-                    <p className="text-gray-300 mt-2">{notificacion.mensaje}</p>
-
-                    <div className="flex gap-4 mt-3 text-sm text-gray-500">
-                      <span>{notificacion.tipo}</span>
-
-                      <span>
-                        {new Date(
-                          notificacion.fechaCreacion,
-                        ).toLocaleDateString("es-UY")}
-                      </span>
-                    </div>
-                  </div>
-
-                  {!notificacion.leida && (
-                    <button
-                      onClick={() => handleMarcarLeida(notificacion.id)}
-                      className="
+                    {!notificacion.leida && (
+                      <button
+                        onClick={() => handleMarcarLeida(notificacion.id)}
+                        className="
                           px-4
                           py-2
                           rounded-lg
@@ -176,13 +171,13 @@ export default function NotificacionPage() {
                           font-semibold
                           hover:opacity-90
                         "
-                    >
-                      Marcar leída
-                    </button>
-                  )}
+                      >
+                        Marcar leída
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </main>
