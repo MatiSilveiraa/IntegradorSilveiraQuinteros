@@ -233,7 +233,7 @@ export default function BeneficiosPage() {
                         text-xs
                         font-semibold
                         ${obtenerColorEstado(
-                          beneficio.estado
+                        beneficio.estado!
                         )}
                       `}
                     >
@@ -278,10 +278,10 @@ export default function BeneficiosPage() {
                         "
                         style={{
                           width: `${
-                            beneficio.mesesDuracion >
+                            (beneficio.mesesDuracion ?? 0) >
                             0
-                              ? (beneficio.mesesAplicados /
-                                  beneficio.mesesDuracion) *
+                              ? ((beneficio.mesesAplicados ?? 0) /
+                                  (beneficio.mesesDuracion ?? 0)) *
                                 100
                               : 0
                           }%`,

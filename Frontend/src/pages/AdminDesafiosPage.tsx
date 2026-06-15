@@ -99,7 +99,7 @@ export default function AdminDesafiosPage() {
       if (editando) {
 
         await editarDesafio(
-          editando.id,
+          editando.id!,
           form
         );
 
@@ -252,7 +252,7 @@ export default function AdminDesafiosPage() {
                     <button
                       onClick={() =>
                         borrar(
-                          desafio.id
+                          desafio.id!
                         )
                       }
                       className="

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import { formatearFecha } from "../../utils/fechaUtils";
 import AlumnoLayout from "../../components/layout/AlumnoLayout";
 import { obtenerMisClases } from "../../services/Inscripciones.Service";
 import { registrarAsistenciaGeolocalizacion } from "../../services/Asistencia.Service";
@@ -19,7 +18,6 @@ export default function AsistenciasPage() {
 
   const [longitud, setLongitud] = useState<number | null>(null);
 
-  const [precision, setPrecision] = useState<number | null>(null);
 
   useEffect(() => {
     registrarAsistencia();
@@ -47,7 +45,6 @@ export default function AsistenciasPage() {
 
           setLongitud(posicion.coords.longitude);
 
-          setPrecision(posicion.coords.accuracy);
 
           const diaActual = obtenerDiaActual();
 
@@ -282,16 +279,16 @@ export default function AsistenciasPage() {
 
                   <span
                     className="
-    flex
-    items-center
-    gap-2
-    px-4
-    py-2
-    rounded-full
-    bg-[#4adea8]/10
-    text-[#4adea8]
-    font-semibold
-  "
+                            flex
+                            items-center
+                            gap-2
+                            px-4
+                            py-2
+                            rounded-full
+                            bg-[#4adea8]/10
+                            text-[#4adea8]
+                            font-semibold
+                            "
                   >
                     <CheckCircleOutlineOutlinedIcon fontSize="small" />
                     Activo

@@ -11,70 +11,39 @@ import {
 import type { Recompensa } from "../types";
 
 export default function AdminPremiosPage() {
+  const [premios, setPremios] = useState<Recompensa[]>([]);
 
-  const [premios, setPremios] =
-    useState<Recompensa[]>([]);
+  const cargarDatos = async () => {
+    try {
+      const data = await obtenerPremiosPendientes();
 
-  const cargarDatos =
-    async () => {
-
-      try {
-
-        const data =
-          await obtenerPremiosPendientes();
-
-        setPremios(data);
-
-      } catch (error) {
-
-        console.error(error);
-
-      }
-
-    };
+      setPremios(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-
     cargarDatos();
-
   }, []);
 
-  const entregar =
-    async (
-      beneficioId: number
-    ) => {
+  const entregar = async (beneficioId: number) => {
+    try {
+      await marcarPremioEntregado(beneficioId);
 
-      try {
-
-        await marcarPremioEntregado(
-          beneficioId
-        );
-
-        cargarDatos();
-
-      } catch (error) {
-
-        console.error(error);
-
-      }
-
-    };
+      cargarDatos();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white p-6">
-
       <div className="max-w-6xl mx-auto">
-
         <div className="flex items-center gap-3 mb-2">
+          <Inventory2OutlinedIcon fontSize="large" />
 
-          <Inventory2OutlinedIcon
-            fontSize="large"
-          />
-
-          <h1 className="text-3xl font-bold">
-            Premios Pendientes
-          </h1>
-
+          <h1 className="text-3xl font-bold">Premios Pendientes</h1>
         </div>
 
         <p className="text-gray-400 mb-8">
@@ -91,19 +60,12 @@ export default function AdminPremiosPage() {
             mb-6
           "
         >
+          <p className="text-gray-400 text-sm">Pendientes</p>
 
-          <p className="text-gray-400 text-sm">
-            Pendientes
-          </p>
-
-          <h2 className="text-4xl font-bold mt-2">
-            {premios.length}
-          </h2>
-
+          <h2 className="text-4xl font-bold mt-2">{premios.length}</h2>
         </div>
 
         {premios.length === 0 ? (
-
           <div
             className="
               bg-[#1a2b24]
@@ -114,7 +76,6 @@ export default function AdminPremiosPage() {
               text-center
             "
           >
-
             <CheckCircleOutlinedIcon
               sx={{
                 fontSize: 60,
@@ -124,21 +85,13 @@ export default function AdminPremiosPage() {
             <p className="mt-4 text-gray-400">
               No hay premios pendientes de entrega.
             </p>
-
           </div>
-
         ) : (
-
           <div className="grid gap-4">
-
-            {premios.map(
-              (premio) => (
-
-                <div
-                  key={
-                    premio.beneficioId
-                  }
-                  className="
+            {premios.map((premio) => (
+              <div
+                key={premio.beneficioId ?? premio.id}
+                className="
                     bg-[#1a2b24]
                     border
                     border-[#2d463b]
@@ -147,39 +100,23 @@ export default function AdminPremiosPage() {
                     hover:border-[#4adea8]/30
                     transition-all
                   "
-                >
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold">{premio.descripcion}</h3>
 
-                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400 mt-2">
+                      Alumno: {premio.nombre} {premio.apellido}
+                    </p>
 
-                    <div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      ID Alumno: {premio.alumnoId}
+                    </p>
+                  </div>
 
-                      <h3 className="text-xl font-bold">
-                        {premio.descripcion}
-                      </h3>
-
-                      <p className="text-gray-400 mt-2">
-                        Alumno:
-                        {" "}
-                        {premio.nombre}
-                        {" "}
-                        {premio.apellido}
-                      </p>
-
-                      <p className="text-sm text-gray-500 mt-1">
-                        ID Alumno:
-                        {" "}
-                        {premio.alumnoId}
-                      </p>
-
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        entregar(
-                          premio.beneficioId
-                        )
-                      }
-                      className="
+                  <button
+                    onClick={() => entregar(premio.beneficioId!)}
+                    className="
                         px-4
                         py-2
                         rounded-lg
@@ -189,23 +126,15 @@ export default function AdminPremiosPage() {
                         hover:opacity-90
                         transition-all
                       "
-                    >
-                      Marcar Entregado
-                    </button>
-
-                  </div>
-
+                  >
+                    Marcar Entregado
+                  </button>
                 </div>
-
-              )
-            )}
-
+              </div>
+            ))}
           </div>
-
         )}
-
       </div>
-
     </div>
   );
 }

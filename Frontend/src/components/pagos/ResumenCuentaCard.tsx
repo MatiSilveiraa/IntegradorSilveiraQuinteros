@@ -109,7 +109,7 @@ export default function ResumenCuentaCard({
           Período {periodo}
         </p>
 
-        {cuota?.descuento > 0 && (
+        {(cuota?.descuento ?? 0) > 0 && (
           <p className="mt-2 text-[#4adea8]">
             Descuento aplicado:
             {" "}
