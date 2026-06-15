@@ -8,8 +8,9 @@ import AlumnoLayout from "../components/layout/AlumnoLayout";
 import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
+import { obtenerProximaClase } from "../utils/proximaClaseUtils";
 
-import type { Perfil} from "../types";
+import type { Perfil } from "../types";
 
 export default function GruposPage() {
   const [perfil, setPerfil] = useState<Perfil | any>(null);
@@ -18,6 +19,8 @@ export default function GruposPage() {
   const [misClases, setMisClases] = useState<any[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
+
+  const proximaClase = obtenerProximaClase(misClases);
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);
@@ -28,14 +31,14 @@ export default function GruposPage() {
   }, []);
 
   useEffect(() => {
-  obtenerMisClases()
-    .then((data) => {
-      console.log("MIS CLASES:", data);
+    obtenerMisClases()
+      .then((data) => {
+        console.log("MIS CLASES:", data);
 
-      setMisClases(data);
-    })
-    .catch(console.error);
-}, []);
+        setMisClases(data);
+      })
+      .catch(console.error);
+  }, []);
 
   const handleDesinscribirse = async (claseId: number) => {
     try {
@@ -100,17 +103,15 @@ export default function GruposPage() {
           </span>
 
           <h3 className="text-3xl font-bold mt-4">
-            {misClases.length > 0
-              ? misClases[0].diaSemana
-              : "Sin clases programadas"}
+            {proximaClase ? proximaClase.diaSemana : "Sin clases programadas"}
           </h3>
 
           <p className="text-gray-300 mt-2 text-lg">
-            {misClases.length > 0
-              ? `${misClases[0].horaInicio.substring(
+            {proximaClase
+              ? `${proximaClase.horaInicio.substring(
                   0,
                   5,
-                )} - ${misClases[0].horaFin.substring(0, 5)}`
+                )} - ${proximaClase.horaFin.substring(0, 5)}`
               : "No tienes clases registradas"}
           </p>
         </div>
