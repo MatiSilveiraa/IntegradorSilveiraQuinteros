@@ -4,10 +4,14 @@ import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import AlumnoLayout from "../../components/layout/AlumnoLayout";
 import { obtenerMisClases } from "../../services/Inscripciones.Service";
+import obtenerDiaActual from "../../utils/dayUtils";
 import { registrarAsistenciaGeolocalizacion } from "../../services/Asistencia.Service";
-import obtenerDiaActual, { diasSemana } from "../../utils/dayUtils";
 import LocationMap from "../../components/maps/LocationMap";
 import { configurarLeaflet } from "../../utils/leafletUtils";
+import ClassLocationMap from "../../components/maps/ClassLocationMap";
+import { calcularDistancia } from "../../utils/geolocationUtils";
+import { obtenerProximaClase }
+from "../../utils/proximaClaseUtils";
 
 configurarLeaflet();
 export default function AsistenciasPage() {
@@ -17,7 +21,6 @@ export default function AsistenciasPage() {
   const [latitud, setLatitud] = useState<number | null>(null);
 
   const [longitud, setLongitud] = useState<number | null>(null);
-
 
   useEffect(() => {
     registrarAsistencia();
@@ -44,7 +47,6 @@ export default function AsistenciasPage() {
           setLatitud(posicion.coords.latitude);
 
           setLongitud(posicion.coords.longitude);
-
 
           const diaActual = obtenerDiaActual();
 
@@ -96,10 +98,17 @@ export default function AsistenciasPage() {
   };
 
   const proximaClase =
-    [...misClases].sort(
-      (a, b) =>
-        diasSemana.indexOf(a.diaSemana) - diasSemana.indexOf(b.diaSemana),
-    )[0] || null;
+  obtenerProximaClase(misClases);
+
+  const distancia =
+    proximaClase && latitud && longitud
+      ? calcularDistancia(
+          latitud,
+          longitud,
+          proximaClase.latitud,
+          proximaClase.longitud,
+        )
+      : null;
 
   return (
     <AlumnoLayout>
@@ -203,7 +212,6 @@ export default function AsistenciasPage() {
               <ScheduleOutlinedIcon />
               Próxima clase
             </h3>
-
             {proximaClase ? (
               <>
                 <p className="text-3xl font-bold">{proximaClase.diaSemana}</p>
@@ -214,9 +222,50 @@ export default function AsistenciasPage() {
                   {proximaClase.horaFin.substring(0, 5)}
                 </p>
 
-                <p className="mt-4 text-gray-400">
+                <p className="mt-3 text-gray-400">
                   Radio permitido: {proximaClase.radioGeolocalizacion}m
                 </p>
+
+                {distancia && (
+                  <div
+                    className="
+        mt-4
+        p-3
+        rounded-xl
+        bg-[#12201b]
+      "
+                  >
+                    <p className="text-[#4adea8] font-semibold">
+                      Distancia actual: {distancia}m
+                    </p>
+
+                    {distancia <= proximaClase.radioGeolocalizacion ? (
+                      <p className="text-green-400 text-sm mt-1">
+                        Dentro del área de asistencia
+                      </p>
+                    ) : (
+                      <p className="text-yellow-400 text-sm mt-1">
+                        Aún estás fuera del radio permitido
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div
+                  className="
+      mt-5
+      overflow-hidden
+      rounded-2xl
+      border
+      border-[#2d463b]
+    "
+                >
+                  <ClassLocationMap
+                    latitud={proximaClase.latitud}
+                    longitud={proximaClase.longitud}
+                    radio={proximaClase.radioGeolocalizacion}
+                  />
+                </div>
               </>
             ) : (
               <p className="text-gray-400">No hay clases disponibles.</p>
