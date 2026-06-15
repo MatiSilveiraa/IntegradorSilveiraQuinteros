@@ -22,6 +22,15 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context.SaveChanges();
         }
 
+        public RecuperacionContrasena? ObtenerUltimaPorUsuario(
+    int usuarioId)
+        {
+            return _context.RecuperacionesContrasena
+                .Where(r => r.UsuarioId == usuarioId)
+                .OrderByDescending(r => r.FechaCreacion)
+                .FirstOrDefault();
+        }
+
         public RecuperacionContrasena? ObtenerActivaPorUsuarioYCodigo(
             int usuarioId,
             string codigo)

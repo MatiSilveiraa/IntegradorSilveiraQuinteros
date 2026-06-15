@@ -40,22 +40,41 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 Random.Shared.Next(100000, 999999)
                     .ToString();
 
-            var recuperacion =
-                new RecuperacionContrasena
-                {
-                    UsuarioId = usuario.UsuarioId,
-                    Codigo = codigo,
-                    FechaCreacion = DateTime.UtcNow,
-                    FechaExpiracion =
-                        DateTime.UtcNow.AddMinutes(15),
-                    Usado = false
-                };
+            var recuperacionExistente =
+                _repositorioRecuperacion.ObtenerUltimaPorUsuario(
+                    usuario.UsuarioId);
 
-            _repositorioRecuperacion
-                .Agregar(recuperacion);
+            if (recuperacionExistente != null &&
+                !recuperacionExistente.Usado)
+            {
+                recuperacionExistente.Codigo = codigo;
+                recuperacionExistente.FechaCreacion = DateTime.UtcNow;
+                recuperacionExistente.FechaExpiracion =
+                    DateTime.UtcNow.AddMinutes(20);
+                recuperacionExistente.Usado = false;
+
+                _repositorioRecuperacion.Modificar(
+                    recuperacionExistente);
+            }
+            else
+            {
+                var recuperacion =
+                    new RecuperacionContrasena
+                    {
+                        UsuarioId = usuario.UsuarioId,
+                        Codigo = codigo,
+                        FechaCreacion = DateTime.UtcNow,
+                        FechaExpiracion =
+                            DateTime.UtcNow.AddMinutes(20),
+                        Usado = false
+                    };
+
+                _repositorioRecuperacion.Agregar(
+                    recuperacion);
+            }
 
             _servicioEmail.EnviarCodigoRecuperacion(
-                usuario.Email.ToString(),
+                usuario.Email.Valor,
                 codigo);
         }
     }

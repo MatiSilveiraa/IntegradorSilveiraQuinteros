@@ -10,6 +10,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
             int usuarioId,
             string codigo);
 
+        RecuperacionContrasena? ObtenerUltimaPorUsuario(
+            int usuarioId);
+
         void Modificar(RecuperacionContrasena recuperacion);
     }
 }
