@@ -203,13 +203,28 @@ namespace Joki.WebApi.Controllers
                 });
             }
 
-            var token =
+            var usuarioEntidad =
+                _repositorioUsuario.ObtenerPorEmail(
+                    usuario.Email);
+
+            if (usuarioEntidad != null &&
+                usuarioEntidad.TwoFactorEnabled)
+            {
+                return Ok(new LoginResponse
+                {
+                    Requiere2FA = true,
+                    Email = usuario.Email
+                });
+            }
+
+            string token =
                 _jwtGenerator.GenerateToken(usuario);
 
-            return Ok(new
+            return Ok(new LoginResponse
             {
-                token,
-                usuario
+                Requiere2FA = false,
+                Usuario = usuario,
+                Token = token
             });
         }
 

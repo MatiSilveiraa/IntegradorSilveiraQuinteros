@@ -1,4 +1,5 @@
 ﻿using Joki.CasoUsoCompartida.Configuracion;
+using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Microsoft.Extensions.Options;
 using SendGrid;
@@ -61,7 +62,21 @@ namespace Joki.Infraestructura.Servicios
                     mensaje,
                     mensaje);
 
-            client.SendEmailAsync(mail).Wait();
+            var response =
+                client.SendEmailAsync(mail)
+                    .GetAwaiter()
+                    .GetResult();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string error =
+                    response.Body.ReadAsStringAsync()
+                        .GetAwaiter()
+                        .GetResult();
+
+                throw new LogicaNegocioException(
+                    $"No se pudo enviar el email. SendGrid respondió: {response.StatusCode}. {error}");
+            }
         }
     }
 }
