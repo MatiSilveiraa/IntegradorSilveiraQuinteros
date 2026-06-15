@@ -6,6 +6,8 @@ export interface Perfil {
   apellido: string;
   email: string;
   celular?: string;
+  sociedadMedica?: string;
+  bloqueadoPorInasistencias?: boolean;
   twoFactorEnabled?: boolean;
   rachaAsistenciaMensual?: number;
   rol?: string;
@@ -16,8 +18,15 @@ export interface Cuota {
   estado: string;
   fechaCreacion?: string;
   fechaVencimiento?: string;
+  fechaPago?: string;
+
   monto?: number;
+  montoFinal?: number;
+  importe?: number;
+  descuento?: number;
+
   mes?: number;
+  anio?: number;
   año?: number;
 }
 
@@ -26,8 +35,19 @@ export interface Clase {
   diaSemana: string;
   horaInicio: string;
   horaFin: string;
+
   cupoMaximo?: number;
   grupoId?: number;
+
+  fechaInicio?: string;
+  fechaFin?: string;
+
+  radioGeolocalizacion?: number;
+
+  latitud?: number;
+  longitud?: number;
+
+  codigoPostal?: string;
 }
 
 export interface Grupo {
@@ -38,18 +58,35 @@ export interface Grupo {
 }
 
 export interface Desafio {
-  id: number;
+  id?: number;
+  desafioId?: number;
+
   titulo: string;
   descripcion: string;
+
   fechaInicio: string;
   fechaFin: string;
+
+  participa?: boolean;
+  ganador?: boolean;
+  resultado?: string;
 }
 
 export interface Recompensa {
   id: number;
+
   tipo: string;
   descripcion: string;
+
   premioFisico?: string;
+
+  beneficioId?: number;
+  alumnoId?: number;
+
+  nombre?: string;
+  apellido?: string;
+
+  leida?: boolean;
 }
 
 export interface Notificacion {
@@ -64,25 +101,47 @@ export interface Notificacion {
 export interface Historial {
   id?: number;
   alumnoId?: number;
-  asistencias?: number;
-  inasistencias?: number;
+
+  asistencias?: any[];
+  inasistencias?: any[];
+
+  pagos?: any[];
+  cuotas?: any[];
+
   [key: string]: unknown;
 }
 
 export interface Beneficio {
   id: number;
+
   titulo: string;
   descripcion: string;
+
   icono?: string;
+
+  estado?: string;
+
+  cuotaGratis?: boolean;
+
+  porcentajeDescuento?: number;
+
+  mesesAplicados?: number;
+  mesesDuracion?: number;
 }
 
 export interface Alumno {
   id: number;
+
   nombre: string;
   apellido: string;
+
   email: string;
+
   celular?: string;
+
   rol?: string;
+
+  estado?: string;
 }
 
 export interface ApiError {
@@ -92,5 +151,6 @@ export interface ApiError {
     };
     status?: number;
   };
+
   message?: string;
 }

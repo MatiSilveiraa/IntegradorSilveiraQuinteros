@@ -64,7 +64,9 @@ export default function PerfilPage() {
 
 const handleCancelar = () => {
 
+if (perfil) {
   setForm(perfil);
+}
 
   setEditando(false);
 

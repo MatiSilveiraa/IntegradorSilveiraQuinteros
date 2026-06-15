@@ -54,7 +54,7 @@ export default function HistorialPagosCard({ cuotas }: Props) {
 
                 <div>
                   <p className="font-medium text-white">
-                    {nombreMes(cuota.mes)} {cuota.anio}
+                    {nombreMes(cuota.mes ?? 1)} {cuota.anio}
                   </p>
                   <p className="text-xs text-slate-400">
                     {cuota.fechaPago

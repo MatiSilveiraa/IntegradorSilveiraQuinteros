@@ -12,7 +12,6 @@ import {
 import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import type { Grupo, Clase } from "../types";
-import type { ApiError } from "../types";
 
 export default function GrupoDetallePage() {
   const navigate = useNavigate();
@@ -34,7 +33,7 @@ export default function GrupoDetallePage() {
           (g: Grupo) => g.id === Number(grupoId),
         );
 
-        setGrupo(grupoEncontrado);
+        setGrupo(grupoEncontrado!);
       } catch (error) {
         console.error(error);
       } finally {
@@ -62,7 +61,7 @@ export default function GrupoDetallePage() {
       setClasesInscritas((prev) => [...prev, claseId]);
 
       alert("Inscripción realizada correctamente");
-    } catch (error: ApiError) {
+    } catch (error: any) {
       console.error(error);
 
       alert(
@@ -79,7 +78,7 @@ export default function GrupoDetallePage() {
       setClasesInscritas((prev) => prev.filter((id) => id !== claseId));
 
       alert("Te desinscribiste correctamente");
-    } catch (error: ApiError) {
+    } catch (error: any) {
       console.error(error);
 
       alert(error?.response?.data?.mensaje || "No fue posible desinscribirse");
@@ -134,7 +133,7 @@ export default function GrupoDetallePage() {
 
       <div className="grid gap-4">
 
-        {grupo.clases?.length > 0 ? (
+        {(grupo.clases?.length ?? 0) > 0 ? (
 
           grupo.clases?.map((clase: Clase) => {
 

@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { obtenerGeneros } from "../services/enums.service";
 import { register } from "../services/Auth.service";
-
-import type { ApiError, Grupo } from "../types";
+import type { Grupo } from "../types";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -125,7 +124,7 @@ export default function RegisterPage() {
       setError("");
 
       alert("Usuario registrado correctamente");
-    } catch (error: ApiError) {
+    } catch (error: any) {
       console.log(error);
 
       if (

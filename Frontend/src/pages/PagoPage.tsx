@@ -7,31 +7,21 @@ import SecurityNote from "../components/pagos/SecurityNote";
 import PagoFooter from "../components/pagos/PageFooter";
 import AlumnoLayout from "../components/layout/AlumnoLayout";
 
-import {
-  generarPagoMercadoPago,
-} from "../services/Pago.service";
+import { generarPagoMercadoPago } from "../services/Pago.service";
 import { obtenerMiPerfil } from "../services/Perfil.service";
-import {
-  obtenerMiCuota,
-  obtenerMisCuotas,
-} from "../services/Cuota.service";
+import { obtenerMiCuota, obtenerMisCuotas } from "../services/Cuota.service";
 
 import type { Perfil, Cuota } from "../types";
 
 export default function PagosPage() {
-  const [perfil, setPerfil] =
-    useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
-  const [cuotaActual, setCuotaActual] =
-    useState<Cuota | null>(null);
+  const [cuotaActual, setCuotaActual] = useState<Cuota | null>(null);
 
-  const [cuotas, setCuotas] =
-    useState<Cuota[]>([]);
+  const [cuotas, setCuotas] = useState<Cuota[]>([]);
 
   useEffect(() => {
-    obtenerMiPerfil()
-      .then(setPerfil)
-      .catch(console.error);
+    obtenerMiPerfil().then(setPerfil).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -45,6 +35,7 @@ export default function PagosPage() {
           "No existe cuota generada para el mes actual"
         ) {
           setCuotaActual({
+            id: 0,
             estado: "Sin cuota",
           });
 
@@ -71,9 +62,7 @@ export default function PagosPage() {
         return;
       }
 
-      const data = await generarPagoMercadoPago(
-        cuotaActual.id,
-      );
+      const data = await generarPagoMercadoPago(cuotaActual.id);
 
       console.log("Respuesta:", data);
 
@@ -87,9 +76,7 @@ export default function PagosPage() {
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">
-            Pagos
-          </h1>
+          <h1 className="text-3xl font-bold">Pagos</h1>
 
           <p className="text-gray-400 mt-2">
             Gestiona tus cuotas y pagos pendientes.
@@ -104,7 +91,7 @@ export default function PagosPage() {
         "
         >
           <div className="lg:col-span-2">
-            <ResumenCuentaCard cuota={cuotaActual} />
+            {cuotaActual && <ResumenCuentaCard cuota={cuotaActual} />}
           </div>
 
           <div>
