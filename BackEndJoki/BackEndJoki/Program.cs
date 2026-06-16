@@ -15,6 +15,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Notificacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Perfil;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Reactivacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Recompensa;
 using Joki.Infraestructura.AccesoDatos.EF;
 using Joki.Infraestructura.AccesoDatos.EF.Repositorios;
@@ -37,6 +38,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Historial;
 using Joki.LogicaAplicacion.CasosDeUso.Notificacion;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaAplicacion.CasosDeUso.Perfil;
+using Joki.LogicaAplicacion.CasosDeUso.Reactivacion;
 using Joki.LogicaAplicacion.CasosDeUso.Recompensa;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.WebApi.Filtros;
@@ -202,6 +204,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IConfirmar2FA, Confirmar2FA>();
     builder.Services.AddScoped<IValidar2FA, Validar2FA>();
     builder.Services.AddScoped<IRegistrarAsistenciaGeolocalizacion,RegistrarAsistenciaGeolocalizacion>();
+    builder.Services.AddScoped<IRepositorioSolicitudReactivacion,RepositorioSolicitudReactivacion>();
+    builder.Services.AddScoped<ISolicitarReactivacionCuenta, SolicitarReactivacionCuenta>();
+    builder.Services.AddScoped<IObtenerSolicitudesReactivacionPendientes, ObtenerSolicitudesReactivacionPendientes>();
+    builder.Services.AddScoped<IResolverSolicitudReactivacion, ResolverSolicitudReactivacion>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>

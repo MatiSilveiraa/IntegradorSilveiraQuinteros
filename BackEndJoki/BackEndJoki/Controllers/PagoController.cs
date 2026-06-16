@@ -118,6 +118,7 @@ namespace Joki.API.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("mercadopago/confirmar/{referenciaExterna}")]
         public IActionResult ConfirmarPagoMercadoPago(string referenciaExterna)
         {

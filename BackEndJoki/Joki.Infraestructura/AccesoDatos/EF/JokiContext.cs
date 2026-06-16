@@ -42,6 +42,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<Auditoria> Auditorias { get; set; }
         public DbSet<MaterialEjercicio> MaterialesEjercicio { get; set; }
+        public DbSet<SolicitudReactivacion> SolicitudesReactivacion { get; set; }
 
         public DbSet<RecuperacionContrasena> RecuperacionesContrasena { get; set; }
 

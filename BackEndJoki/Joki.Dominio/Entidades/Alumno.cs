@@ -10,6 +10,7 @@
         public int MesRachaAsistencia { get; set; }
         public int AnioRachaAsistencia { get; set; }
         public bool DescuentoRachaGenerado { get; set; }
+        public virtual ICollection<SolicitudReactivacion> SolicitudesReactivacion { get; set; }
         public virtual ICollection<SolicitudCupo> SolicitudesCupo { get; set; }
         public virtual ICollection<Inscripcion> Inscripciones { get; set; }
         public virtual ICollection<Asistencia> Asistencias { get; set; }
@@ -25,6 +26,7 @@
             Cuotas = new List<Cuota>();
             ParticipacionesDesafio = new List<ParticipacionDesafio>();
             Beneficios = new List<Beneficio>();
+            SolicitudesReactivacion = new List<SolicitudReactivacion>();
         }
     }
 }
