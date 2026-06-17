@@ -111,8 +111,8 @@ export default function RegisterPage() {
           ? Number(estatura)
           : 0,
         celular,
-        fechaNacimiento:
-          fechaNacimiento || null,
+       fechaNacimiento:
+  fechaNacimiento || undefined,
         genero: Number(genero),
         sociedadMedica,
       };

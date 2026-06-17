@@ -2,11 +2,17 @@
 
 export interface Perfil {
   id?: number;
+
   nombre: string;
   apellido: string;
   email: string;
+
   celular?: string;
   sociedadMedica?: string;
+
+  fechaNacimiento?: string;
+  genero?: number;
+
   bloqueadoPorInasistencias?: boolean;
   twoFactorEnabled?: boolean;
   rachaAsistenciaMensual?: number;

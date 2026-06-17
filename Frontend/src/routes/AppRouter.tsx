@@ -26,6 +26,7 @@ import AdminPremiosPage from "../pages/AdminPremiosPage";
 import SeguridadPage from "../pages/Shared/SeguridadPage";
 import TwoFactorLoginPage from "./../pages/TwoFactorLoginPage";
 import AsistenciasPage from "../pages/Alumno/AsistenciasPage";
+import CompletarPerfilPage from "../pages/CompletarPerfilPage";
 
 export default function AppRouter() {
   return (
@@ -64,6 +65,7 @@ export default function AppRouter() {
         <Route path="/admin/desafios" element={<AdminDesafiosPage />} />
 
         <Route path="/admin/recompensas" element={<AdminRecompensasPage />} />
+        
 
         {/* <Route
   path="/admin/premios"
@@ -78,6 +80,10 @@ export default function AppRouter() {
         <Route path="/admin/seguridad" element={<SeguridadPage />} />
 
         <Route path="/2fa-login" element={<TwoFactorLoginPage />} />
+        <Route
+  path="/completar-perfil"
+  element={<CompletarPerfilPage />}
+/>
 
         <Route path="/alumno/asistencias" element={<AsistenciasPage />} />
       </Routes>
