@@ -3,6 +3,7 @@ using Joki.CasoUsoCompartida.Configuracion;
 using Joki.CasoUsoCompartida.DTOs.Autenticacion;
 using Joki.CasoUsoCompartida.DTOs.Usuario;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -17,15 +18,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
         private readonly IRepositorioUsuario _repositorioUsuario;
         private readonly IRepositorioAlumno _repositorioAlumno;
         private readonly GoogleAuthSettings _googleSettings;
+        private readonly IGenerarCuotaInicialAlumno _generarCuotaInicialAlumno;
 
         public LoginGoogle(
             IRepositorioUsuario repositorioUsuario,
             IRepositorioAlumno repositorioAlumno,
-            IOptions<GoogleAuthSettings> googleSettings)
+            IOptions<GoogleAuthSettings> googleSettings,
+            IGenerarCuotaInicialAlumno generarCuotaInicialAlumno)
         {
             _repositorioUsuario = repositorioUsuario;
             _repositorioAlumno = repositorioAlumno;
             _googleSettings = googleSettings.Value;
+            _generarCuotaInicialAlumno = generarCuotaInicialAlumno;
         }
 
         public DtoDatosUsuario? Ejecutar(
@@ -135,6 +139,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 _repositorioAlumno.Agregar(alumno);
 
             alumno.UsuarioId = id;
+            _generarCuotaInicialAlumno.Ejecutar(id);
 
             return alumno;
         }

@@ -1,5 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Excepciones.Usuario;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -11,11 +12,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Alumnos
     {
         private readonly IRepositorioUsuario _repositorioUsuario;
         private readonly IRepositorioAlumno _repositorioAlumno;
+        private readonly IGenerarCuotaInicialAlumno _generarCuotaInicialAlumno;
 
-        public RegistrarAlumno(IRepositorioUsuario repositorioUsuario, IRepositorioAlumno repositorioAlumno)
+        public RegistrarAlumno(IRepositorioUsuario repositorioUsuario, IRepositorioAlumno repositorioAlumno, IGenerarCuotaInicialAlumno generarCuotaInicialAlumno)
         {
             _repositorioUsuario = repositorioUsuario;
             _repositorioAlumno = repositorioAlumno;
+            _generarCuotaInicialAlumno = generarCuotaInicialAlumno;
         }
 
         public RegistrarAlumnoResponse Ejecutar(RegistrarAlumnoRequest request)
@@ -46,6 +49,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Alumnos
 
             int id = _repositorioAlumno.Agregar(alumno);
             alumno.UsuarioId = id;
+            _generarCuotaInicialAlumno.Ejecutar(id);
 
             return mapperAlumno.ToResponse(alumno);
         }

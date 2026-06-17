@@ -208,6 +208,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ISolicitarReactivacionCuenta, SolicitarReactivacionCuenta>();
     builder.Services.AddScoped<IObtenerSolicitudesReactivacionPendientes, ObtenerSolicitudesReactivacionPendientes>();
     builder.Services.AddScoped<IResolverSolicitudReactivacion, ResolverSolicitudReactivacion>();
+    builder.Services.AddScoped<IGenerarCuotaInicialAlumno, GenerarCuotaInicialAlumno>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
