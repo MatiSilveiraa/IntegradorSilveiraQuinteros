@@ -6,6 +6,7 @@
         public Decimal? Estatura { get; set; }
         public Decimal? IMC { get; set; }
         public bool BloqueadoPorInasistencias { get; set; }
+        public bool BloqueadoPorDeuda { get; set; }
         public int RachaAsistenciaMensual { get; set; }
         public int MesRachaAsistencia { get; set; }
         public int AnioRachaAsistencia { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Pago;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.LogicaAplicacion.CasosDeUso.Pago;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
@@ -17,6 +18,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoPagoMock = new Mock<IRepositorioPago>();
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
+            var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
 
             var cuota = new Entidades.Cuota
             {
@@ -43,7 +45,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                 new RegistrarPago(
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
-                    repoNotificacionMock.Object);
+                    repoNotificacionMock.Object,
+                    actualizarBloqueoMock.Object);
 
             casoUso.Ejecutar(request);
 
@@ -61,6 +64,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                 r => r.Modificar(cuota),
                 Times.Once);
 
+            actualizarBloqueoMock.Verify(
+                r => r.Ejecutar(7),
+                Times.Once);
+
             repoNotificacionMock.Verify(r => r.Agregar(
                 It.Is<Entidades.Notificacion>(n =>
                     n.UsuarioId == 7 &&
@@ -76,6 +83,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoPagoMock = new Mock<IRepositorioPago>();
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
+            var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
 
             RegistrarPagoRequest request = new RegistrarPagoRequest
             {
@@ -92,7 +100,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                 new RegistrarPago(
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
-                    repoNotificacionMock.Object);
+                    repoNotificacionMock.Object,
+                    actualizarBloqueoMock.Object);
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(request));
@@ -110,6 +119,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             repoNotificacionMock.Verify(
                 r => r.Agregar(It.IsAny<Entidades.Notificacion>()),
                 Times.Never);
+
+            actualizarBloqueoMock.Verify(
+                r => r.Ejecutar(It.IsAny<int>()),
+                Times.Never);
         }
 
         [Fact]
@@ -118,6 +131,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoPagoMock = new Mock<IRepositorioPago>();
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
+            var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
 
             var cuota = new Entidades.Cuota
             {
@@ -140,7 +154,8 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                 new RegistrarPago(
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
-                    repoNotificacionMock.Object);
+                    repoNotificacionMock.Object,
+                    actualizarBloqueoMock.Object);
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
                 casoUso.Ejecutar(request));
@@ -157,6 +172,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
 
             repoNotificacionMock.Verify(
                 r => r.Agregar(It.IsAny<Entidades.Notificacion>()),
+                Times.Never);
+
+            actualizarBloqueoMock.Verify(
+                r => r.Ejecutar(It.IsAny<int>()),
                 Times.Never);
         }
     }

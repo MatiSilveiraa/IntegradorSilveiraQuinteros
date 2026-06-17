@@ -47,6 +47,12 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
                     "El alumno se encuentra bloqueado por inasistencias y no puede inscribirse a nuevas clases");
             }
 
+            if (alumno.BloqueadoPorDeuda)
+            {
+                throw new LogicaNegocioException(
+                    "El alumno se encuentra bloqueado por deuda y no puede inscribirse a nuevas clases");
+            }
+
             var clase = _repositorioClase.ObtenerPorId(claseId);
 
             if (clase == null)

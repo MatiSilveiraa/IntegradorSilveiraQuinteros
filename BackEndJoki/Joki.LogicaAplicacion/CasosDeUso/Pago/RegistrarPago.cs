@@ -1,9 +1,10 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Pago;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
-using Entidades = Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Entidades = Joki.LogicaNegocio.Entidades;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Pago
 {
@@ -12,15 +13,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
         private readonly IRepositorioPago _repositorioPago;
         private readonly IRepositorioCuota _repositorioCuota;
         private readonly IRepositorioNotificacion _repositorioNotificacion;
+        private readonly IActualizarBloqueoDeudaAlumno _actualizarBloqueoDeudaAlumno;
 
         public RegistrarPago(
             IRepositorioPago repositorioPago,
             IRepositorioCuota repositorioCuota,
-            IRepositorioNotificacion repositorioNotificacion)
+            IRepositorioNotificacion repositorioNotificacion,
+            IActualizarBloqueoDeudaAlumno actualizarBloqueoDeudaAlumno)
         {
             _repositorioPago = repositorioPago;
             _repositorioCuota = repositorioCuota;
             _repositorioNotificacion = repositorioNotificacion;
+            _actualizarBloqueoDeudaAlumno = actualizarBloqueoDeudaAlumno;
         }
 
         public void Ejecutar(RegistrarPagoRequest request)
@@ -55,6 +59,9 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
             cuota.Estado = EstadoCuota.PAGADA;
 
             _repositorioCuota.Modificar(cuota);
+
+            _actualizarBloqueoDeudaAlumno.Ejecutar(
+    cuota.AlumnoId);
 
             _repositorioNotificacion.Agregar(
                 new Entidades.Notificacion

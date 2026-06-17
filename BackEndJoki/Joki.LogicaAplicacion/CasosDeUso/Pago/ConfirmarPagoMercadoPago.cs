@@ -1,4 +1,5 @@
-﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
+﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Pago;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -10,13 +11,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
     {
         private readonly IRepositorioPago _repositorioPago;
         private readonly IRepositorioCuota _repositorioCuota;
+        private readonly IActualizarBloqueoDeudaAlumno _actualizarBloqueoDeudaAlumno;
 
         public ConfirmarPagoMercadoPago(
             IRepositorioPago repositorioPago,
-            IRepositorioCuota repositorioCuota)
+            IRepositorioCuota repositorioCuota,
+            IActualizarBloqueoDeudaAlumno actualizarBloqueoDeudaAlumno)
         {
             _repositorioPago = repositorioPago;
             _repositorioCuota = repositorioCuota;
+            _actualizarBloqueoDeudaAlumno = actualizarBloqueoDeudaAlumno;
         }
 
         public void Ejecutar(string referenciaExterna)
@@ -45,6 +49,9 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
                 cuota.Estado = EstadoCuota.PAGADA;
 
                 _repositorioCuota.Modificar(cuota);
+
+                _actualizarBloqueoDeudaAlumno.Ejecutar(
+                    cuota.AlumnoId);
             }
         }
     }

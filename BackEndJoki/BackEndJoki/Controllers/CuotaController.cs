@@ -15,19 +15,21 @@ namespace Joki.WebApi.Controllers
         private readonly IActualizarCuotasVencidas _actualizarCuotasVencidas;
         private readonly IGenerarCuotasMensuales _generarCuotasMensuales;
         private readonly IMarcarCuotaComoPagada _marcarCuotaComoPagada;
-
+        private readonly IBloquearAlumnosPorDeuda _bloquearAlumnosPorDeuda;
         public CuotaController(
             IObtenerCuotaActualAlumno obtenerCuotaActualAlumno,
             IObtenerMisCuotas obtenerMisCuotas,
             IActualizarCuotasVencidas actualizarCuotasVencidas,
             IGenerarCuotasMensuales generarCuotasMensuales,
-            IMarcarCuotaComoPagada marcarCuotaComoPagada)
+            IMarcarCuotaComoPagada marcarCuotaComoPagada,
+            IBloquearAlumnosPorDeuda bloquearAlumnosPorDeuda)
         {
             _obtenerCuotaActualAlumno = obtenerCuotaActualAlumno;
             _obtenerMisCuotas = obtenerMisCuotas;
             _actualizarCuotasVencidas = actualizarCuotasVencidas;
             _generarCuotasMensuales = generarCuotasMensuales;
             _marcarCuotaComoPagada = marcarCuotaComoPagada;
+            _bloquearAlumnosPorDeuda = bloquearAlumnosPorDeuda;
         }
 
         [Authorize(Roles = "Alumno")]
@@ -49,6 +51,28 @@ namespace Joki.WebApi.Controllers
                 return BadRequest(new
                 {
                     mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("bloquear-por-deuda")]
+        public IActionResult BloquearPorDeuda()
+        {
+            try
+            {
+                _bloquearAlumnosPorDeuda.Ejecutar();
+
+                return Ok(new
+                {
+                    mensaje = "Bloqueo por deuda ejecutado correctamente"
                 });
             }
             catch (Exception)

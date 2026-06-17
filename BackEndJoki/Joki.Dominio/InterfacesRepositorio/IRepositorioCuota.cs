@@ -29,5 +29,14 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         IEnumerable<Cuota> ObtenerPendientesVencidas(
             DateTime fecha);
+
+        IEnumerable<Cuota> ObtenerPendientesVencidasConAtraso(
+    DateTime fecha,
+    int diasAtraso);
+
+        bool TieneCuotasVencidasPendientes(
+            int alumnoId,
+            DateTime fecha,
+            int diasAtraso);
     }
 }

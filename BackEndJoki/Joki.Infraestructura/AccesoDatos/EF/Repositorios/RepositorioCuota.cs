@@ -96,5 +96,34 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     c.FechaVencimiento.Date < fecha.Date)
                 .ToList();
         }
+
+        public IEnumerable<Cuota> ObtenerPendientesVencidasConAtraso(
+    DateTime fecha,
+    int diasAtraso)
+        {
+            DateTime fechaLimite =
+                fecha.Date.AddDays(-diasAtraso);
+
+            return _contexto.Cuotas
+                .Where(c =>
+                    c.Estado == EstadoCuota.PENDIENTE &&
+                    c.FechaVencimiento.Date < fechaLimite)
+                .ToList();
+        }
+
+        public bool TieneCuotasVencidasPendientes(
+            int alumnoId,
+            DateTime fecha,
+            int diasAtraso)
+        {
+            DateTime fechaLimite =
+                fecha.Date.AddDays(-diasAtraso);
+
+            return _contexto.Cuotas
+                .Any(c =>
+                    c.AlumnoId == alumnoId &&
+                    c.Estado == EstadoCuota.PENDIENTE &&
+                    c.FechaVencimiento.Date < fechaLimite);
+        }
     }
 }

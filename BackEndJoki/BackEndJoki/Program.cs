@@ -198,6 +198,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
     builder.Services.AddScoped<IObtenerMisNotificaciones,ObtenerMisNotificaciones>();
     builder.Services.AddScoped<IMarcarNotificacionComoLeida,MarcarNotificacionComoLeida>();
+    builder.Services.AddScoped<IBloquearAlumnosPorDeuda, BloquearAlumnosPorDeuda>();
     builder.Services.AddScoped<GenerarNotificacionesCuotas>();
     builder.Services.AddScoped<IObtenerAdminDashboard, ObtenerAdminDashboard>();
     builder.Services.AddScoped<IGenerar2FA, Generar2FA>();      
@@ -209,6 +210,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerSolicitudesReactivacionPendientes, ObtenerSolicitudesReactivacionPendientes>();
     builder.Services.AddScoped<IResolverSolicitudReactivacion, ResolverSolicitudReactivacion>();
     builder.Services.AddScoped<IGenerarCuotaInicialAlumno, GenerarCuotaInicialAlumno>();
+    builder.Services.AddScoped<IActualizarBloqueoDeudaAlumno, ActualizarBloqueoDeudaAlumno>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
