@@ -45,6 +45,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<SolicitudReactivacion> SolicitudesReactivacion { get; set; }
 
         public DbSet<RecuperacionContrasena> RecuperacionesContrasena { get; set; }
+        public DbSet<CodigoLoginSinPassword> CodigosLoginSinPassword { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

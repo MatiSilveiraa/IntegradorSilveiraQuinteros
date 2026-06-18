@@ -26,6 +26,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
         public void Ejecutar(
             SolicitarRecuperacionRequest request)
         {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Email))
+            {
+                throw new LogicaNegocioException(
+                    "Debe ingresar un email válido");
+            }
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
                     request.Email);
@@ -36,13 +43,24 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                     "No existe un usuario con ese email");
             }
 
-            string codigo =
-                Random.Shared.Next(100000, 999999)
-                    .ToString();
-
             var recuperacionExistente =
                 _repositorioRecuperacion.ObtenerUltimaPorUsuario(
                     usuario.UsuarioId);
+
+            if (recuperacionExistente != null &&
+                !recuperacionExistente.Usado)
+            {
+                if (recuperacionExistente.FechaCreacion >
+                    DateTime.UtcNow.AddMinutes(-1))
+                {
+                    throw new LogicaNegocioException(
+                        "Debes esperar un minuto antes de solicitar otro código");
+                }
+            }
+
+            string codigo =
+                Random.Shared.Next(100000, 999999)
+                    .ToString();
 
             if (recuperacionExistente != null &&
                 !recuperacionExistente.Usado)

@@ -25,10 +25,13 @@ namespace Joki.WebApi.Controllers
         private readonly IConfirmar2FA _confirmar2FA;
         private readonly IValidar2FA _validar2FA;
         private readonly IRepositorioUsuario _repositorioUsuario;
+        private readonly ISolicitarLoginSinPassword _solicitarLoginSinPassword;
+        private readonly IValidarLoginSinPassword _validarLoginSinPassword;
 
         public AuthController(ILoginUsuario loginUsuario, IJwtGenerator jwtGenerator, ILogoutUsuario logoutUsuario,
             ISolicitarRecuperacionContrasena solicitarRecuperacion, IRestablecerContrasena restablecerContrasena, ILoginGoogle loginGoogle,
-            IGenerar2FA generar2FA, IConfirmar2FA confirmar2FA, IValidar2FA validar2FA, IRepositorioUsuario repositorioUsuario)
+            IGenerar2FA generar2FA, IConfirmar2FA confirmar2FA, IValidar2FA validar2FA, IRepositorioUsuario repositorioUsuario,
+            ISolicitarLoginSinPassword solicitarLoginSinPassword, IValidarLoginSinPassword validarLoginSinPassword)
         {
             _loginUsuario = loginUsuario;
             _jwtGenerator = jwtGenerator;
@@ -40,6 +43,8 @@ namespace Joki.WebApi.Controllers
             _confirmar2FA = confirmar2FA;
             _validar2FA = validar2FA;
             _repositorioUsuario = repositorioUsuario;
+            _solicitarLoginSinPassword = solicitarLoginSinPassword;
+            _validarLoginSinPassword = validarLoginSinPassword;
         }
 
         [HttpPost("login")]
@@ -97,6 +102,92 @@ namespace Joki.WebApi.Controllers
             {
                 Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
                 return StatusCode(500, error);
+            }
+        }
+
+        [HttpPost("login-sin-password/solicitar")]
+        public IActionResult SolicitarLoginSinPassword(
+    LoginSinPasswordRequest request)
+        {
+            try
+            {
+                _solicitarLoginSinPassword.Ejecutar(request);
+
+                return Ok(new
+                {
+                    mensaje = "Código enviado correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [HttpPost("login-sin-password/validar")]
+        public IActionResult ValidarLoginSinPassword(
+    ValidarLoginSinPasswordRequest request)
+        {
+            try
+            {
+                var usuario =
+                    _validarLoginSinPassword.Ejecutar(request);
+
+                if (usuario == null)
+                {
+                    return Unauthorized(new
+                    {
+                        mensaje = "Código inválido o expirado"
+                    });
+                }
+
+                var usuarioEntidad =
+                    _repositorioUsuario.ObtenerPorEmail(
+                        usuario.Email);
+
+                if (usuarioEntidad != null &&
+                    usuarioEntidad.TwoFactorEnabled)
+                {
+                    return Ok(new LoginResponse
+                    {
+                        Requiere2FA = true,
+                        Email = usuario.Email
+                    });
+                }
+
+                string token =
+                    _jwtGenerator.GenerateToken(usuario);
+
+                return Ok(new LoginResponse
+                {
+                    Requiere2FA = false,
+                    Usuario = usuario,
+                    Token = token
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
             }
         }
 

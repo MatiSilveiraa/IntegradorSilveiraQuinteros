@@ -212,6 +212,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IResolverSolicitudReactivacion, ResolverSolicitudReactivacion>();
     builder.Services.AddScoped<IGenerarCuotaInicialAlumno, GenerarCuotaInicialAlumno>();
     builder.Services.AddScoped<IActualizarBloqueoDeudaAlumno, ActualizarBloqueoDeudaAlumno>();
+    builder.Services.AddScoped<ISolicitarLoginSinPassword,SolicitarLoginSinPassword>();
+    builder.Services.AddScoped<IValidarLoginSinPassword,ValidarLoginSinPassword>();
+    builder.Services.AddScoped<IRepositorioCodigoLoginSinPassword,RepositorioCodigoLoginSinPassword>();
     builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
