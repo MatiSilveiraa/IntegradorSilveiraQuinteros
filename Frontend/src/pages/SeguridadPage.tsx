@@ -3,6 +3,7 @@ import { useState } from "react";
 import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import { setup2FA, confirmar2FA } from "../services/Auth2FA.Service";
+import toast from "react-hot-toast";
 
 export default function SeguridadPage() {
   const [qrCode, setQrCode] = useState("");
@@ -20,23 +21,27 @@ export default function SeguridadPage() {
 
       setMostrarQR(true);
     } catch (error) {
-      console.error(error);
+      toast.error("No fue posible generar el código QR");
     }
   };
 
   const confirmar = async () => {
     try {
+      if (!codigo.trim()) {
+        toast.error("Debes ingresar el código");
+        return;
+      }
       await confirmar2FA(codigo);
 
       setActivado(true);
 
       setMostrarQR(false);
 
-      alert("2FA activado correctamente");
-    } catch (error) {
+      toast.success("2FA activado correctamente");
+    } catch (error: any) {
       console.error(error);
 
-      alert("Código inválido");
+      toast.error(error?.response?.data?.mensaje || "Código inválido");
     }
   };
 

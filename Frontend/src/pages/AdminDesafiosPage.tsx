@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import {
   obtenerDesafios,
@@ -10,7 +11,6 @@ import {
 import type { Desafio } from "../types";
 
 export default function AdminDesafiosPage() {
-
   const [desafios, setDesafios] =
     useState<Desafio[]>([]);
 
@@ -29,30 +29,25 @@ export default function AdminDesafiosPage() {
     });
 
   const cargarDatos = async () => {
-
     try {
-
       const data =
         await obtenerDesafios();
 
       setDesafios(data);
-
     } catch (error) {
-
       console.error(error);
 
+      toast.error(
+        "No fue posible cargar los desafíos"
+      );
     }
-
   };
 
   useEffect(() => {
-
     cargarDatos();
-
   }, []);
 
   const abrirCrear = () => {
-
     setEditando(null);
 
     setForm({
@@ -63,13 +58,11 @@ export default function AdminDesafiosPage() {
     });
 
     setModalAbierto(true);
-
   };
 
   const abrirEditar = (
     desafio: Desafio
   ) => {
-
     setEditando(desafio);
 
     setForm({
@@ -89,44 +82,44 @@ export default function AdminDesafiosPage() {
     });
 
     setModalAbierto(true);
-
   };
 
   const guardar = async () => {
-
     try {
-
       if (editando) {
-
         await editarDesafio(
           editando.id!,
           form
         );
 
+        toast.success(
+          "Desafío actualizado correctamente"
+        );
       } else {
-
         await crearDesafio(
           form
         );
 
+        toast.success(
+          "Desafío creado correctamente"
+        );
       }
 
       setModalAbierto(false);
 
       cargarDatos();
-
     } catch (error) {
-
       console.error(error);
 
+      toast.error(
+        "No fue posible guardar el desafío"
+      );
     }
-
   };
 
   const borrar = async (
     id: number
   ) => {
-
     if (
       !confirm(
         "¿Eliminar desafío?"
@@ -136,30 +129,29 @@ export default function AdminDesafiosPage() {
     }
 
     try {
-
       await eliminarDesafio(
         id
       );
 
+      toast.success(
+        "Desafío eliminado correctamente"
+      );
+
       cargarDatos();
-
     } catch (error) {
-
       console.error(error);
 
+      toast.error(
+        "No fue posible eliminar el desafío"
+      );
     }
-
   };
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white p-6">
-
       <div className="max-w-7xl mx-auto">
-
         <div className="flex justify-between items-center mb-8">
-
           <div>
-
             <h1 className="text-3xl font-bold">
               Desafíos
             </h1>
@@ -167,7 +159,6 @@ export default function AdminDesafiosPage() {
             <p className="text-gray-400 mt-1">
               Gestión de desafíos.
             </p>
-
           </div>
 
           <button
@@ -183,14 +174,11 @@ export default function AdminDesafiosPage() {
           >
             Nuevo desafío
           </button>
-
         </div>
 
         <div className="grid gap-4">
-
           {desafios.map(
             (desafio) => (
-
               <div
                 key={desafio.id}
                 className="
@@ -201,11 +189,8 @@ export default function AdminDesafiosPage() {
                   p-5
                 "
               >
-
                 <div className="flex justify-between">
-
                   <div>
-
                     <h3 className="text-xl font-bold">
                       {
                         desafio.titulo
@@ -227,11 +212,9 @@ export default function AdminDesafiosPage() {
                         desafio.fechaFin
                       ).toLocaleDateString()}
                     </p>
-
                   </div>
 
                   <div className="flex gap-2">
-
                     <button
                       onClick={() =>
                         abrirEditar(
@@ -265,22 +248,15 @@ export default function AdminDesafiosPage() {
                     >
                       Eliminar
                     </button>
-
                   </div>
-
                 </div>
-
               </div>
-
             )
           )}
-
         </div>
-
       </div>
 
       {modalAbierto && (
-
         <div
           className="
             fixed
@@ -291,7 +267,6 @@ export default function AdminDesafiosPage() {
             justify-center
           "
         >
-
           <div
             className="
               w-full
@@ -301,17 +276,13 @@ export default function AdminDesafiosPage() {
               p-6
             "
           >
-
             <h2 className="text-2xl font-bold mb-5">
-
               {editando
                 ? "Editar desafío"
                 : "Nuevo desafío"}
-
             </h2>
 
             <div className="space-y-4">
-
               <input
                 value={form.titulo}
                 onChange={(e) =>
@@ -389,11 +360,9 @@ export default function AdminDesafiosPage() {
                   bg-[#12201b]
                 "
               />
-
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
-
               <button
                 onClick={() =>
                   setModalAbierto(
@@ -423,15 +392,10 @@ export default function AdminDesafiosPage() {
               >
                 Guardar
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }

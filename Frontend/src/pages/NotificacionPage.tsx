@@ -5,6 +5,7 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import AlumnoLayout from "../components/layout/AlumnoLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
+import toast from "react-hot-toast";
 
 import {
   obtenerMisNotificaciones,
@@ -19,32 +20,57 @@ export default function NotificacionPage() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
-  }, []);
+  obtenerMiPerfil()
+    .then(setPerfil)
+    .catch((error) => {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar el perfil"
+      );
+    });
+}, []);
 
   useEffect(() => {
     cargarNotificaciones();
   }, []);
 
   const cargarNotificaciones = async () => {
-    try {
-      const data: Notificacion[] = await obtenerMisNotificaciones();
+  try {
+    const data: Notificacion[] =
+      await obtenerMisNotificaciones();
 
-      setNotificaciones(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    setNotificaciones(data);
+  } catch (error) {
+    console.error(error);
 
-  const handleMarcarLeida = async (id: number) => {
-    try {
-      await marcarComoLeida(id);
+    toast.error(
+      "No fue posible cargar las notificaciones"
+    );
+  }
+};
 
-      setNotificaciones((prev) => prev.filter((n) => n.id !== id));
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const handleMarcarLeida = async (
+  id: number
+) => {
+  try {
+    await marcarComoLeida(id);
+
+    setNotificaciones((prev) =>
+      prev.filter((n) => n.id !== id)
+    );
+
+    toast.success(
+      "Notificación marcada como leída"
+    );
+  } catch (error) {
+    console.error(error);
+
+    toast.error(
+      "No fue posible actualizar la notificación"
+    );
+  }
+};
 
   const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
 

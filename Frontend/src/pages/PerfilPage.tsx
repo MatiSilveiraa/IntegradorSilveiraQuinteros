@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { obtenerMiPerfil, actualizarMiPerfil }
 from "../services/Perfil.service";
 import AlumnoLayout from "../components/layout/AlumnoLayout";
+import toast from "react-hot-toast";
 
 import type { Perfil } from "../types";
 
@@ -21,23 +22,23 @@ export default function PerfilPage() {
     });
 
   useEffect(() => {
+  obtenerMiPerfil()
+    .then((data) => {
+      setPerfil(data);
 
-    obtenerMiPerfil()
-      .then((data) => {
+      setForm(data);
+    })
+    .catch((error) => {
+      console.error(error);
 
-        setPerfil(data);
+      toast.error(
+        "No fue posible cargar el perfil"
+      );
+    });
+}, []);
 
-        setForm(data);
-
-      })
-      .catch(console.error);
-
-  }, []);
-
-  const handleGuardar = async () => {
-
+ const handleGuardar = async () => {
   try {
-
     await actualizarMiPerfil(
       form
     );
@@ -46,30 +47,28 @@ export default function PerfilPage() {
 
     setEditando(false);
 
-    alert(
+    toast.success(
       "Perfil actualizado correctamente"
     );
-
   } catch (error) {
-
     console.error(error);
 
-    alert(
+    toast.error(
       "No fue posible actualizar el perfil"
     );
-
   }
-
 };
 
 const handleCancelar = () => {
-
-if (perfil) {
-  setForm(perfil);
-}
+  if (perfil) {
+    setForm(perfil);
+  }
 
   setEditando(false);
 
+  toast(
+    "Edición cancelada"
+  );
 };
 
  return (

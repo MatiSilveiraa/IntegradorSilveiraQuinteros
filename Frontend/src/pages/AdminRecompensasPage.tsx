@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import {
   obtenerDesafios,
@@ -12,57 +13,56 @@ import {
 import type { Desafio, Recompensa } from "../types";
 
 export default function AdminRecompensasPage() {
-
   const [desafios, setDesafios] =
     useState<Desafio[]>([]);
 
   const [recompensas, setRecompensas] =
     useState<Recompensa[]>([]);
 
-  const [desafioSeleccionado,
-    setDesafioSeleccionado] =
-    useState<number>(0);
+  const [
+    desafioSeleccionado,
+    setDesafioSeleccionado,
+  ] = useState<number>(0);
 
   useEffect(() => {
-
     obtenerDesafios()
       .then(setDesafios)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
 
+        toast.error(
+          "No fue posible cargar los desafíos"
+        );
+      });
   }, []);
 
   useEffect(() => {
-
     if (!desafioSeleccionado)
       return;
 
     cargarRecompensas();
-
   }, [desafioSeleccionado]);
 
   const cargarRecompensas =
     async () => {
-
       try {
-
         const data =
           await obtenerRecompensasPorDesafio(
             desafioSeleccionado
           );
 
         setRecompensas(data);
-
       } catch (error) {
-
         console.error(error);
 
+        toast.error(
+          "No fue posible cargar las recompensas"
+        );
       }
-
     };
 
   const borrar =
     async (id: number) => {
-
       if (
         !confirm(
           "¿Eliminar recompensa?"
@@ -72,28 +72,28 @@ export default function AdminRecompensasPage() {
       }
 
       try {
-
         await eliminarRecompensa(
           id
         );
 
+        toast.success(
+          "Recompensa eliminada correctamente"
+        );
+
         cargarRecompensas();
-
       } catch (error) {
-
         console.error(error);
 
+        toast.error(
+          "No fue posible eliminar la recompensa"
+        );
       }
-
     };
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white p-6">
-
       <div className="max-w-7xl mx-auto">
-
         <div className="mb-8">
-
           <h1 className="text-3xl font-bold">
             Recompensas
           </h1>
@@ -102,11 +102,9 @@ export default function AdminRecompensasPage() {
             Gestión de recompensas
             por desafío.
           </p>
-
         </div>
 
         <div className="mb-6">
-
           <select
             value={
               desafioSeleccionado
@@ -128,30 +126,24 @@ export default function AdminRecompensasPage() {
               max-w-md
             "
           >
-
             <option value={0}>
               Seleccionar desafío
             </option>
 
             {desafios.map(
               (desafio) => (
-
                 <option
                   key={desafio.id}
                   value={desafio.id}
                 >
                   {desafio.titulo}
                 </option>
-
               )
             )}
-
           </select>
-
         </div>
 
         {desafioSeleccionado === 0 ? (
-
           <div
             className="
               bg-[#1a2b24]
@@ -162,17 +154,13 @@ export default function AdminRecompensasPage() {
               text-center
             "
           >
-
             <p className="text-gray-400">
               Selecciona un desafío
               para visualizar sus
               recompensas.
             </p>
-
           </div>
-
         ) : recompensas.length === 0 ? (
-
           <div
             className="
               bg-[#1a2b24]
@@ -183,25 +171,20 @@ export default function AdminRecompensasPage() {
               text-center
             "
           >
-
             <p className="text-gray-400">
               Este desafío no tiene
               recompensas registradas.
             </p>
-
           </div>
-
         ) : (
-
           <div className="grid gap-4">
-
             {recompensas.map(
               (recompensa) => (
-
                 <div
-                  key={recompensa.id}
-                  className={
-                    `
+                  key={
+                    recompensa.id
+                  }
+                  className={`
                     rounded-2xl
                     border
                     p-5
@@ -217,16 +200,14 @@ export default function AdminRecompensasPage() {
                           border-[#4adea8]
                         `
                     }
-                  `
-                  }
+                  `}
                 >
-
                   <div className="flex justify-between items-start">
-
                     <div>
-
                       <h3 className="text-xl font-bold">
-                        {recompensa.tipo}
+                        {
+                          recompensa.tipo
+                        }
                       </h3>
 
                       <p className="text-gray-400 mt-2">
@@ -236,17 +217,13 @@ export default function AdminRecompensasPage() {
                       </p>
 
                       {recompensa.premioFisico && (
-
                         <p className="mt-2 text-sm text-[#4adea8]">
-                          Premio:
-                          {" "}
+                          Premio:{" "}
                           {
                             recompensa.premioFisico
                           }
                         </p>
-
                       )}
-
                     </div>
 
                     <button
@@ -266,20 +243,13 @@ export default function AdminRecompensasPage() {
                     >
                       Eliminar
                     </button>
-
                   </div>
-
                 </div>
-
               )
             )}
-
           </div>
-
         )}
-
       </div>
-
     </div>
   );
 }

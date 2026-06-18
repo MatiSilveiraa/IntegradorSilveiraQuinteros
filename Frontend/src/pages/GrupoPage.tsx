@@ -9,6 +9,7 @@ import { obtenerMisClases } from "../services/Inscripciones.Service";
 import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
 import { obtenerProximaClase } from "../utils/proximaClaseUtils";
+import toast from "react-hot-toast";
 
 import type { Perfil } from "../types";
 
@@ -23,32 +24,69 @@ export default function GruposPage() {
   const proximaClase = obtenerProximaClase(misClases);
 
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    obtenerGrupos().then(setGrupos).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    obtenerMisClases()
-      .then((data) => {
-        console.log("MIS CLASES:", data);
-
-        setMisClases(data);
-      })
-      .catch(console.error);
-  }, []);
-
-  const handleDesinscribirse = async (claseId: number) => {
-    try {
-      await desinscribirseClase(claseId);
-
-      setMisClases((prev) => prev.filter((c) => c.id !== claseId));
-    } catch (error) {
+  obtenerMiPerfil()
+    .then(setPerfil)
+    .catch((error) => {
       console.error(error);
-    }
-  };
+
+      toast.error(
+        "No fue posible cargar el perfil"
+      );
+    });
+}, []);
+
+ useEffect(() => {
+  obtenerGrupos()
+    .then(setGrupos)
+    .catch((error) => {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar los grupos"
+      );
+    });
+}, []);
+
+ useEffect(() => {
+  obtenerMisClases()
+    .then((data) => {
+      setMisClases(data);
+    })
+    .catch((error) => {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar tus clases"
+      );
+    });
+}, []);
+
+ const handleDesinscribirse = async (
+  claseId: number
+) => {
+  try {
+    await desinscribirseClase(
+      claseId
+    );
+
+    setMisClases((prev) =>
+      prev.filter(
+        (c) => c.id !== claseId
+      )
+    );
+
+    toast.success(
+      "Te desinscribiste correctamente"
+    );
+  } catch (error) {
+    console.error(error);
+
+    toast.error(
+      "No fue posible desinscribirse"
+    );
+  }
+};
+
   const gruposFiltrados = grupos.filter((grupo) =>
     grupo.nombre.toLowerCase().includes(busqueda.toLowerCase()),
   );

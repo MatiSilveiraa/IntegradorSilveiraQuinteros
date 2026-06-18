@@ -5,6 +5,7 @@ import { login } from "../services/Auth.service";
 import { GoogleLogin } from "@react-oauth/google";
 
 import { loginGoogle } from "../services/AuthGoogle.Service";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -14,8 +15,6 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +22,6 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      setError("");
 
       const response = await login(email, password);
 
@@ -55,7 +53,7 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err);
 
-      setError("Email o contraseña incorrectos");
+      toast.error("Email o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
@@ -77,14 +75,6 @@ export default function LoginPage() {
 
           <p className="text-gray-400 mt-2">Inicia sesión para continuar</p>
         </div>
-
-        {/* ERROR */}
-
-        {error && (
-          <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mt-6 text-sm">
-            {error}
-          </div>
-        )}
 
         {/* FORM */}
 
@@ -208,7 +198,7 @@ export default function LoginPage() {
                   "usuario",
                   JSON.stringify(response.usuario),
                 );
-
+                toast.success("Bienvenido nuevamente");
                 const rol = response.usuario.rol;
 
                 if (rol === "Admin") {
@@ -223,11 +213,11 @@ export default function LoginPage() {
               } catch (error) {
                 console.error(error);
 
-                alert("Error al iniciar sesión con Google");
+                toast.error("Error al iniciar sesión con Google");
               }
             }}
             onError={() => {
-              alert("Error al iniciar sesión con Google");
+              toast.error("Error al iniciar sesión con Google");
             }}
           />
         </div>

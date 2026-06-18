@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { restablecerContrasena } from "../services/Auth.service";
+import toast from "react-hot-toast";
 
 export default function ResetPasswordPage() {
   const location = useLocation();
@@ -17,14 +18,19 @@ export default function ResetPasswordPage() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error("La contraseña debe tener al menos 8 caracteres");
       return;
     }
 
     try {
       await restablecerContrasena(email, codigo, password);
 
-      alert("Contraseña actualizada correctamente");
+      toast.success("Contraseña actualizada correctamente");
 
       navigate("/", {
         replace: true,
@@ -32,7 +38,7 @@ export default function ResetPasswordPage() {
     } catch (error) {
       console.error(error);
 
-      alert("Código inválido o expirado");
+      toast.error("Código inválido o expirado");
     }
   };
 
