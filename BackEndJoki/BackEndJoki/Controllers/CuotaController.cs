@@ -62,27 +62,6 @@ namespace Joki.WebApi.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost("bloquear-por-deuda")]
-        public IActionResult BloquearPorDeuda()
-        {
-            try
-            {
-                _bloquearAlumnosPorDeuda.Ejecutar();
-
-                return Ok(new
-                {
-                    mensaje = "Bloqueo por deuda ejecutado correctamente"
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new
-                {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
-                });
-            }
-        }
 
         [Authorize(Roles = "Alumno")]
         [HttpGet("mis-cuotas")]

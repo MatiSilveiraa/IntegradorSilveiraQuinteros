@@ -164,6 +164,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ILoginGoogle, LoginGoogle>();
     builder.Services.AddScoped<IServicioEmail, ServicioEmailSendGrid>();
     builder.Services.AddScoped<CuotasJob>();
+    builder.Services.AddScoped<BloqueoDeudaJob>();
     builder.Services.AddScoped<IRepositorioConfiguracionCuota, RepositorioConfiguracionCuota>();
     builder.Services.AddScoped<IObtenerConfiguracionCuota, ObtenerConfiguracionCuota>();
     builder.Services.AddScoped<IActualizarConfiguracionCuota, ActualizarConfiguracionCuota>();
@@ -266,6 +267,15 @@ RecurringJob.AddOrUpdate<GenerarNotificacionesCuotas>(
     "generar-notificaciones-cuotas",
     job => job.Ejecutar(),
     Cron.Daily(9),
+    new RecurringJobOptions
+    {
+        TimeZone = zonaHorariaUruguay
+    });
+
+RecurringJob.AddOrUpdate<BloqueoDeudaJob>(
+    "bloquear-alumnos-por-deuda",
+    job => job.Ejecutar(),
+    Cron.Daily(0),
     new RecurringJobOptions
     {
         TimeZone = zonaHorariaUruguay
