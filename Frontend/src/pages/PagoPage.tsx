@@ -12,6 +12,7 @@ import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMiCuota, obtenerMisCuotas } from "../services/Cuota.service";
 
 import type { Perfil, Cuota } from "../types";
+import toast from "react-hot-toast";
 
 export default function PagosPage() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
@@ -21,56 +22,86 @@ export default function PagosPage() {
   const [cuotas, setCuotas] = useState<Cuota[]>([]);
 
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
-  }, []);
+  obtenerMiPerfil()
+    .then(setPerfil)
+    .catch((error) => {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar el perfil"
+      );
+    });
+}, []);
 
   useEffect(() => {
-    obtenerMiCuota()
-      .then((data) => {
-        setCuotaActual(data);
-      })
-      .catch((error) => {
-        if (
-          error.response?.data?.mensaje ===
-          "No existe cuota generada para el mes actual"
-        ) {
-          setCuotaActual({
-            id: 0,
-            estado: "Sin cuota",
-          });
+  obtenerMiCuota()
+    .then((data) => {
+      setCuotaActual(data);
+    })
+    .catch((error) => {
+      if (
+        error.response?.data?.mensaje ===
+        "No existe cuota generada para el mes actual"
+      ) {
+        setCuotaActual({
+          id: 0,
+          estado: "Sin cuota",
+        });
 
-          return;
-        }
-
-        console.error(error);
-      });
-  }, []);
-
-  useEffect(() => {
-    obtenerMisCuotas()
-      .then((data) => {
-        setCuotas(data);
-      })
-      .catch(console.error);
-  }, []);
-
-  const handlePagar = async () => {
-    try {
-      console.log("Cuota actual:", cuotaActual);
-
-      if (!cuotaActual?.id) {
         return;
       }
 
-      const data = await generarPagoMercadoPago(cuotaActual.id);
-
-      console.log("Respuesta:", data);
-
-      window.location.href = data.urlPago;
-    } catch (error) {
       console.error(error);
+
+      toast.error(
+        "No fue posible cargar la cuota actual"
+      );
+    });
+}, []);
+
+  useEffect(() => {
+  obtenerMisCuotas()
+    .then((data) => {
+      setCuotas(data);
+    })
+    .catch((error) => {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar el historial de pagos"
+      );
+    });
+}, []);
+
+  const handlePagar = async () => {
+  try {
+    if (!cuotaActual?.id) {
+      toast.error(
+        "No existe una cuota pendiente"
+      );
+
+      return;
     }
-  };
+
+    const data =
+      await generarPagoMercadoPago(
+        cuotaActual.id
+      );
+
+    toast.success(
+      "Redirigiendo a Mercado Pago..."
+    );
+
+    window.location.href =
+      data.urlPago;
+  } catch (error) {
+    console.error(error);
+
+    toast.error(
+      "No fue posible iniciar el pago"
+    );
+  }
+};
 
   return (
     <AlumnoLayout nombre={perfil?.nombre}>

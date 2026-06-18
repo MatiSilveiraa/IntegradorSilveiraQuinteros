@@ -10,8 +10,8 @@ import LocationMap from "../../components/maps/LocationMap";
 import { configurarLeaflet } from "../../utils/leafletUtils";
 import ClassLocationMap from "../../components/maps/ClassLocationMap";
 import { calcularDistancia } from "../../utils/geolocationUtils";
-import { obtenerProximaClase }
-from "../../utils/proximaClaseUtils";
+import { obtenerProximaClase } from "../../utils/proximaClaseUtils";
+import toast from "react-hot-toast";
 
 configurarLeaflet();
 export default function AsistenciasPage() {
@@ -37,6 +37,8 @@ export default function AsistenciasPage() {
       if (!clases || clases.length === 0) {
         setEstado("No tienes clases registradas.");
 
+        toast.error("No tienes clases registradas");
+
         return;
       }
 
@@ -55,9 +57,10 @@ export default function AsistenciasPage() {
           if (!clase) {
             setEstado(`No tienes clases programadas para hoy (${diaActual}).`);
 
+            toast.error("No tienes clases programadas para hoy");
+
             return;
           }
-
           try {
             setEstado("Registrando asistencia...");
 
@@ -70,14 +73,18 @@ export default function AsistenciasPage() {
             setEstado(
               resultado.mensaje || "Asistencia registrada correctamente",
             );
+
+            toast.success(
+              resultado.mensaje || "Asistencia registrada correctamente",
+            );
           } catch (error: any) {
             console.error(error);
 
             console.log("ERROR BACKEND:", error?.response?.data);
 
-            setEstado(
+            toast.error(
               error?.response?.data?.mensaje ||
-                JSON.stringify(error?.response?.data || "Error desconocido"),
+                "No fue posible registrar la asistencia",
             );
           }
         },
@@ -85,6 +92,8 @@ export default function AsistenciasPage() {
           console.error(error);
 
           setEstado("Debes habilitar la ubicación para registrar asistencia.");
+
+          toast.error("Debes habilitar la ubicación para registrar asistencia");
         },
         {
           enableHighAccuracy: true,
@@ -94,11 +103,12 @@ export default function AsistenciasPage() {
       console.error(error);
 
       setEstado("Ocurrió un error al verificar la asistencia.");
+
+      toast.error("Ocurrió un error al verificar la asistencia");
     }
   };
 
-  const proximaClase =
-  obtenerProximaClase(misClases);
+  const proximaClase = obtenerProximaClase(misClases);
 
   const distancia =
     proximaClase && latitud && longitud

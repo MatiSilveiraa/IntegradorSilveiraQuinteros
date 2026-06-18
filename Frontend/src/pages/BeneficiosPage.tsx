@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 import AlumnoLayout from "../components/layout/AlumnoLayout";
 
@@ -17,7 +18,13 @@ export default function BeneficiosPage() {
   useEffect(() => {
     obtenerMiPerfil()
       .then(setPerfil)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+
+        toast.error(
+          "No fue posible cargar el perfil"
+        );
+      });
   }, []);
 
   useEffect(() => {
@@ -38,6 +45,10 @@ export default function BeneficiosPage() {
         console.error(
           "ERROR BENEFICIOS",
           error
+        );
+
+        toast.error(
+          "No fue posible cargar los beneficios"
         );
       });
   }, []);
@@ -103,8 +114,6 @@ export default function BeneficiosPage() {
           participación y rendimiento.
         </p>
 
-        {/* RESUMEN */}
-
         <div
           className="
             grid
@@ -167,8 +176,6 @@ export default function BeneficiosPage() {
             </h2>
           </div>
         </div>
-
-        {/* BENEFICIOS */}
 
         {beneficios.length === 0 ? (
           <div
@@ -233,7 +240,7 @@ export default function BeneficiosPage() {
                         text-xs
                         font-semibold
                         ${obtenerColorEstado(
-                        beneficio.estado!
+                          beneficio.estado!
                         )}
                       `}
                     >
@@ -278,8 +285,7 @@ export default function BeneficiosPage() {
                         "
                         style={{
                           width: `${
-                            (beneficio.mesesDuracion ?? 0) >
-                            0
+                            (beneficio.mesesDuracion ?? 0) > 0
                               ? ((beneficio.mesesAplicados ?? 0) /
                                   (beneficio.mesesDuracion ?? 0)) *
                                 100

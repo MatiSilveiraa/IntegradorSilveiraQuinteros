@@ -11,12 +11,15 @@ import CuotaCard from "../../components/dashboard/CuotaCard";
 import RachaCard from "../../components/dashboard/RachaCard";
 import ResumenCard from "../../components/dashboard/ResumenCard";
 import NovedadesCard from "../../components/dashboard/NovedadesCard";
+import { useNavigate } from "react-router-dom";
 
 import AlumnoLayout from "../../components/layout/AlumnoLayout";
+import toast from "react-hot-toast";
 
 import type { Perfil, Cuota, Historial, Clase } from "../../types";
 
 export default function AlumnoDashboard() {
+  const navigate = useNavigate();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
 
   const [cuota, setCuota] = useState<Cuota | any>(null);
@@ -54,11 +57,20 @@ export default function AlumnoDashboard() {
   };
 
   const proximaClase = obtenerProximaClase(misClases);
-
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
+    obtenerMiPerfil()
+      .then(setPerfil)
+      .catch((error) => {
+        console.error(error);
+        toast.error("No fue posible cargar tu perfil");
+      });
 
-    obtenerMiHistorial().then(setHistorial).catch(console.error);
+    obtenerMiHistorial()
+      .then(setHistorial)
+      .catch((error) => {
+        console.error(error);
+        toast.error("No fue posible cargar el historial");
+      });
 
     obtenerMiCuota()
       .then(setCuota)
@@ -75,11 +87,17 @@ export default function AlumnoDashboard() {
         }
 
         console.error(error);
+        toast.error("No fue posible cargar la cuota");
       });
   }, []);
 
   useEffect(() => {
-    obtenerMisClases().then(setMisClases).catch(console.error);
+    obtenerMisClases()
+      .then(setMisClases)
+      .catch((error) => {
+        console.error(error);
+        toast.error("No fue posible cargar tus clases");
+      });
   }, []);
 
   return (
@@ -120,7 +138,7 @@ export default function AlumnoDashboard() {
             </div>
 
             <button
-              onClick={() => (window.location.href = "/alumno/seguridad")}
+              onClick={() => navigate("/alumno/seguridad")}
               className="
         px-5
         py-3

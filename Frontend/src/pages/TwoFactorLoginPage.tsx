@@ -1,103 +1,66 @@
 import { useState } from "react";
 
-import {
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import logo from "../assets/logo.png";
 
-import {
-  validar2FA,
-} from "../services/Auth2FA.Service";
+import { validar2FA } from "../services/Auth2FA.Service";
+import toast from "react-hot-toast";
 
 export default function TwoFactorLoginPage() {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
+  const location = useLocation();
 
-  const location =
-    useLocation();
+  const email = location.state?.email;
 
-  const email =
-    location.state?.email;
+  const [codigo, setCodigo] = useState("");
 
-  const [codigo, setCodigo] =
-    useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const handleValidar =
-    async () => {
-
-      try {
-
-        setLoading(true);
-
-        setError("");
-
-        const response =
-          await validar2FA(
-            email,
-            codigo
-          );
-
-        localStorage.setItem(
-          "token",
-          response.token
-        );
-
-        localStorage.setItem(
-          "usuario",
-          JSON.stringify(
-            response.usuario
-          )
-        );
-
-        const rol =
-          response.usuario.rol;
-
-        if (rol === "Admin") {
-
-          navigate("/admin");
-
-        } else if (
-          rol === "Alumno"
-        ) {
-
-          navigate("/alumno");
-
-        } else if (
-          rol === "Entrenador"
-        ) {
-
-          navigate("/entrenador");
-
-        } else {
-
-          navigate("/");
-
-        }
-
-      } catch (error) {
-
-        console.error(error);
-
-        setError(
-          "Código inválido"
-        );
-
-      } finally {
-
-        setLoading(false);
-
+  const handleValidar = async () => {
+    try {
+      if (!codigo.trim()) {
+        toast.error("Ingresa el código de verificación");
+        return;
       }
 
-    };
+      setLoading(true);
+
+      setError("");
+
+      const response = await validar2FA(email, codigo);
+
+      localStorage.setItem("token", response.token);
+
+      localStorage.setItem("usuario", JSON.stringify(response.usuario));
+      toast.success("Inicio de sesión correcto");
+
+      const rol = response.usuario.rol;
+
+      if (rol === "Admin") {
+        navigate("/admin");
+      } else if (rol === "Alumno") {
+        navigate("/alumno");
+      } else if (rol === "Entrenador") {
+        navigate("/entrenador");
+      } else {
+        navigate("/");
+      }
+    } catch (error: any) {
+      console.error(error);
+
+      const mensaje = error?.response?.data?.mensaje || "Código inválido";
+
+      setError(mensaje);
+
+      toast.error(mensaje);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -123,7 +86,6 @@ export default function TwoFactorLoginPage() {
         "
       >
         <div className="flex flex-col items-center">
-
           <div
             className="
               w-24
@@ -163,14 +125,11 @@ export default function TwoFactorLoginPage() {
               text-center
             "
           >
-            Ingresa el código generado
-            por Google Authenticator
+            Ingresa el código generado por Google Authenticator
           </p>
-
         </div>
 
         {error && (
-
           <div
             className="
               bg-red-500/20
@@ -184,11 +143,9 @@ export default function TwoFactorLoginPage() {
           >
             {error}
           </div>
-
         )}
 
         <div className="mt-8">
-
           <label
             className="
               text-sm
@@ -204,11 +161,7 @@ export default function TwoFactorLoginPage() {
             type="text"
             maxLength={6}
             value={codigo}
-            onChange={(e) =>
-              setCodigo(
-                e.target.value
-              )
-            }
+            onChange={(e) => setCodigo(e.target.value)}
             placeholder="123456"
             className="
               w-full
@@ -229,10 +182,7 @@ export default function TwoFactorLoginPage() {
 
           <button
             onClick={handleValidar}
-            disabled={
-              loading ||
-              codigo.length < 6
-            }
+            disabled={loading || codigo.length < 6}
             className="
               w-full
               h-14
@@ -247,13 +197,9 @@ export default function TwoFactorLoginPage() {
               disabled:opacity-50
             "
           >
-            {loading
-              ? "Validando..."
-              : "Ingresar"}
+            {loading ? "Validando..." : "Ingresar"}
           </button>
-
         </div>
-
       </div>
     </div>
   );

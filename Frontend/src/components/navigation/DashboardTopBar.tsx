@@ -46,11 +46,10 @@ useEffect(() => {
 }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
+  localStorage.clear();
 
-    navigate("/");
-  };
+  navigate("/");
+};
 
   const mostrarVolver = location.pathname !== "/alumno";
 

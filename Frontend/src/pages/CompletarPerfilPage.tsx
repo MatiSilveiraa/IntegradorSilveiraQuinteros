@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 import logo from "../assets/logo.png";
+
 import { actualizarMiPerfil } from "../services/Perfil.service";
 import { obtenerMiPerfil } from "../services/Perfil.service";
-import { useEffect } from "react";
 
 export default function CompletarPerfilPage() {
   const navigate = useNavigate();
@@ -13,37 +15,61 @@ export default function CompletarPerfilPage() {
   const [sociedadMedica, setSociedadMedica] = useState("");
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
+
   const [perfil, setPerfil] = useState<any>(null);
 
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
+    obtenerMiPerfil()
+      .then(setPerfil)
+      .catch((error) => {
+        console.error(error);
+
+        toast.error(
+          "No fue posible cargar el perfil"
+        );
+      });
   }, []);
 
-  const guardar = async (e: React.FormEvent) => {
+  const guardar = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
     try {
       setLoading(true);
+
       setError("");
 
       await actualizarMiPerfil({
-  nombre: perfil.nombre,
-  apellido: perfil.apellido,
-  email: perfil.email,
-  genero: perfil.genero,
-  fechaNacimiento,
-  celular,
-  sociedadMedica,
-});
+        nombre: perfil.nombre,
+        apellido: perfil.apellido,
+        email: perfil.email,
+        genero: perfil.genero,
+        fechaNacimiento,
+        celular,
+        sociedadMedica,
+      });
+
+      toast.success(
+        "Perfil completado correctamente"
+      );
 
       navigate("/alumno");
     } catch (error: any) {
-      console.log(error.response?.data);
+      console.log(
+        error.response?.data
+      );
 
-      alert(JSON.stringify(error.response?.data, null, 2));
+      toast.error(
+        error.response?.data?.mensaje ||
+          "No fue posible guardar los datos"
+      );
 
-      setError("No fue posible guardar los datos.");
+      setError(
+        "No fue posible guardar los datos."
+      );
     } finally {
       setLoading(false);
     }
@@ -54,7 +80,11 @@ export default function CompletarPerfilPage() {
       <div className="w-full max-w-md bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 shadow-2xl">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#4adea8] shadow-lg shadow-[#4adea8]/20">
-            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <h1 className="text-white text-3xl font-bold mt-6">
@@ -72,7 +102,10 @@ export default function CompletarPerfilPage() {
           </div>
         )}
 
-        <form onSubmit={guardar} className="mt-8 space-y-5">
+        <form
+          onSubmit={guardar}
+          className="mt-8 space-y-5"
+        >
           <div>
             <label className="text-sm text-gray-300 block mb-2">
               Fecha de nacimiento
@@ -81,19 +114,29 @@ export default function CompletarPerfilPage() {
             <input
               type="date"
               value={fechaNacimiento}
-              onChange={(e) => setFechaNacimiento(e.target.value)}
+              onChange={(e) =>
+                setFechaNacimiento(
+                  e.target.value
+                )
+              }
               className="w-full h-14 px-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
               required
             />
           </div>
 
           <div>
-            <label className="text-sm text-gray-300 block mb-2">Celular</label>
+            <label className="text-sm text-gray-300 block mb-2">
+              Celular
+            </label>
 
             <input
               type="text"
               value={celular}
-              onChange={(e) => setCelular(e.target.value)}
+              onChange={(e) =>
+                setCelular(
+                  e.target.value
+                )
+              }
               placeholder="099123456"
               className="w-full h-14 px-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
               required
@@ -108,7 +151,11 @@ export default function CompletarPerfilPage() {
             <input
               type="text"
               value={sociedadMedica}
-              onChange={(e) => setSociedadMedica(e.target.value)}
+              onChange={(e) =>
+                setSociedadMedica(
+                  e.target.value
+                )
+              }
               placeholder="ASSE, CASMU, Médica Uruguaya..."
               className="w-full h-14 px-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
               required
@@ -117,10 +164,14 @@ export default function CompletarPerfilPage() {
 
           <button
             type="submit"
-            disabled={loading || !perfil}
-            className="w-full h-14 bg-[#4adea8] text-[#12201b] font-bold rounded-xl"
+            disabled={
+              loading || !perfil
+            }
+            className="w-full h-14 bg-[#4adea8] text-[#12201b] font-bold rounded-xl hover:opacity-90 transition-all"
           >
-            {loading ? "Guardando..." : "Guardar y continuar"}
+            {loading
+              ? "Guardando..."
+              : "Guardar y continuar"}
           </button>
         </form>
       </div>

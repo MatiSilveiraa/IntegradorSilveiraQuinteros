@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { solicitarRecuperacion } from "../services/Auth.service";
+import toast from "react-hot-toast";
 
 export default function VerifyCodePage() {
   const navigate = useNavigate();
@@ -14,6 +15,18 @@ export default function VerifyCodePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!codigo.trim()) {
+      toast.error("Ingresa el código recibido");
+
+      return;
+    }
+
+    if (codigo.length < 6) {
+      toast.error("El código debe tener 6 dígitos");
+
+      return;
+    }
+
     navigate("/reset-password", {
       state: {
         email,
@@ -26,11 +39,11 @@ export default function VerifyCodePage() {
     try {
       await solicitarRecuperacion(email);
 
-      alert("Se envió un nuevo código a tu correo.");
+      toast.success("Se envió un nuevo código a tu correo");
     } catch (error) {
       console.error(error);
 
-      alert("No fue posible reenviar el código.");
+      toast.error("No fue posible reenviar el código");
     }
   };
 
@@ -56,13 +69,23 @@ export default function VerifyCodePage() {
             type="text"
             maxLength={6}
             value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
+            onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))}
             className="w-full h-16 text-center text-3xl tracking-[12px] rounded-xl bg-[#1a2b24] border border-[#2d463b] text-white"
           />
 
           <button
             type="submit"
-            className="w-full h-14 bg-[#4adea8] text-[#12201b] font-bold rounded-xl mt-8"
+            disabled={codigo.length < 6}
+            className="
+    w-full
+    h-14
+    bg-[#4adea8]
+    text-[#12201b]
+    font-bold
+    rounded-xl
+    mt-8
+    disabled:opacity-50
+  "
           >
             Verificar
           </button>

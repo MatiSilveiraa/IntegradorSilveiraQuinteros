@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { obtenerGeneros } from "../services/enums.service";
-import { register } from "../services/Auth.service";
+import { register, login } from "../services/Auth.service";
 import type { Grupo } from "../types";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [preview, setPreview] =
-    useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const [generos, setGeneros] = useState([]);
 
@@ -26,8 +27,7 @@ export default function RegisterPage() {
 
   const [celular, setCelular] = useState("");
 
-  const [sociedadMedica, setSociedadMedica] =
-    useState("");
+  const [sociedadMedica, setSociedadMedica] = useState("");
 
   const [estatura, setEstatura] = useState("");
 
@@ -35,13 +35,9 @@ export default function RegisterPage() {
 
   const [password, setPassword] = useState("");
 
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [fechaNacimiento, setFechaNacimiento] =
-    useState("");
-
-  const [error, setError] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
 
   useEffect(() => {
     cargarGeneros();
@@ -57,46 +53,29 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    setError("");
-
     try {
-      if (
-        !nombre ||
-        !apellido ||
-        !email ||
-        !password ||
-        !confirmPassword
-      ) {
-        setError(
-          "Completa los campos obligatorios"
-        );
+      if (!nombre || !apellido || !email || !password || !confirmPassword) {
+        toast.error("Completa los campos obligatorios");
 
         return;
       }
 
       if (!email.includes("@")) {
-        setError("Correo inválido");
+        toast.error("Correo inválido");
 
         return;
       }
 
       if (password.length < 8) {
-        setError(
-          "La contraseña debe tener mínimo 8 caracteres"
-        );
+        toast.error("La contraseña debe tener mínimo 8 caracteres");
 
         return;
       }
 
       if (password !== confirmPassword) {
-        setError(
-          "Las contraseñas no coinciden"
-        );
+        toast.error("Las contraseñas no coinciden");
 
         return;
       }
@@ -107,36 +86,39 @@ export default function RegisterPage() {
         email,
         contrasena: password,
         peso: peso ? Number(peso) : 0,
-        estatura: estatura
-          ? Number(estatura)
-          : 0,
+        estatura: estatura ? Number(estatura) : 0,
         celular,
-       fechaNacimiento:
-  fechaNacimiento || undefined,
+        fechaNacimiento: fechaNacimiento || undefined,
         genero: Number(genero),
         sociedadMedica,
       };
 
-      const response = await register(usuario);
+      await register(usuario);
+      toast.success("Cuenta creada correctamente");
+      const loginResponse = await login(email, password);
 
-      console.log(response);
+      localStorage.setItem("token", loginResponse.token);
 
-      setError("");
+      localStorage.setItem("usuario", JSON.stringify(loginResponse.usuario));
 
-      alert("Usuario registrado correctamente");
+      const rol = loginResponse.usuario.rol;
+
+      if (rol === "Admin") {
+        navigate("/admin");
+      } else if (rol === "Alumno") {
+        navigate("/alumno");
+      } else if (rol === "Entrenador") {
+        navigate("/entrenador");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.log(error);
 
-      if (
-        error.response?.data?.mensaje
-      ) {
-        setError(
-          error.response.data.mensaje
-        );
+      if (error.response?.data?.mensaje) {
+        toast.error(error.response.data.mensaje);
       } else {
-        setError(
-          "Ocurrió un error al registrar"
-        );
+        toast.error("Ocurrió un error al registrar");
       }
     }
   };
@@ -146,16 +128,10 @@ export default function RegisterPage() {
       <header className="bg-black/70 backdrop-blur-md border-b border-[#1f2a25] h-16 flex items-center px-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border border-[#4adea8]/30">
-            <img
-              src={logo}
-              alt="Logo"
-              className="w-full h-full object-cover"
-            />
+            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
           </div>
 
-          <h1 className="font-bold text-xl">
-            Joki Training Team
-          </h1>
+          <h1 className="font-bold text-xl">Joki Training Team</h1>
         </div>
       </header>
 
@@ -166,21 +142,15 @@ export default function RegisterPage() {
           </h2>
 
           <p className="text-gray-400 text-center mt-3">
-            Completa tus datos para comenzar
-            tu transformación con Joki
-            Training Team.
+            Completa tus datos para comenzar tu transformación con Joki Training
+            Team.
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-8"
-        >
+        <form onSubmit={handleSubmit} className="space-y-8">
           <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">
-                👤
-              </span>
+              <span className="text-[#6cfbc3] text-xl">👤</span>
 
               <h3 className="text-[#6cfbc3] font-bold text-2xl">
                 Datos Personales
@@ -189,10 +159,7 @@ export default function RegisterPage() {
 
             <div className="flex flex-col items-center mb-8">
               <div className="relative">
-                <label
-                  htmlFor="profileImage"
-                  className="cursor-pointer"
-                >
+                <label htmlFor="profileImage" className="cursor-pointer">
                   <div className="w-28 h-28 rounded-full border-2 border-dashed border-[#6cfbc3]/50 bg-[#2f3632] flex items-center justify-center overflow-hidden">
                     {preview ? (
                       <img
@@ -201,9 +168,7 @@ export default function RegisterPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-4xl">
-                        📷
-                      </span>
+                      <span className="text-4xl">📷</span>
                     )}
                   </div>
                 </label>
@@ -214,14 +179,10 @@ export default function RegisterPage() {
                   accept="image/*"
                   className="hidden"
                   onChange={(e) => {
-                    const file =
-                      e.target.files?.[0];
+                    const file = e.target.files?.[0];
 
                     if (file) {
-                      const imageUrl =
-                        URL.createObjectURL(
-                          file
-                        );
+                      const imageUrl = URL.createObjectURL(file);
 
                       setPreview(imageUrl);
                     }
@@ -236,42 +197,30 @@ export default function RegisterPage() {
                 </label>
               </div>
 
-              <span className="text-sm text-gray-400 mt-3">
-                Foto de perfil
-              </span>
+              <span className="text-sm text-gray-400 mt-3">Foto de perfil</span>
             </div>
 
             <div className="space-y-5">
               <div>
-                <label className="block mb-2 font-medium">
-                  Nombre *
-                </label>
+                <label className="block mb-2 font-medium">Nombre *</label>
 
                 <input
                   type="text"
                   placeholder="Ej. Juan"
                   value={nombre}
-                  onChange={(e) =>
-                    setNombre(e.target.value)
-                  }
+                  onChange={(e) => setNombre(e.target.value)}
                   className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
                 />
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">
-                  Apellido *
-                </label>
+                <label className="block mb-2 font-medium">Apellido *</label>
 
                 <input
                   type="text"
                   placeholder="Ej. Pérez"
                   value={apellido}
-                  onChange={(e) =>
-                    setApellido(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setApellido(e.target.value)}
                   className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
                 />
               </div>
@@ -285,67 +234,44 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="juan.perez@ejemplo.com"
                   value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-2 font-medium">
-                    Género
-                  </label>
+                  <label className="block mb-2 font-medium">Género</label>
 
                   <select
                     value={genero}
-                    onChange={(e) =>
-                      setGenero(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setGenero(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                   >
-                    <option value="">
-                      Seleccionar
-                    </option>
+                    <option value="">Seleccionar</option>
 
-                    {generos.map(
-                      (g: Grupo) => (
-                        <option
-                          key={g.id}
-                          value={g.id}
-                        >
-                          {g.nombre}
-                        </option>
-                      )
-                    )}
+                    {generos.map((g: Grupo) => (
+                      <option key={g.id} value={g.id}>
+                        {g.nombre}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-medium">
-                    Nacimiento
-                  </label>
+                  <label className="block mb-2 font-medium">Nacimiento</label>
 
                   <input
                     type="date"
                     value={fechaNacimiento}
-                    onChange={(e) =>
-                      setFechaNacimiento(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setFechaNacimiento(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block mb-2 font-medium">
-                  Celular *
-                </label>
+                <label className="block mb-2 font-medium">Celular *</label>
 
                 <div className="flex gap-3">
                   <div className="w-24 h-14 rounded-2xl bg-[#2f3632] border border-[#3c4a42] flex items-center justify-center text-gray-300">
@@ -356,11 +282,7 @@ export default function RegisterPage() {
                     type="tel"
                     placeholder="099 123 456"
                     value={celular}
-                    onChange={(e) =>
-                      setCelular(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setCelular(e.target.value)}
                     className="flex-1 h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                   />
                 </div>
@@ -370,9 +292,7 @@ export default function RegisterPage() {
 
           <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">
-                🛡️
-              </span>
+              <span className="text-[#6cfbc3] text-xl">🛡️</span>
 
               <h3 className="text-[#6cfbc3] font-bold text-2xl">
                 Información de Salud
@@ -389,11 +309,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="Ej. Médica Uruguaya"
                   value={sociedadMedica}
-                  onChange={(e) =>
-                    setSociedadMedica(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setSociedadMedica(e.target.value)}
                   className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                 />
               </div>
@@ -408,27 +324,19 @@ export default function RegisterPage() {
                     type="number"
                     placeholder="175"
                     value={estatura}
-                    onChange={(e) =>
-                      setEstatura(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setEstatura(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-2 font-medium">
-                    Peso (kg)
-                  </label>
+                  <label className="block mb-2 font-medium">Peso (kg)</label>
 
                   <input
                     type="number"
                     placeholder="70"
                     value={peso}
-                    onChange={(e) =>
-                      setPeso(e.target.value)
-                    }
+                    onChange={(e) => setPeso(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
                   />
                 </div>
@@ -438,45 +346,27 @@ export default function RegisterPage() {
 
           <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">
-                🔒
-              </span>
+              <span className="text-[#6cfbc3] text-xl">🔒</span>
 
-              <h3 className="text-[#6cfbc3] font-bold text-2xl">
-                Seguridad
-              </h3>
+              <h3 className="text-[#6cfbc3] font-bold text-2xl">Seguridad</h3>
             </div>
 
             <div className="space-y-5">
               <div>
-                <label className="block mb-2 font-medium">
-                  Contraseña *
-                </label>
+                <label className="block mb-2 font-medium">Contraseña *</label>
 
                 <div className="relative">
                   <input
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) =>
-                      setPassword(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setPassword(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 pr-14 text-white outline-none"
                   />
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowPassword(
-                        !showPassword
-                      )
-                    }
+                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-4"
                   >
                     👁️
@@ -495,28 +385,16 @@ export default function RegisterPage() {
 
                 <div className="relative">
                   <input
-                    type={
-                      showConfirmPassword
-                        ? "text"
-                        : "password"
-                    }
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={confirmPassword}
-                    onChange={(e) =>
-                      setConfirmPassword(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 pr-14 text-white outline-none"
                   />
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowConfirmPassword(
-                        !showConfirmPassword
-                      )
-                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-4 top-4"
                   >
                     👁️
@@ -525,12 +403,6 @@ export default function RegisterPage() {
               </div>
             </div>
           </section>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl p-4 text-sm font-medium">
-              {error}
-            </div>
-          )}
 
           <div className="pt-4">
             <button
@@ -542,14 +414,9 @@ export default function RegisterPage() {
           </div>
 
           <div className="text-center">
-            <span className="text-gray-400">
-              ¿Ya tengo cuenta?
-            </span>
+            <span className="text-gray-400">¿Ya tengo cuenta?</span>
 
-            <Link
-              to="/"
-              className="ml-2 text-[#6cfbc3] font-bold underline"
-            >
+            <Link to="/" className="ml-2 text-[#6cfbc3] font-bold underline">
               Inicia sesión
             </Link>
           </div>
@@ -565,4 +432,4 @@ export default function RegisterPage() {
       </main>
     </div>
   );
-} 
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 
@@ -18,28 +19,46 @@ export default function GrupoDetallePage() {
 
   const { grupoId } = useParams();
 
-  const [grupo, setGrupo] = useState<Grupo | null>(null);
+  const [grupo, setGrupo] =
+    useState<Grupo | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [clasesInscritas, setClasesInscritas] = useState<number[]>([]);
+  const [
+    clasesInscritas,
+    setClasesInscritas,
+  ] = useState<number[]>([]);
 
   useEffect(() => {
-    const cargarGrupo = async () => {
-      try {
-        const grupos: Grupo[] = await obtenerGrupos();
+    const cargarGrupo =
+      async () => {
+        try {
+          const grupos: Grupo[] =
+            await obtenerGrupos();
 
-        const grupoEncontrado = grupos.find(
-          (g: Grupo) => g.id === Number(grupoId),
-        );
+          const grupoEncontrado =
+            grupos.find(
+              (g: Grupo) =>
+                g.id ===
+                Number(
+                  grupoId
+                )
+            );
 
-        setGrupo(grupoEncontrado!);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setGrupo(
+            grupoEncontrado!
+          );
+        } catch (error) {
+          console.error(error);
+
+          toast.error(
+            "No fue posible cargar el grupo"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
 
     cargarGrupo();
   }, [grupoId]);
@@ -47,43 +66,88 @@ export default function GrupoDetallePage() {
   useEffect(() => {
     obtenerMisClases()
       .then((data) => {
-        const ids = data.map((clase: Clase) => clase.id);
+        const ids =
+          data.map(
+            (clase: Clase) =>
+              clase.id
+          );
 
-        setClasesInscritas(ids);
+        setClasesInscritas(
+          ids
+        );
       })
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+
+        toast.error(
+          "No fue posible cargar tus clases"
+        );
+      });
   }, []);
 
-  const handleInscribirse = async (claseId: number) => {
-    try {
-      await inscribirseClase(claseId);
+  const handleInscribirse =
+    async (
+      claseId: number
+    ) => {
+      try {
+        await inscribirseClase(
+          claseId
+        );
 
-      setClasesInscritas((prev) => [...prev, claseId]);
+        setClasesInscritas(
+          (prev) => [
+            ...prev,
+            claseId,
+          ]
+        );
 
-      alert("Inscripción realizada correctamente");
-    } catch (error: any) {
-      console.error(error);
+        toast.success(
+          "Inscripción realizada correctamente"
+        );
+      } catch (error: any) {
+        console.error(error);
 
-      alert(
-        error?.response?.data?.mensaje ||
-          "No fue posible realizar la inscripción",
-      );
-    }
-  };
+        toast.error(
+          error?.response
+            ?.data
+            ?.mensaje ||
+            "No fue posible realizar la inscripción"
+        );
+      }
+    };
 
-  const handleDesinscribirse = async (claseId: number) => {
-    try {
-      await desinscribirseClase(claseId);
+  const handleDesinscribirse =
+    async (
+      claseId: number
+    ) => {
+      try {
+        await desinscribirseClase(
+          claseId
+        );
 
-      setClasesInscritas((prev) => prev.filter((id) => id !== claseId));
+        setClasesInscritas(
+          (prev) =>
+            prev.filter(
+              (id) =>
+                id !==
+                claseId
+            )
+        );
 
-      alert("Te desinscribiste correctamente");
-    } catch (error: any) {
-      console.error(error);
+        toast.success(
+          "Te desinscribiste correctamente"
+        );
+      } catch (error: any) {
+        console.error(error);
 
-      alert(error?.response?.data?.mensaje || "No fue posible desinscribirse");
-    }
-  };
+        toast.error(
+          error?.response
+            ?.data
+            ?.mensaje ||
+            "No fue posible desinscribirse"
+        );
+      }
+    };
 
   if (loading) {
     return (
@@ -96,10 +160,16 @@ export default function GrupoDetallePage() {
   if (!grupo) {
     return (
       <div className="min-h-screen bg-[#12201b] text-white flex flex-col items-center justify-center gap-4">
-        <h2 className="text-2xl font-bold">Grupo no encontrado</h2>
+        <h2 className="text-2xl font-bold">
+          Grupo no encontrado
+        </h2>
 
         <button
-          onClick={() => navigate("/alumno/grupos")}
+          onClick={() =>
+            navigate(
+              "/alumno/grupos"
+            )
+          }
           className="
             px-5
             py-3
@@ -118,159 +188,147 @@ export default function GrupoDetallePage() {
   return (
     <AlumnoLayout nombre={undefined}>
       <main className="max-w-5xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold">
+            {grupo.nombre}
+          </h1>
 
-      <header className="mb-8">
+          <p className="text-gray-400 mt-1">
+            Nivel {grupo.nivel}
+          </p>
+        </header>
 
-        <h1 className="text-3xl font-bold">
-          {grupo.nombre}
-        </h1>
+        <div className="grid gap-4">
+          {(grupo.clases
+            ?.length ?? 0) >
+          0 ? (
+            grupo.clases?.map(
+              (
+                clase: Clase
+              ) => {
+                const estaInscripto =
+                  clasesInscritas.includes(
+                    clase.id
+                  );
 
-        <p className="text-gray-400 mt-1">
-          Nivel {grupo.nivel}
-        </p>
+                return (
+                  <div
+                    key={
+                      clase.id
+                    }
+                    className="
+                      bg-[#1a2b24]
+                      border
+                      border-[#2d463b]
+                      rounded-2xl
+                      p-5
+                    "
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <CalendarTodayOutlinedIcon
+                            sx={{
+                              fontSize: 18,
+                            }}
+                          />
 
-      </header>
+                          <span className="font-semibold">
+                            {
+                              clase.diaSemana
+                            }
+                          </span>
+                        </div>
 
-      <div className="grid gap-4">
+                        <p className="text-gray-400 mt-2">
+                          {clase.horaInicio.substring(
+                            0,
+                            5
+                          )}
 
-        {(grupo.clases?.length ?? 0) > 0 ? (
+                          {" - "}
 
-          grupo.clases?.map((clase: Clase) => {
+                          {clase.horaFin.substring(
+                            0,
+                            5
+                          )}
+                        </p>
 
-            const estaInscripto =
-              clasesInscritas.includes(
-                clase.id
-              );
+                        <p className="text-gray-500 text-sm mt-2">
+                          Cupo
+                          máximo:
+                          {" "}
+                          {
+                            clase.cupoMaximo
+                          }
+                        </p>
+                      </div>
 
-            return (
-
-              <div
-                key={clase.id}
-                className="
-                  bg-[#1a2b24]
-                  border
-                  border-[#2d463b]
-                  rounded-2xl
-                  p-5
-                "
-              >
-
-                <div className="flex justify-between items-center">
-
-                  <div>
-
-                    <div className="flex items-center gap-2">
-
-                      <CalendarTodayOutlinedIcon
-                        sx={{
-                          fontSize: 18,
-                        }}
-                      />
-
-                      <span className="font-semibold">
-                        {clase.diaSemana}
-                      </span>
-
+                      {estaInscripto ? (
+                        <button
+                          onClick={() =>
+                            handleDesinscribirse(
+                              clase.id
+                            )
+                          }
+                          className="
+                            px-5
+                            py-3
+                            rounded-xl
+                            font-bold
+                            bg-red-500/20
+                            text-red-400
+                            hover:bg-red-500/30
+                            transition-all
+                          "
+                        >
+                          Desinscribirme
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            handleInscribirse(
+                              clase.id
+                            )
+                          }
+                          className="
+                            px-5
+                            py-3
+                            rounded-xl
+                            font-bold
+                            bg-[#4adea8]
+                            text-[#12201b]
+                            hover:opacity-90
+                            transition-all
+                          "
+                        >
+                          Inscribirme
+                        </button>
+                      )}
                     </div>
-
-                    <p className="text-gray-400 mt-2">
-
-                      {clase.horaInicio.substring(0, 5)}
-
-                      {" - "}
-
-                      {clase.horaFin.substring(0, 5)}
-
-                    </p>
-
-                    <p className="text-gray-500 text-sm mt-2">
-
-                      Cupo máximo:
-                      {" "}
-                      {clase.cupoMaximo}
-
-                    </p>
-
                   </div>
-
-                  {estaInscripto ? (
-
-                    <button
-                      onClick={() =>
-                        handleDesinscribirse(
-                          clase.id
-                        )
-                      }
-                      className="
-                        px-5
-                        py-3
-                        rounded-xl
-                        font-bold
-                        bg-red-500/20
-                        text-red-400
-                        hover:bg-red-500/30
-                        transition-all
-                      "
-                    >
-                      Desinscribirme
-                    </button>
-
-                  ) : (
-
-                    <button
-                      onClick={() =>
-                        handleInscribirse(
-                          clase.id
-                        )
-                      }
-                      className="
-                        px-5
-                        py-3
-                        rounded-xl
-                        font-bold
-                        bg-[#4adea8]
-                        text-[#12201b]
-                        hover:opacity-90
-                        transition-all
-                      "
-                    >
-                      Inscribirme
-                    </button>
-
-                  )}
-
-                </div>
-
-              </div>
-
-            );
-
-          })
-
-        ) : (
-
-          <div
-            className="
-              bg-[#1a2b24]
-              border
-              border-[#2d463b]
-              rounded-2xl
-              p-8
-              text-center
-            "
-          >
-
-            <p className="text-gray-400">
-              Este grupo no tiene clases configuradas.
-            </p>
-
-          </div>
-
-        )}
-
-      </div>
-
+                );
+              }
+            )
+          ) : (
+            <div
+              className="
+                bg-[#1a2b24]
+                border
+                border-[#2d463b]
+                rounded-2xl
+                p-8
+                text-center
+              "
+            >
+              <p className="text-gray-400">
+                Este grupo no tiene
+                clases configuradas.
+              </p>
+            </div>
+          )}
+        </div>
       </main>
     </AlumnoLayout>
-);
+  );
 }

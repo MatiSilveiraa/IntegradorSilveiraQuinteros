@@ -160,3 +160,12 @@ export interface ApiError {
 
   message?: string;
 }
+
+export interface SolicitudReactivacion {
+  id: number;
+  alumnoId: number;
+  nombreAlumno: string;
+  fechaSolicitud: string;
+  estado: string;
+  motivoAlumno: string;
+}
