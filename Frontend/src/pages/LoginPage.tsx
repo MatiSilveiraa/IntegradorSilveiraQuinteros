@@ -6,7 +6,6 @@ import { GoogleLogin } from "@react-oauth/google";
 
 import { loginGoogle } from "../services/AuthGoogle.Service";
 import toast from "react-hot-toast";
-import { obtenerMiPerfil } from "../services/Perfil.service";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -40,16 +39,6 @@ export default function LoginPage() {
 
       localStorage.setItem("usuario", JSON.stringify(response.usuario));
 
-      const perfil = await obtenerMiPerfil();
-
-      if (
-        response.usuario.rol === "Alumno" &&
-        perfil.bloqueadoPorInasistencias
-      ) {
-        navigate("/alumno/bloqueado");
-
-        return;
-      }
       const rol = response.usuario.rol;
 
       if (rol === "Admin") {
@@ -236,8 +225,18 @@ export default function LoginPage() {
         {/* OTP */}
 
         <button
-          onClick={() => navigate("/otp-login")}
-          className="w-full h-14 border border-[#2d463b] rounded-xl text-white hover:bg-[#22362e] transition-all mt-4"
+          onClick={() => navigate("/passwordless-login")}
+          className="
+    w-full
+    h-14
+    border
+    border-[#2d463b]
+    rounded-xl
+    text-white
+    hover:bg-[#22362e]
+    transition-all
+    mt-4
+  "
         >
           Ingresar sin contraseña
         </button>

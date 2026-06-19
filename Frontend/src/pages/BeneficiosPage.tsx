@@ -7,75 +7,46 @@ import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMisBeneficios } from "../services/Beneficio.Service";
 
 import type { Perfil, Beneficio } from "../types";
+import FullPageLoader from "../components/FullScreenSpinner";
 
 export default function BeneficiosPage() {
-  const [perfil, setPerfil] =
-    useState<Perfil | null>(null);
-
-  const [beneficios, setBeneficios] =
-    useState<Beneficio[]>([]);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
 
   useEffect(() => {
-    obtenerMiPerfil()
-      .then(setPerfil)
-      .catch((error) => {
+    const cargarDatos = async () => {
+      try {
+        const [perfilData, beneficiosData] = await Promise.all([
+          obtenerMiPerfil(),
+          obtenerMisBeneficios(),
+        ]);
+
+        setPerfil(perfilData);
+
+        setBeneficios(Array.isArray(beneficiosData) ? beneficiosData : []);
+      } catch (error) {
         console.error(error);
 
-        toast.error(
-          "No fue posible cargar el perfil"
-        );
-      });
+        toast.error("No fue posible cargar los beneficios");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
   }, []);
 
-  useEffect(() => {
-    obtenerMisBeneficios()
-      .then((data) => {
-        console.log(
-          "BENEFICIOS",
-          data
-        );
+  const beneficiosActivos = beneficios.filter(
+    (b) => b.estado?.toUpperCase() === "ACTIVO",
+  ).length;
 
-        setBeneficios(
-          Array.isArray(data)
-            ? data
-            : []
-        );
-      })
-      .catch((error) => {
-        console.error(
-          "ERROR BENEFICIOS",
-          error
-        );
+  const descuentos = beneficios.filter((b) => !b.cuotaGratis).length;
 
-        toast.error(
-          "No fue posible cargar los beneficios"
-        );
-      });
-  }, []);
+  const cuotasGratis = beneficios.filter((b) => b.cuotaGratis).length;
 
-  const beneficiosActivos =
-    beneficios.filter(
-      (b) =>
-        b.estado?.toUpperCase() ===
-        "ACTIVO"
-    ).length;
-
-  const descuentos =
-    beneficios.filter(
-      (b) => !b.cuotaGratis
-    ).length;
-
-  const cuotasGratis =
-    beneficios.filter(
-      (b) => b.cuotaGratis
-    ).length;
-
-  const obtenerColorEstado = (
-    estado: string
-  ) => {
-    switch (
-      estado?.toUpperCase()
-    ) {
+  const obtenerColorEstado = (estado: string) => {
+    switch (estado?.toUpperCase()) {
       case "ACTIVO":
         return `
           bg-green-500/10
@@ -102,17 +73,46 @@ export default function BeneficiosPage() {
     }
   };
 
+  if (loading) {
+    return <FullPageLoader />;
+  }
+
   return (
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">
-          Mis Beneficios
-        </h1>
+        <div
+          className="
+    rounded-3xl
+    border
+    border-[#4adea8]/20
+    bg-gradient-to-r
+    from-[#1a2b24]
+    to-[#163129]
+    p-8
+    mb-8
+  "
+        >
+          <span
+            className="
+      inline-block
+      px-3
+      py-1
+      rounded-full
+      bg-[#4adea8]
+      text-[#12201b]
+      text-xs
+      font-bold
+    "
+          >
+            BENEFICIOS
+          </span>
 
-        <p className="text-gray-400 mb-8">
-          Beneficios obtenidos por tu
-          participación y rendimiento.
-        </p>
+          <h1 className="text-4xl font-bold mt-4">Mis Beneficios</h1>
+
+          <p className="text-gray-300 mt-2">
+            Recompensas obtenidas por tu esfuerzo y constancia.
+          </p>
+        </div>
 
         <div
           className="
@@ -131,13 +131,9 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">
-              Beneficios activos
-            </p>
+            <p className="text-gray-400 text-sm">Beneficios activos</p>
 
-            <h2 className="text-3xl font-bold mt-2">
-              {beneficiosActivos}
-            </h2>
+            <h2 className="text-3xl font-bold mt-2">{beneficiosActivos}</h2>
           </div>
 
           <div
@@ -149,13 +145,9 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">
-              Descuentos
-            </p>
+            <p className="text-gray-400 text-sm">Descuentos</p>
 
-            <h2 className="text-3xl font-bold mt-2">
-              {descuentos}
-            </h2>
+            <h2 className="text-3xl font-bold mt-2">{descuentos}</h2>
           </div>
 
           <div
@@ -167,13 +159,9 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">
-              Cuotas gratis
-            </p>
+            <p className="text-gray-400 text-sm">Cuotas gratis</p>
 
-            <h2 className="text-3xl font-bold mt-2">
-              {cuotasGratis}
-            </h2>
+            <h2 className="text-3xl font-bold mt-2">{cuotasGratis}</h2>
           </div>
         </div>
 
@@ -188,18 +176,14 @@ export default function BeneficiosPage() {
               text-center
             "
           >
-            <p className="text-gray-400">
-              No tienes beneficios
-              activos.
-            </p>
+            <p className="text-gray-400">No tienes beneficios activos.</p>
           </div>
         ) : (
           <div className="grid gap-4">
-            {beneficios.map(
-              (beneficio) => (
-                <div
-                  key={beneficio.id}
-                  className="
+            {beneficios.map((beneficio) => (
+              <div
+                key={beneficio.id}
+                className="
                     bg-[#1a2b24]
                     border
                     border-[#2d463b]
@@ -208,68 +192,56 @@ export default function BeneficiosPage() {
                     hover:border-[#4adea8]/30
                     transition-all
                   "
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3
-                        className="
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3
+                      className="
                           text-xl
                           font-bold
                           flex
                           items-center
                           gap-2
                         "
-                      >
-                        {beneficio.cuotaGratis
-                          ? "🎁 Cuota Gratis"
-                          : `💰 ${beneficio.porcentajeDescuento}% de Descuento`}
-                      </h3>
+                    >
+                      {beneficio.cuotaGratis
+                        ? "🎁 Cuota Gratis"
+                        : `💰 ${beneficio.porcentajeDescuento}% de Descuento`}
+                    </h3>
 
-                      <p className="text-gray-400 mt-2">
-                        {
-                          beneficio.descripcion
-                        }
-                      </p>
-                    </div>
+                    <p className="text-gray-400 mt-2">
+                      {beneficio.descripcion}
+                    </p>
+                  </div>
 
-                    <span
-                      className={`
+                  <span
+                    className={`
                         px-3
                         py-1
                         rounded-full
                         text-xs
                         font-semibold
-                        ${obtenerColorEstado(
-                          beneficio.estado!
-                        )}
+                        ${obtenerColorEstado(beneficio.estado!)}
                       `}
-                    >
-                      {
-                        beneficio.estado
-                      }
+                  >
+                    {beneficio.estado}
+                  </span>
+                </div>
+
+                <div className="mt-5">
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>Duración</span>
+
+                    <span>
+                      {beneficio.mesesAplicados}
+                      {" / "}
+                      {beneficio.mesesDuracion}
+                      {" meses"}
                     </span>
                   </div>
 
-                  <div className="mt-5">
-                    <div className="flex justify-between text-sm text-gray-400">
-                      <span>
-                        Duración
-                      </span>
-
-                      <span>
-                        {
-                          beneficio.mesesAplicados
-                        }
-                        {" / "}
-                        {
-                          beneficio.mesesDuracion
-                        }
-                        {" meses"}
-                      </span>
-                    </div>
-
-                    <div
-                      className="
+                  <div
+                    className="
                         w-full
                         h-2
                         bg-[#12201b]
@@ -277,27 +249,26 @@ export default function BeneficiosPage() {
                         mt-3
                         overflow-hidden
                       "
-                    >
-                      <div
-                        className="
+                  >
+                    <div
+                      className="
                           h-full
                           bg-[#4adea8]
                         "
-                        style={{
-                          width: `${
-                            (beneficio.mesesDuracion ?? 0) > 0
-                              ? ((beneficio.mesesAplicados ?? 0) /
-                                  (beneficio.mesesDuracion ?? 0)) *
-                                100
-                              : 0
-                          }%`,
-                        }}
-                      />
-                    </div>
+                      style={{
+                        width: `${
+                          (beneficio.mesesDuracion ?? 0) > 0
+                            ? ((beneficio.mesesAplicados ?? 0) /
+                                (beneficio.mesesDuracion ?? 0)) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
                   </div>
                 </div>
-              )
-            )}
+              </div>
+            ))}
           </div>
         )}
       </main>

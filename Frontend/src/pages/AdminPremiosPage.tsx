@@ -11,9 +11,13 @@ import {
 
 import type { Recompensa } from "../types";
 
+import FullScreenLoading from "../components/FullScreenSpinner";
+
 export default function AdminPremiosPage() {
   const [premios, setPremios] =
     useState<Recompensa[]>([]);
+  const [loading, setLoading] =
+    useState(true);
 
   const cargarDatos = async () => {
     try {
@@ -28,11 +32,18 @@ export default function AdminPremiosPage() {
         "No fue posible cargar los premios pendientes"
       );
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   const entregar = async (
     beneficioId: number

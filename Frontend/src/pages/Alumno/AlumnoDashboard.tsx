@@ -11,22 +11,37 @@ import CuotaCard from "../../components/dashboard/CuotaCard";
 import RachaCard from "../../components/dashboard/RachaCard";
 import ResumenCard from "../../components/dashboard/ResumenCard";
 import NovedadesCard from "../../components/dashboard/NovedadesCard";
+
 import { useNavigate } from "react-router-dom";
 
 import AlumnoLayout from "../../components/layout/AlumnoLayout";
-import toast from "react-hot-toast";
 
-import type { Perfil, Cuota, Historial, Clase } from "../../types";
+import toast from "react-hot-toast";
+ import FullScreenLoading from "../../components/FullScreenSpinner";
+
+import type {
+  Perfil,
+  Cuota,
+  Historial,
+  Clase,
+} from "../../types";
 
 export default function AlumnoDashboard() {
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
 
-  const [cuota, setCuota] = useState<Cuota | any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [historial, setHistorial] = useState<Historial | any>(null);
+  const [perfil, setPerfil] =
+    useState<Perfil | null>(null);
 
-  const [misClases, setMisClases] = useState<Clase[]>([]);
+  const [cuota, setCuota] =
+    useState<Cuota | any>(null);
+
+  const [historial, setHistorial] =
+    useState<Historial | any>(null);
+
+  const [misClases, setMisClases] =
+    useState<Clase[]>([]);
 
   const diasSemana = [
     "Domingo",
@@ -38,177 +53,214 @@ export default function AlumnoDashboard() {
     "Sabado",
   ];
 
-  const obtenerProximaClase = (clases: Clase[]): any | null => {
+  const obtenerProximaClase = (
+    clases: Clase[],
+  ) => {
     if (!clases.length) {
-      return null;
+      return undefined;
     }
 
     const hoy = new Date().getDay();
 
     const ordenadas = [...clases].sort(
       (a, b) =>
-        diasSemana.indexOf(a.diaSemana) - diasSemana.indexOf(b.diaSemana),
+        diasSemana.indexOf(a.diaSemana) -
+        diasSemana.indexOf(b.diaSemana),
     );
 
     return (
-      ordenadas.find((c) => diasSemana.indexOf(c.diaSemana) >= hoy) ||
-      ordenadas[0]
+      ordenadas.find(
+        (c) =>
+          diasSemana.indexOf(c.diaSemana) >= hoy,
+      ) || ordenadas[0]
     );
   };
 
-  const proximaClase = obtenerProximaClase(misClases);
   useEffect(() => {
-    obtenerMiPerfil()
-      .then(setPerfil)
-      .catch((error) => {
-        console.error(error);
-        toast.error("No fue posible cargar tu perfil");
-      });
+    const cargarDatos = async () => {
+      try {
+        const [
+          perfilData,
+          historialData,
+          clasesData,
+        ] = await Promise.all([
+          obtenerMiPerfil(),
+          obtenerMiHistorial(),
+          obtenerMisClases(),
+        ]);
 
-    obtenerMiHistorial()
-      .then(setHistorial)
-      .catch((error) => {
-        console.error(error);
-        toast.error("No fue posible cargar el historial");
-      });
+        setPerfil(perfilData);
 
-    obtenerMiCuota()
-      .then(setCuota)
-      .catch((error) => {
-        if (
-          error.response?.data?.mensaje ===
-          "No existe cuota generada para el mes actual"
-        ) {
-          setCuota({
-            estado: "Sin cuota",
-          });
+        setHistorial(historialData);
 
-          return;
+        setMisClases(clasesData);
+
+        try {
+          const cuotaData =
+            await obtenerMiCuota();
+
+          setCuota(cuotaData);
+        } catch (error: any) {
+          if (
+            error.response?.data?.mensaje ===
+            "No existe cuota generada para el mes actual"
+          ) {
+            setCuota({
+              estado: "Sin cuota",
+            });
+          } else {
+            toast.error(
+              "No fue posible cargar la cuota",
+            );
+          }
         }
-
+      } catch (error) {
         console.error(error);
-        toast.error("No fue posible cargar la cuota");
-      });
+
+        toast.error(
+          "No fue posible cargar el dashboard",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
   }, []);
 
-  useEffect(() => {
-    obtenerMisClases()
-      .then(setMisClases)
-      .catch((error) => {
-        console.error(error);
-        toast.error("No fue posible cargar tus clases");
-      });
-  }, []);
+  const proximaClase =
+    obtenerProximaClase(misClases);
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   return (
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-7xl mx-auto">
         <DashboardHeader nombre={perfil?.nombre} />
+
         {perfil?.bloqueadoPorInasistencias && (
           <div
             className="
-        mb-6
-        bg-red-500/10
-        border
-        border-red-500/30
-        rounded-2xl
-        p-5
-        flex
-        items-center
-        justify-between
-        gap-4
-      "
+              mb-6
+              bg-red-500/10
+              border
+              border-red-500/30
+              rounded-2xl
+              p-5
+              flex
+              items-center
+              justify-between
+              gap-4
+            "
           >
             <div>
               <h3
                 className="
-            text-red-400
-            font-bold
-            text-lg
-          "
+                  text-red-400
+                  font-bold
+                  text-lg
+                "
               >
                 🚫 Cuenta bloqueada
               </h3>
 
               <p className="text-gray-300 mt-1">
-                Tu cuenta fue bloqueada por inasistencias. No podrás inscribirte
-                a clases hasta que un administrador apruebe tu reactivación.
+                Tu cuenta fue bloqueada por
+                inasistencias. No podrás
+                inscribirte a clases hasta que
+                un administrador apruebe tu
+                reactivación.
               </p>
             </div>
 
             <button
-              onClick={() => navigate("/alumno/reactivacion")}
+              onClick={() =>
+                navigate(
+                  "/alumno/reactivacion",
+                )
+              }
               className="
-          px-5
-          py-3
-          rounded-xl
-          bg-red-500
-          text-white
-          font-bold
-          whitespace-nowrap
-          hover:opacity-90
-        "
+                px-5
+                py-3
+                rounded-xl
+                bg-red-500
+                text-white
+                font-bold
+                whitespace-nowrap
+                hover:opacity-90
+              "
             >
               Solicitar Reactivación
             </button>
           </div>
         )}
-        {perfil && !perfil.twoFactorEnabled && (
-          <div
-            className="
-      mb-6
-      bg-amber-500/10
-      border
-      border-amber-500/30
-      rounded-2xl
-      p-5
-      flex
-      items-center
-      justify-between
-      gap-4
-    "
-          >
-            <div>
-              <h3
-                className="
-          text-amber-400
-          font-bold
-          text-lg
-        "
-              >
-                🔐 Protegé tu cuenta
-              </h3>
 
-              <p className="text-gray-300 mt-1">
-                Todavía no tenés activada la autenticación de dos factores
-                (2FA). Activala para aumentar la seguridad de tu cuenta.
-              </p>
-            </div>
-
-            <button
-              onClick={() => navigate("/alumno/seguridad")}
+        {perfil &&
+          !perfil.twoFactorEnabled && (
+            <div
               className="
-        px-5
-        py-3
-        rounded-xl
-        bg-[#4adea8]
-        text-[#12201b]
-        font-bold
-        whitespace-nowrap
-        hover:opacity-90
-      "
+                mb-6
+                bg-amber-500/10
+                border
+                border-amber-500/30
+                rounded-2xl
+                p-5
+                flex
+                items-center
+                justify-between
+                gap-4
+              "
             >
-              Activar 2FA
-            </button>
-          </div>
-        )}
+              <div>
+                <h3
+                  className="
+                    text-amber-400
+                    font-bold
+                    text-lg
+                  "
+                >
+                  🔐 Protegé tu cuenta
+                </h3>
+
+                <p className="text-gray-300 mt-1">
+                  Todavía no tenés activada la
+                  autenticación de dos factores
+                  (2FA).
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  navigate(
+                    "/alumno/seguridad",
+                  )
+                }
+                className="
+                  px-5
+                  py-3
+                  rounded-xl
+                  bg-[#4adea8]
+                  text-[#12201b]
+                  font-bold
+                "
+              >
+                Activar 2FA
+              </button>
+            </div>
+          )}
 
         <div className="grid gap-4 lg:grid-cols-2">
           <ProximaClaseCard clase={proximaClase} />
 
           <CuotaCard cuota={cuota} />
 
-          <RachaCard racha={perfil?.rachaAsistenciaMensual} />
+          <RachaCard
+            racha={
+              perfil?.rachaAsistenciaMensual
+            }
+          />
 
           <ResumenCard historial={historial} />
 

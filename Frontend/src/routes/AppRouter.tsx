@@ -35,6 +35,8 @@ import CompletarPerfilPage from "../pages/CompletarPerfilPage";
 import ProtectedRoute from "./ProtectedRoutes";
 import AdminReactivacionesPage from "../pages/AdminReactivacionesPage";
 import SolicitarReactivacionPage from "../pages/SolicitarReactivacionPage";
+import PasswordlessLoginPage from "../pages/PasswordlessLoginPage";
+import PasswordlessCodePage from "../pages/PasswordlessCodePage";
 
 export default function AppRouter() {
   return (
@@ -241,6 +243,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/passwordless-login"
+  element={<PasswordlessLoginPage />}
+/>
+
+<Route
+  path="/otp-login-codigo"
+  element={<PasswordlessCodePage />}
+/>
       </Routes>
     </BrowserRouter>
   );

@@ -17,6 +17,7 @@ export interface Perfil {
   twoFactorEnabled?: boolean;
   rachaAsistenciaMensual?: number;
   rol?: string;
+  bloqueadoPorImpago?: boolean;
 }
 
 export interface Cuota {
