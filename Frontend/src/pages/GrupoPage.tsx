@@ -10,12 +10,13 @@ import { obtenerImagenGrupo } from "../utils/grupoImageUtils";
 import { desinscribirseClase } from "../services/Inscripciones.Service";
 import { obtenerProximaClase } from "../utils/proximaClaseUtils";
 import toast from "react-hot-toast";
+import FullScreenLoading from "../components/FullScreenSpinner";
 
 import type { Perfil } from "../types";
 
 export default function GruposPage() {
   const [perfil, setPerfil] = useState<Perfil | any>(null);
-
+  const [loading, setLoading] = useState(true);
   const [grupos, setGrupos] = useState<any[]>([]);
   const [misClases, setMisClases] = useState<any[]>([]);
 
@@ -23,42 +24,34 @@ export default function GruposPage() {
 
   const proximaClase = obtenerProximaClase(misClases);
 
-  useEffect(() => {
-  obtenerMiPerfil()
-    .then(setPerfil)
-    .catch((error) => {
-      console.error(error);
-
-      toast.error(
-        "No fue posible cargar el perfil"
-      );
-    });
-}, []);
-
  useEffect(() => {
-  obtenerGrupos()
-    .then(setGrupos)
-    .catch((error) => {
+  const cargarDatos = async () => {
+    try {
+      const [
+        perfilData,
+        gruposData,
+        clasesData,
+      ] = await Promise.all([
+        obtenerMiPerfil(),
+        obtenerGrupos(),
+        obtenerMisClases(),
+      ]);
+
+      setPerfil(perfilData);
+      setGrupos(gruposData);
+      setMisClases(clasesData);
+    } catch (error) {
       console.error(error);
 
       toast.error(
-        "No fue posible cargar los grupos"
+        "No fue posible cargar la información"
       );
-    });
-}, []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- useEffect(() => {
-  obtenerMisClases()
-    .then((data) => {
-      setMisClases(data);
-    })
-    .catch((error) => {
-      console.error(error);
-
-      toast.error(
-        "No fue posible cargar tus clases"
-      );
-    });
+  cargarDatos();
 }, []);
 
  const handleDesinscribirse = async (
@@ -94,7 +87,9 @@ export default function GruposPage() {
   const obtenerNombreGrupo = (grupoId: number) => {
     return grupos.find((g) => g.id === grupoId)?.nombre || "Grupo";
   };
-
+  if(loading) {
+    return <FullScreenLoading />;
+  }
   return (
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-7xl mx-auto">

@@ -12,9 +12,14 @@ import {
 
 import type { Desafio, Recompensa } from "../types";
 
+import FullScreenLoading from "../components/FullScreenSpinner";
+
 export default function AdminRecompensasPage() {
   const [desafios, setDesafios] =
     useState<Desafio[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   const [recompensas, setRecompensas] =
     useState<Recompensa[]>([]);
@@ -25,16 +30,24 @@ export default function AdminRecompensasPage() {
   ] = useState<number>(0);
 
   useEffect(() => {
-    obtenerDesafios()
-      .then(setDesafios)
-      .catch((error) => {
-        console.error(error);
+  const cargarDatos = async () => {
+    try {
+      const data = await obtenerDesafios();
 
-        toast.error(
-          "No fue posible cargar los desafíos"
-        );
-      });
-  }, []);
+      setDesafios(data);
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        "No fue posible cargar los desafíos"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  cargarDatos();
+}, []);
 
   useEffect(() => {
     if (!desafioSeleccionado)
@@ -89,7 +102,9 @@ export default function AdminRecompensasPage() {
         );
       }
     };
-
+    if(loading) {
+      return <FullScreenLoading />
+    }
   return (
     <div className="min-h-screen bg-[#12201b] text-white p-6">
       <div className="max-w-7xl mx-auto">

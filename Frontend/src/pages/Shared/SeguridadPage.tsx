@@ -8,11 +8,12 @@ import { setup2FA, confirmar2FA } from "../../services/Auth2FA.Service";
 
 import type { Perfil } from "../../types";
 import toast from "react-hot-toast";
+import FullScreenLoading from "../../components/FullScreenSpinner";
 
 export default function SeguridadPage() {
   const [perfil, setPerfil] = useState<Perfil | any>(null);
   const [qrCode, setQrCode] = useState("");
-
+  const [loading, setLoading] = useState(true);
   const [codigo, setCodigo] = useState("");
 
   const [mostrarQR, setMostrarQR] = useState(false);
@@ -36,7 +37,19 @@ export default function SeguridadPage() {
   };
 
   useEffect(() => {
-    obtenerMiPerfil().then(setPerfil).catch(console.error);
+    const cargarPerfil = async () => {
+      setLoading(true);
+      try {
+        const data = await obtenerMiPerfil();
+        setPerfil(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarPerfil();
   }, []);
 
   const activar2FA = async () => {
@@ -71,6 +84,10 @@ export default function SeguridadPage() {
       toast.error(error?.response?.data?.mensaje || "Código inválido");
     }
   };
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   return (
     <AlumnoLayout nombre={perfil?.nombre} mostrarNavegacion={esAlumno}>

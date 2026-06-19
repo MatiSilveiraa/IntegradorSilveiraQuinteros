@@ -1,61 +1,59 @@
 import { useState } from "react";
-
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import logo from "../assets/logo.png";
 
-import { validar2FA } from "../services/Auth2FA.Service";
+import { solicitarLoginSinPassword } from "../services/AuthPasswordless.Service";
+
 import toast from "react-hot-toast";
 
-export default function TwoFactorLoginPage() {
+export default function PasswordlessLoginPage() {
   const navigate = useNavigate();
 
-  const location = useLocation();
-
-  const email = location.state?.email;
-
-  const [codigo, setCodigo] = useState("");
+  const [email, setEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState("");
+  const handleSubmit = async (
+    e: React.FormEvent,
+  ) => {
+    e.preventDefault();
 
-  const handleValidar = async () => {
+    if (!email.trim()) {
+      toast.error(
+        "Ingresa tu correo electrónico",
+      );
+
+      return;
+    }
+
     try {
-      if (!codigo.trim()) {
-        toast.error("Ingresa el código de verificación");
-        return;
-      }
-
       setLoading(true);
 
-      setError("");
+      await solicitarLoginSinPassword(
+        email,
+      );
 
-      const response = await validar2FA(email, codigo);
+      toast.success(
+        "Código enviado correctamente",
+      );
 
-      localStorage.setItem("token", response.token);
-
-      localStorage.setItem("usuario", JSON.stringify(response.usuario));
-      toast.success("Inicio de sesión correcto");
-      const rol = response.usuario.rol;
-
-      if (rol === "Admin") {
-        navigate("/admin");
-      } else if (rol === "Alumno") {
-        navigate("/alumno");
-      } else if (rol === "Entrenador") {
-        navigate("/entrenador");
-      } else {
-        navigate("/");
-      }
+      navigate(
+        "/otp-login-codigo",
+        {
+          state: {
+            email,
+          },
+        },
+      );
     } catch (error: any) {
       console.error(error);
 
-      const mensaje = error?.response?.data?.mensaje || "Código inválido";
-
-      setError(mensaje);
-
-      toast.error(mensaje);
+      toast.error(
+        error?.response?.data
+          ?.mensaje ||
+          "No fue posible enviar el código",
+      );
     } finally {
       setLoading(false);
     }
@@ -114,7 +112,7 @@ export default function TwoFactorLoginPage() {
               mt-6
             "
           >
-            Verificación 2FA
+            Ingreso sin contraseña
           </h1>
 
           <p
@@ -124,27 +122,15 @@ export default function TwoFactorLoginPage() {
               text-center
             "
           >
-            Ingresa el código generado por Google Authenticator
+            Te enviaremos un código
+            temporal a tu correo.
           </p>
         </div>
 
-        {error && (
-          <div
-            className="
-              bg-red-500/20
-              border
-              border-red-500
-              text-red-300
-              p-3
-              rounded-xl
-              mt-6
-            "
-          >
-            {error}
-          </div>
-        )}
-
-        <div className="mt-8">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8"
+        >
           <label
             className="
               text-sm
@@ -153,15 +139,18 @@ export default function TwoFactorLoginPage() {
               mb-2
             "
           >
-            Código de verificación
+            Correo electrónico
           </label>
 
           <input
-            type="text"
-            maxLength={6}
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-            placeholder="123456"
+            type="email"
+            value={email}
+            onChange={(e) =>
+              setEmail(
+                e.target.value,
+              )
+            }
+            placeholder="correo@ejemplo.com"
             className="
               w-full
               h-14
@@ -173,15 +162,12 @@ export default function TwoFactorLoginPage() {
               text-white
               outline-none
               focus:border-[#4adea8]
-              text-center
-              text-xl
-              tracking-[0.4em]
             "
           />
 
           <button
-            onClick={handleValidar}
-            disabled={loading || codigo.length < 6}
+            type="submit"
+            disabled={loading}
             className="
               w-full
               h-14
@@ -196,9 +182,11 @@ export default function TwoFactorLoginPage() {
               disabled:opacity-50
             "
           >
-            {loading ? "Validando..." : "Ingresar"}
+            {loading
+              ? "Enviando..."
+              : "Enviar código"}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

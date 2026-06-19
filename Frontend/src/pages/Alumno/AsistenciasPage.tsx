@@ -12,22 +12,26 @@ import ClassLocationMap from "../../components/maps/ClassLocationMap";
 import { calcularDistancia } from "../../utils/geolocationUtils";
 import { obtenerProximaClase } from "../../utils/proximaClaseUtils";
 import toast from "react-hot-toast";
+import FullScreenLoading from "../../components/FullScreenSpinner";
 
 configurarLeaflet();
 export default function AsistenciasPage() {
   const [estado, setEstado] = useState("Obteniendo clases...");
   const [misClases, setMisClases] = useState<any[]>([]);
-
+  const [loading, setLoading] = useState(true);
   const [latitud, setLatitud] = useState<number | null>(null);
 
   const [longitud, setLongitud] = useState<number | null>(null);
 
   useEffect(() => {
+    console.log("Cargando asistencias...");
     registrarAsistencia();
+
   }, []);
 
   const registrarAsistencia = async () => {
     try {
+      setLoading(true);
       setEstado("Buscando clases...");
 
       const clases = await obtenerMisClases();
@@ -39,8 +43,10 @@ export default function AsistenciasPage() {
 
         toast.error("No tienes clases registradas");
 
+        setLoading(false);
         return;
       }
+      
 
       setEstado("Obteniendo ubicación...");
 
@@ -59,6 +65,7 @@ export default function AsistenciasPage() {
 
             toast.error("No tienes clases programadas para hoy");
 
+            setLoading(false);
             return;
           }
           try {
@@ -73,6 +80,7 @@ export default function AsistenciasPage() {
             setEstado(
               resultado.mensaje || "Asistencia registrada correctamente",
             );
+            setLoading(false);
 
             toast.success(
               resultado.mensaje || "Asistencia registrada correctamente",
@@ -86,6 +94,7 @@ export default function AsistenciasPage() {
               error?.response?.data?.mensaje ||
                 "No fue posible registrar la asistencia",
             );
+            setLoading(false);
           }
         },
         (error) => {
@@ -119,6 +128,10 @@ export default function AsistenciasPage() {
           proximaClase.longitud,
         )
       : null;
+
+      if(loading) {
+        return <FullScreenLoading />;
+      }
 
   return (
     <AlumnoLayout>

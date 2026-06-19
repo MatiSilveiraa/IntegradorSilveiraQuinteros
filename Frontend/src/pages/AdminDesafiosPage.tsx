@@ -9,10 +9,13 @@ import {
 } from "../services/AdminDesafio.Service";
 
 import type { Desafio } from "../types";
+import FullScreenLoading from "../components/FullScreenSpinner";
 
 export default function AdminDesafiosPage() {
   const [desafios, setDesafios] =
     useState<Desafio[]>([]);
+  const [loading, setLoading] =
+    useState(true);
 
   const [modalAbierto, setModalAbierto] =
     useState(false);
@@ -40,12 +43,18 @@ export default function AdminDesafiosPage() {
       toast.error(
         "No fue posible cargar los desafíos"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   const abrirCrear = () => {
     setEditando(null);

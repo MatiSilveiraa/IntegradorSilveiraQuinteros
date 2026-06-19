@@ -16,30 +16,37 @@ import TopBar from "../../components/navigation/DashboardTopBar";
 import toast from "react-hot-toast";
 
 import type { Perfil } from "../../types";
+import FullScreenLoading from "../../components/FullScreenSpinner";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   const [dashboard, setDashboard] = useState<any>(null);
-
-  useEffect(() => {
-    obtenerDashboardAdmin()
-      .then(setDashboard)
-      .catch((error) => {
-        console.error(error);
-        toast.error("No fue posible cargar el dashboard");
-      });
-  }, []);
 
   const [perfil, setPerfil] = useState<Perfil | null>(null);
 
   useEffect(() => {
-    obtenerMiPerfil()
-      .then(setPerfil)
-      .catch((error) => {
+    const cargarDatos = async () => {
+      try {
+        const [dashboardData, perfilData] = await Promise.all([
+          obtenerDashboardAdmin(),
+          obtenerMiPerfil(),
+        ]);
+
+        setDashboard(dashboardData);
+
+        setPerfil(perfilData);
+      } catch (error) {
         console.error(error);
-        toast.error("No fue posible cargar el perfil");
-      });
+
+        toast.error("No fue posible cargar el dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
   }, []);
 
   const cards = [
@@ -85,7 +92,13 @@ export default function AdminDashboard() {
     },
   ];
 
-  return (
+  if (loading) {
+  return <FullScreenLoading />;
+}
+
+return (
+  <div className="min-h-screen bg-[#12201b] text-white">
+
   <div className="min-h-screen bg-[#12201b] text-white">
     <TopBar nombre={perfil?.nombre} />
 
@@ -127,9 +140,7 @@ export default function AdminDashboard() {
           PANEL ADMINISTRADOR
         </span>
 
-        <h1 className="text-4xl font-bold mt-4">
-          Bienvenido {perfil?.nombre}
-        </h1>
+        <h1 className="text-4xl font-bold mt-4">Bienvenido {perfil?.nombre}</h1>
 
         <p className="text-gray-300 mt-2">
           Gestiona alumnos, pagos, desafíos, beneficios y premios del gimnasio.
@@ -167,9 +178,7 @@ export default function AdminDashboard() {
           </div>
 
           <button
-            onClick={() =>
-              navigate("/admin/seguridad")
-            }
+            onClick={() => navigate("/admin/seguridad")}
             className="
               px-5
               py-3
@@ -187,9 +196,7 @@ export default function AdminDashboard() {
 
       {/* KPIS */}
 
-      <h2 className="text-2xl font-bold mb-5">
-        Estado General
-      </h2>
+      <h2 className="text-2xl font-bold mb-5">Estado General</h2>
 
       <div
         className="
@@ -215,13 +222,9 @@ export default function AdminDashboard() {
           >
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-gray-400 text-sm">
-                  {card.titulo}
-                </p>
+                <p className="text-gray-400 text-sm">{card.titulo}</p>
 
-                <h2 className="text-3xl font-bold mt-2">
-                  {card.valor}
-                </h2>
+                <h2 className="text-3xl font-bold mt-2">{card.valor}</h2>
               </div>
 
               <div
@@ -250,9 +253,7 @@ export default function AdminDashboard() {
       {/* ACCESOS RAPIDOS */}
 
       <section>
-        <h2 className="text-2xl font-bold mb-5">
-          Accesos rápidos
-        </h2>
+        <h2 className="text-2xl font-bold mb-5">Accesos rápidos</h2>
 
         <div
           className="
@@ -263,9 +264,7 @@ export default function AdminDashboard() {
           "
         >
           <button
-            onClick={() =>
-              navigate("/admin/desafios")
-            }
+            onClick={() => navigate("/admin/desafios")}
             className="
               bg-[#1a2b24]
               border
@@ -278,13 +277,9 @@ export default function AdminDashboard() {
               transition-all
             "
           >
-            <div className="text-3xl mb-3">
-              🎯
-            </div>
+            <div className="text-3xl mb-3">🎯</div>
 
-            <h3 className="font-semibold text-lg">
-              Gestionar Desafíos
-            </h3>
+            <h3 className="font-semibold text-lg">Gestionar Desafíos</h3>
 
             <p className="text-sm text-gray-400 mt-2">
               Crear, editar y administrar desafíos.
@@ -292,9 +287,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            onClick={() =>
-              navigate("/admin/recompensas")
-            }
+            onClick={() => navigate("/admin/recompensas")}
             className="
               bg-[#1a2b24]
               border
@@ -307,13 +300,9 @@ export default function AdminDashboard() {
               transition-all
             "
           >
-            <div className="text-3xl mb-3">
-              🎁
-            </div>
+            <div className="text-3xl mb-3">🎁</div>
 
-            <h3 className="font-semibold text-lg">
-              Gestionar Recompensas
-            </h3>
+            <h3 className="font-semibold text-lg">Gestionar Recompensas</h3>
 
             <p className="text-sm text-gray-400 mt-2">
               Administrar recompensas de desafíos.
@@ -321,9 +310,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            onClick={() =>
-              navigate("/admin/premios")
-            }
+            onClick={() => navigate("/admin/premios")}
             className="
               bg-[#1a2b24]
               border
@@ -336,13 +323,9 @@ export default function AdminDashboard() {
               transition-all
             "
           >
-            <div className="text-3xl mb-3">
-              📦
-            </div>
+            <div className="text-3xl mb-3">📦</div>
 
-            <h3 className="font-semibold text-lg">
-              Premios Pendientes
-            </h3>
+            <h3 className="font-semibold text-lg">Premios Pendientes</h3>
 
             <p className="text-sm text-gray-400 mt-2">
               Gestión de entrega de premios físicos.
@@ -350,9 +333,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            onClick={() =>
-              navigate("/admin/alumnos")
-            }
+            onClick={() => navigate("/admin/alumnos")}
             className="
               bg-[#1a2b24]
               border
@@ -365,13 +346,9 @@ export default function AdminDashboard() {
               transition-all
             "
           >
-            <div className="text-3xl mb-3">
-              👥
-            </div>
+            <div className="text-3xl mb-3">👥</div>
 
-            <h3 className="font-semibold text-lg">
-              Gestionar Alumnos
-            </h3>
+            <h3 className="font-semibold text-lg">Gestionar Alumnos</h3>
 
             <p className="text-sm text-gray-400 mt-2">
               Consulta y administración de alumnos.
@@ -379,9 +356,7 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            onClick={() =>
-              navigate("/admin/reactivaciones")
-            }
+            onClick={() => navigate("/admin/reactivaciones")}
             className="
               bg-[#1a2b24]
               border
@@ -394,13 +369,9 @@ export default function AdminDashboard() {
               transition-all
             "
           >
-            <div className="text-3xl mb-3">
-              🔄
-            </div>
+            <div className="text-3xl mb-3">🔄</div>
 
-            <h3 className="font-semibold text-lg">
-              Reactivaciones
-            </h3>
+            <h3 className="font-semibold text-lg">Reactivaciones</h3>
 
             <p className="text-sm text-gray-400 mt-2">
               Revisar solicitudes de reactivación.
@@ -409,5 +380,5 @@ export default function AdminDashboard() {
         </div>
       </section>
     </main>
-  </div>
-)}
+  </div>;
+</div>)}

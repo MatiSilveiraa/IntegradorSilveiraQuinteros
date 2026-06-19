@@ -10,6 +10,8 @@ import type {
   SolicitudReactivacion,
 } from "../types";
 
+import FullScreenLoading from "../components/FullScreenSpinner";
+
 export default function AdminReactivacionesPage() {
 
   const [
@@ -18,6 +20,7 @@ export default function AdminReactivacionesPage() {
   ] = useState<
     SolicitudReactivacion[]
   >([]);
+   const [loading, setLoading] =  useState(true);
 
   const [
     modalAbierto,
@@ -61,6 +64,9 @@ export default function AdminReactivacionesPage() {
         );
 
       }
+      finally {
+        setLoading(false);
+      }
 
     };
 
@@ -69,6 +75,10 @@ export default function AdminReactivacionesPage() {
     cargarDatos();
 
   }, []);
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   const abrirResolver =
     (

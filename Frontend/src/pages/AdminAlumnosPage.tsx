@@ -8,28 +8,33 @@ import {
 
 import type { Alumno } from "../types";
 import toast from "react-hot-toast";
+import FullScreenLoading from "../components/FullScreenSpinner";
 
 export default function AdminAlumnosPage() {
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
-
+  const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<Alumno | null>(null);
 
   const cargarDatos = async () => {
-    try {
-      const data = await obtenerAlumnos();
+  try {
+    const data = await obtenerAlumnos();
+    setAlumnos(data);
+  } catch (error) {
+    console.error(error);
+    toast.error("No fue posible cargar los alumnos");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      setAlumnos(data);
-    } catch (error) {
-      console.error(error);
 
-      toast.error("No fue posible cargar los alumnos");
-    }
-  };
+useEffect(() => {
+  cargarDatos();
+}, []);
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
+if (loading) {
+  return <FullScreenLoading />;
+}
   const verDetalle = async (alumnoId: number) => {
     try {
       const data = await obtenerAlumno(alumnoId);
@@ -65,6 +70,25 @@ export default function AdminAlumnosPage() {
         <h1 className="text-3xl font-bold mb-2">Alumnos</h1>
 
         <p className="text-gray-400 mb-8">Gestión de alumnos registrados.</p>
+
+        <div
+  className="
+    bg-[#1a2b24]
+    border
+    border-[#2d463b]
+    rounded-3xl
+    p-6
+    mb-8
+  "
+>
+  <p className="text-gray-400">
+    Total de alumnos
+  </p>
+
+  <h2 className="text-4xl font-bold mt-2">
+    {alumnos.length}
+  </h2>
+</div>
 
         <div className="grid gap-4">
           {alumnos.map((alumno) => (
