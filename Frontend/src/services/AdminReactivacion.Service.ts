@@ -21,7 +21,7 @@ export const resolverSolicitud =
 
     const response =
       await axiosInstance.put(
-        `/Reactivacion/${id}/resolver`,
+        `api/Reactivacion/${id}/resolver`,
         {
           aprobar,
           respuestaAdmin,

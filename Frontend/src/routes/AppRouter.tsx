@@ -34,42 +34,29 @@ import CompletarPerfilPage from "../pages/CompletarPerfilPage";
 
 import ProtectedRoute from "./ProtectedRoutes";
 import AdminReactivacionesPage from "../pages/AdminReactivacionesPage";
+import SolicitarReactivacionPage from "../pages/SolicitarReactivacionPage";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* Públicas */}
 
         <Route path="/" element={<LoginPage />} />
 
         <Route path="/register" element={<RegisterPage />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordPage />}
-        />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-        <Route
-          path="/verify-code"
-          element={<VerifyCodePage />}
-        />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
 
-        <Route
-          path="/reset-password"
-          element={<ResetPasswordPage />}
-        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        <Route
-          path="/2fa-login"
-          element={<TwoFactorLoginPage />}
-        />
+        <Route path="/2fa-login" element={<TwoFactorLoginPage />} />
 
-        <Route
-          path="/completar-perfil"
-          element={<CompletarPerfilPage />}
-        />
+        <Route path="/completar-perfil" element={<CompletarPerfilPage />} />
+
+        {/* Alumno */}
 
         {/* Alumno */}
 
@@ -81,6 +68,53 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/alumno/perfil"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <PerfilPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alumno/notificaciones"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <NotificacionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alumno/asistencias"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <AsistenciasPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alumno/seguridad"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <SeguridadPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alumno/reactivacion"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <SolicitarReactivacionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RUTAS BLOQUEADAS SI EL ALUMNO ESTÁ BLOQUEADO */}
 
         <Route
           path="/alumno/pagos"
@@ -110,24 +144,6 @@ export default function AppRouter() {
         />
 
         <Route
-          path="/alumno/perfil"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <PerfilPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/alumno/notificaciones"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <NotificacionPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/alumno/beneficios"
           element={
             <ProtectedRoute rolPermitido="Alumno">
@@ -141,24 +157,6 @@ export default function AppRouter() {
           element={
             <ProtectedRoute rolPermitido="Alumno">
               <DesafiosPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/alumno/asistencias"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <AsistenciasPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/alumno/seguridad"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <SeguridadPage />
             </ProtectedRoute>
           }
         />
@@ -231,10 +229,18 @@ export default function AppRouter() {
         />
 
         <Route
-  path="/admin/reactivaciones"
-  element={<AdminReactivacionesPage />}
-/>
+          path="/admin/reactivaciones"
+          element={<AdminReactivacionesPage />}
+        />
 
+        <Route
+          path="/alumno/reactivacion"
+          element={
+            <ProtectedRoute rolPermitido="Alumno">
+              <SolicitarReactivacionPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
