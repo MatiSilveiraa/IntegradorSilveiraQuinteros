@@ -6,6 +6,7 @@ import logo from "../assets/logo.png";
 
 import { validar2FA } from "../services/Auth2FA.Service";
 import toast from "react-hot-toast";
+import { obtenerMiPerfil } from "../services/Perfil.service";
 
 export default function TwoFactorLoginPage() {
   const navigate = useNavigate();
@@ -38,6 +39,12 @@ export default function TwoFactorLoginPage() {
       localStorage.setItem("usuario", JSON.stringify(response.usuario));
       toast.success("Inicio de sesión correcto");
 
+      const perfil = await obtenerMiPerfil();
+
+      if (perfil.bloqueadoPorInasistencias) {
+        navigate("/alumno/bloqueado");
+        return;
+      }
       const rol = response.usuario.rol;
 
       if (rol === "Admin") {

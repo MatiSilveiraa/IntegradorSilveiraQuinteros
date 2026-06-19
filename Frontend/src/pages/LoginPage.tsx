@@ -6,6 +6,7 @@ import { GoogleLogin } from "@react-oauth/google";
 
 import { loginGoogle } from "../services/AuthGoogle.Service";
 import toast from "react-hot-toast";
+import { obtenerMiPerfil } from "../services/Perfil.service";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -39,6 +40,16 @@ export default function LoginPage() {
 
       localStorage.setItem("usuario", JSON.stringify(response.usuario));
 
+      const perfil = await obtenerMiPerfil();
+
+      if (
+        response.usuario.rol === "Alumno" &&
+        perfil.bloqueadoPorInasistencias
+      ) {
+        navigate("/alumno/bloqueado");
+
+        return;
+      }
       const rol = response.usuario.rol;
 
       if (rol === "Admin") {

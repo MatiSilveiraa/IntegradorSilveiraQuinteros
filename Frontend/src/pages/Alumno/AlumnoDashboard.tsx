@@ -104,7 +104,55 @@ export default function AlumnoDashboard() {
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-7xl mx-auto">
         <DashboardHeader nombre={perfil?.nombre} />
+        {perfil?.bloqueadoPorInasistencias && (
+          <div
+            className="
+        mb-6
+        bg-red-500/10
+        border
+        border-red-500/30
+        rounded-2xl
+        p-5
+        flex
+        items-center
+        justify-between
+        gap-4
+      "
+          >
+            <div>
+              <h3
+                className="
+            text-red-400
+            font-bold
+            text-lg
+          "
+              >
+                🚫 Cuenta bloqueada
+              </h3>
 
+              <p className="text-gray-300 mt-1">
+                Tu cuenta fue bloqueada por inasistencias. No podrás inscribirte
+                a clases hasta que un administrador apruebe tu reactivación.
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate("/alumno/reactivacion")}
+              className="
+          px-5
+          py-3
+          rounded-xl
+          bg-red-500
+          text-white
+          font-bold
+          whitespace-nowrap
+          hover:opacity-90
+        "
+            >
+              Solicitar Reactivación
+            </button>
+          </div>
+        )}
         {perfil && !perfil.twoFactorEnabled && (
           <div
             className="

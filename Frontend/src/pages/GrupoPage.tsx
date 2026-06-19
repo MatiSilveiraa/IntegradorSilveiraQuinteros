@@ -110,6 +110,29 @@ export default function GruposPage() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+
+        {perfil?.bloqueadoPorInasistencias && (
+  <div
+    className="
+      mt-6
+      bg-red-500/10
+      border
+      border-red-500/30
+      rounded-2xl
+      p-5
+    "
+  >
+    <h3 className="text-red-400 font-bold">
+      🚫 Cuenta bloqueada
+    </h3>
+
+    <p className="text-gray-300 mt-2">
+      Tu cuenta se encuentra bloqueada por inasistencias.
+      No podrás inscribirte a nuevas clases hasta que tu
+      solicitud de reactivación sea aprobada.
+    </p>
+  </div>
+)}
         {/* PRÓXIMA CLASE */}
 
         <div
