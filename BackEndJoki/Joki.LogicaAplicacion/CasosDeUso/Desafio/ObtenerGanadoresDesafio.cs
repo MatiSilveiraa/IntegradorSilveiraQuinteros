@@ -25,15 +25,22 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             var desafio =
                 _repositorioDesafio.ObtenerPorId(desafioId);
 
-            if (desafio == null || !desafio.Activo)
+            if (desafio == null)
             {
                 throw new LogicaNegocioException(
                     "No existe el desafío");
             }
 
             var ganadores =
-                _repositorioParticipacionDesafio
-                    .ObtenerGanadoresPorDesafio(desafioId);
+    _repositorioParticipacionDesafio
+        .ObtenerGanadoresPorDesafio(desafioId)
+        .ToList();
+
+            if (!ganadores.Any())
+            {
+                throw new LogicaNegocioException(
+                    "No existen resultados registrados para este desafío");
+            }
 
             return ganadores.Select(g =>
                 new GanadorDesafioResponse

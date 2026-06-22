@@ -1,7 +1,6 @@
 ﻿using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
-
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
     public class RepositorioDesafio :
