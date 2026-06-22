@@ -29,7 +29,8 @@ namespace Joki.LogicaAplicacion.Mappers
                 Celular = Celular.Crear(request.Celular),
                 SociedadMedica = request.SociedadMedica,
                 Peso = request.Peso,
-                Estatura = request.Estatura
+                Estatura = request.Estatura,
+                IMC = CalcularIMC(request.Peso, request.Estatura)
             };
 
             return alumno;
@@ -58,6 +59,23 @@ namespace Joki.LogicaAplicacion.Mappers
         public static IEnumerable<DtoAlumno> ToDtoList(IEnumerable<Alumno> alumnos)
         {
             return alumnos.Select(ToDto);
+        }
+
+        private static decimal? CalcularIMC(
+            decimal? peso,
+            decimal? estatura)
+        {
+            if (!peso.HasValue ||
+                !estatura.HasValue ||
+                peso <= 0 ||
+                estatura <= 0)
+            {
+                return null;
+            }
+
+            return Math.Round(
+                peso.Value / (estatura.Value * estatura.Value),
+                2);
         }
     }
 }

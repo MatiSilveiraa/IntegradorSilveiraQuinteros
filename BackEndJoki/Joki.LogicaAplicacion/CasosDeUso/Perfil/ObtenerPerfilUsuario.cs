@@ -57,17 +57,21 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
                 FechaNacimiento = usuario.FechaNacimiento,
                 Genero = (int)usuario.Genero,
 
+                Peso = alumno?.Peso,
+                Estatura = alumno?.Estatura,
+                IMC = alumno?.IMC,
+
                 BloqueadoPorInasistencias =
-                    bloqueadoPorInasistencias,
+          bloqueadoPorInasistencias,
 
                 RachaAsistenciaMensual =
-                    rachaAsistenciaMensual,
+          rachaAsistenciaMensual,
 
                 DescuentoRachaGenerado =
-                    descuentoRachaGenerado,
+          descuentoRachaGenerado,
 
                 TwoFactorEnabled =
-        usuario.TwoFactorEnabled
+          usuario.TwoFactorEnabled
             };
         }
     }
