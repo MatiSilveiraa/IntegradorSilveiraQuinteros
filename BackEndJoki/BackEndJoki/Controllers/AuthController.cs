@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Joki.WebApi.Controllers
 {
@@ -47,6 +48,7 @@ namespace Joki.WebApi.Controllers
             _validarLoginSinPassword = validarLoginSinPassword;
         }
 
+        [EnableRateLimiting("auth")]
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -104,7 +106,8 @@ namespace Joki.WebApi.Controllers
                 return StatusCode(500, error);
             }
         }
-
+        
+        [EnableRateLimiting("auth")]
         [HttpPost("login-sin-password/solicitar")]
         public IActionResult SolicitarLoginSinPassword(
     LoginSinPasswordRequest request)
@@ -133,7 +136,8 @@ namespace Joki.WebApi.Controllers
                 });
             }
         }
-
+        
+        [EnableRateLimiting("auth")]
         [HttpPost("login-sin-password/validar")]
         public IActionResult ValidarLoginSinPassword(
     ValidarLoginSinPasswordRequest request)
@@ -220,7 +224,8 @@ namespace Joki.WebApi.Controllers
                 });
             }
         }
-
+        
+        [EnableRateLimiting("auth")]
         [HttpPost("solicitar-recuperacion")]
         public IActionResult SolicitarRecuperacion(
     SolicitarRecuperacionRequest request)
@@ -249,7 +254,8 @@ namespace Joki.WebApi.Controllers
                 });
             }
         }
-
+        
+        [EnableRateLimiting("auth")]
         [HttpPost("restablecer-contrasena")]
         public IActionResult RestablecerContrasena(
             RestablecerContrasenaRequest request)
@@ -386,6 +392,7 @@ namespace Joki.WebApi.Controllers
             }
         }
 
+        [EnableRateLimiting("auth")]
         [HttpPost("2fa/validar")]
         public IActionResult Validar2FA(
     Validar2FARequest request)

@@ -49,6 +49,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -215,7 +217,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ISolicitarLoginSinPassword,SolicitarLoginSinPassword>();
     builder.Services.AddScoped<IValidarLoginSinPassword,ValidarLoginSinPassword>();
     builder.Services.AddScoped<IRepositorioCodigoLoginSinPassword,RepositorioCodigoLoginSinPassword>();
-    builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("auth", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("general", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+});
+
+builder.Services.AddAuthorization();
 
     builder.Services.AddCors(options =>
     {
@@ -295,6 +319,9 @@ using (var scope = app.Services.CreateScope())
 //app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
+app.UseAuthentication();
+app.UseRateLimiter();
+app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
