@@ -2,6 +2,6 @@
 {
     public interface IEliminarDesafio
     {
-        void Ejecutar(int id);
+        void Ejecutar(int id, int usuarioId);
     }
 }

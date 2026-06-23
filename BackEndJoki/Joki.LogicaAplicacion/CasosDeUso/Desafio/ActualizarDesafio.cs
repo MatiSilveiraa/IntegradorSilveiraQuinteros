@@ -2,6 +2,7 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
@@ -9,16 +10,20 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
         IActualizarDesafio
     {
         private readonly IRepositorioDesafio _repositorioDesafio;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public ActualizarDesafio(
-            IRepositorioDesafio repositorioDesafio)
+            IRepositorioDesafio repositorioDesafio,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioDesafio = repositorioDesafio;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
         public void Ejecutar(
             int id,
-            ActualizarDesafioRequest request)
+            ActualizarDesafioRequest request,
+            int usuarioId)
         {
             var desafio =
                 _repositorioDesafio.ObtenerPorId(id);
@@ -47,6 +52,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             desafio.FechaFin = request.FechaFin;
 
             _repositorioDesafio.Modificar(desafio);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Desafio",
+                    EntidadId = desafio.Id,
+                    Accion = $"Actualizó el desafío {desafio.Titulo}",
+                    Fecha = DateTime.UtcNow
+                });
         }
     }
 }

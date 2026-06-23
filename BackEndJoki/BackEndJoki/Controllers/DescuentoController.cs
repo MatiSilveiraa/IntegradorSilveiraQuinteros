@@ -35,7 +35,13 @@ namespace Joki.API.Controllers
         {
             try
             {
-                _crearDescuento.Ejecutar(request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _crearDescuento.Ejecutar(
+                    request,
+                    usuarioId);
 
                 return Ok(new
                 {
@@ -107,13 +113,15 @@ namespace Joki.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public IActionResult Actualizar(int id,ActualizarDescuentoRequest request)
+        public IActionResult Actualizar(
+            int id,
+            ActualizarDescuentoRequest request)
         {
             try
             {
                 int usuarioId = int.Parse(
-             User.FindFirst(ClaimTypes.NameIdentifier)!
-                .Value);
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
 
                 _actualizarDescuento.Ejecutar(
                     id,

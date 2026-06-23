@@ -41,7 +41,12 @@ namespace Joki.API.Controllers
         {
             try
             {
-                _registrarPago.Ejecutar(request);
+                int usuarioId = int.Parse(
+    User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!
+        .Value);
+                _registrarPago.Ejecutar(
+    request,
+    usuarioId);
 
                 return Ok(new
                 {

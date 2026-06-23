@@ -4,6 +4,8 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo
 {
     public interface ICrearGrupo
     {
-        GrupoResponse Ejecutar(CrearGrupoRequest request);
+        GrupoResponse Ejecutar(
+            CrearGrupoRequest request,
+            int usuarioId);
     }
 }

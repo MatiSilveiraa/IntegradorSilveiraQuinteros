@@ -4,6 +4,8 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Pago
 {
     public interface IRegistrarPago
     {
-        void Ejecutar(RegistrarPagoRequest request);
+        void Ejecutar(
+            RegistrarPagoRequest request,
+            int usuarioId);
     }
 }

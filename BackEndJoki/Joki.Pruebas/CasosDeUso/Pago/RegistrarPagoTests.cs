@@ -19,6 +19,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
             var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
+            var repoAuditoriaMock = new Mock<IRepositorioAuditoria>();
 
             var cuota = new Entidades.Cuota
             {
@@ -46,9 +47,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
                     repoNotificacionMock.Object,
-                    actualizarBloqueoMock.Object);
+                    actualizarBloqueoMock.Object,
+                    repoAuditoriaMock.Object);
 
-            casoUso.Ejecutar(request);
+            casoUso.Ejecutar(request, 99);
 
             repoPagoMock.Verify(r => r.Agregar(
                 It.Is<Entidades.Pago>(p =>
@@ -75,6 +77,13 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                     n.Tipo == TipoNotificacion.Pago &&
                     n.EntidadReferencia == "Pago"
                 )), Times.Once);
+
+            repoAuditoriaMock.Verify(r => r.Agregar(
+                It.Is<Entidades.Auditoria>(a =>
+                    a.UsuarioId == 99 &&
+                    a.Entidad == "Pago" &&
+                    a.Accion.Contains("Registró pago manual")
+                )), Times.Once);
         }
 
         [Fact]
@@ -84,6 +93,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
             var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
+            var repoAuditoriaMock = new Mock<IRepositorioAuditoria>();
 
             RegistrarPagoRequest request = new RegistrarPagoRequest
             {
@@ -101,10 +111,11 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
                     repoNotificacionMock.Object,
-                    actualizarBloqueoMock.Object);
+                    actualizarBloqueoMock.Object,
+                    repoAuditoriaMock.Object);
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
-                casoUso.Ejecutar(request));
+                casoUso.Ejecutar(request, 99));
 
             Assert.Equal("Cuota no encontrada", ex.Message);
 
@@ -123,6 +134,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             actualizarBloqueoMock.Verify(
                 r => r.Ejecutar(It.IsAny<int>()),
                 Times.Never);
+
+            repoAuditoriaMock.Verify(
+                r => r.Agregar(It.IsAny<Entidades.Auditoria>()),
+                Times.Never);
         }
 
         [Fact]
@@ -132,6 +147,7 @@ namespace Joki.Pruebas.CasosDeUso.Pago
             var repoCuotaMock = new Mock<IRepositorioCuota>();
             var repoNotificacionMock = new Mock<IRepositorioNotificacion>();
             var actualizarBloqueoMock = new Mock<IActualizarBloqueoDeudaAlumno>();
+            var repoAuditoriaMock = new Mock<IRepositorioAuditoria>();
 
             var cuota = new Entidades.Cuota
             {
@@ -155,10 +171,11 @@ namespace Joki.Pruebas.CasosDeUso.Pago
                     repoPagoMock.Object,
                     repoCuotaMock.Object,
                     repoNotificacionMock.Object,
-                    actualizarBloqueoMock.Object);
+                    actualizarBloqueoMock.Object,
+                    repoAuditoriaMock.Object);
 
             var ex = Assert.Throws<LogicaNegocioException>(() =>
-                casoUso.Ejecutar(request));
+                casoUso.Ejecutar(request, 99));
 
             Assert.Equal("La cuota ya se encuentra pagada", ex.Message);
 
@@ -176,6 +193,10 @@ namespace Joki.Pruebas.CasosDeUso.Pago
 
             actualizarBloqueoMock.Verify(
                 r => r.Ejecutar(It.IsAny<int>()),
+                Times.Never);
+
+            repoAuditoriaMock.Verify(
+                r => r.Agregar(It.IsAny<Entidades.Auditoria>()),
                 Times.Never);
         }
     }

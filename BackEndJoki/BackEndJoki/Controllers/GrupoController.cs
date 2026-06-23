@@ -4,10 +4,10 @@ using Joki.Infraestructura.AccesoDatos.Excepciones;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Joki.WebApi.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class GrupoController : ControllerBase
@@ -34,11 +34,20 @@ namespace Joki.WebApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public IActionResult Crear([FromBody] CrearGrupoRequest request)
+        public IActionResult Crear(
+            [FromBody] CrearGrupoRequest request)
         {
             try
             {
-                var response = _crearGrupo.Ejecutar(request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                var response =
+                    _crearGrupo.Ejecutar(
+                        request,
+                        usuarioId);
+
                 return StatusCode(201, response);
             }
             catch (InfraestructuraException e)
@@ -51,7 +60,9 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception)
             {
-                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                Error error =
+                    new Error(500, "Hubo un problema. Prueba nuevamente");
+
                 return StatusCode(500, error);
             }
         }
@@ -61,12 +72,16 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                var grupos = _obtenerGrupos.Ejecutar();
+                var grupos =
+                    _obtenerGrupos.Ejecutar();
+
                 return Ok(grupos);
             }
             catch (Exception)
             {
-                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                Error error =
+                    new Error(500, "Hubo un problema. Prueba nuevamente");
+
                 return StatusCode(500, error);
             }
         }
@@ -76,40 +91,67 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                var grupo = _obtenerGrupoPorId.Ejecutar(id);
+                var grupo =
+                    _obtenerGrupoPorId.Ejecutar(id);
+
                 return Ok(grupo);
             }
             catch (LogicaNegocioException e)
             {
-                return NotFound(new { mensaje = e.Message });
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (Exception e)
             {
-                return StatusCode(500, new { mensaje = e.Message });
+                return StatusCode(500, new
+                {
+                    mensaje = e.Message
+                });
             }
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public IActionResult Editar(int id, [FromBody] EditarGrupoRequest request)
+        public IActionResult Editar(
+            int id,
+            [FromBody] EditarGrupoRequest request)
         {
             try
             {
-                var grupo = _editarGrupo.Ejecutar(id, request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                var grupo =
+                    _editarGrupo.Ejecutar(
+                        id,
+                        request,
+                        usuarioId);
+
                 return Ok(grupo);
             }
             catch (LogicaNegocioException e)
             {
                 if (e.Message == "El grupo solicitado no existe.")
                 {
-                    return NotFound(new { mensaje = e.Message });
+                    return NotFound(new
+                    {
+                        mensaje = e.Message
+                    });
                 }
 
-                return StatusCode(400, new { mensaje = e.Message });
+                return StatusCode(400, new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (Exception)
             {
-                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                Error error =
+                    new Error(500, "Hubo un problema. Prueba nuevamente");
+
                 return StatusCode(500, error);
             }
         }
@@ -120,16 +162,31 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                _eliminarGrupo.Ejecutar(id);
-                return Ok(new { mensaje = "Grupo eliminado correctamente" });
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _eliminarGrupo.Ejecutar(
+                    id,
+                    usuarioId);
+
+                return Ok(new
+                {
+                    mensaje = "Grupo eliminado correctamente"
+                });
             }
             catch (LogicaNegocioException e)
             {
-                return NotFound(new { mensaje = e.Message });
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (Exception)
             {
-                Error error = new Error(500, "Hubo un problema. Prueba nuevamente");
+                Error error =
+                    new Error(500, "Hubo un problema. Prueba nuevamente");
+
                 return StatusCode(500, error);
             }
         }

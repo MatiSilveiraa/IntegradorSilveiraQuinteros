@@ -3,6 +3,7 @@ using Joki.CasoUsoCompartida.Configuracion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Admin;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Auditoria;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Beneficio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
@@ -25,6 +26,7 @@ using Joki.LogicaAplicacion.CasosDeUso.Admin;
 using Joki.LogicaAplicacion.CasosDeUso.Alumno;
 using Joki.LogicaAplicacion.CasosDeUso.Alumnos;
 using Joki.LogicaAplicacion.CasosDeUso.Asistencia;
+using Joki.LogicaAplicacion.CasosDeUso.Auditoria;
 using Joki.LogicaAplicacion.CasosDeUso.Autenticacion;
 using Joki.LogicaAplicacion.CasosDeUso.Beneficio;
 using Joki.LogicaAplicacion.CasosDeUso.Clase;
@@ -45,11 +47,11 @@ using Joki.WebApi.Filtros;
 using Joki.WebApi.Jobs;
 using Joki.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 
 
@@ -217,6 +219,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ISolicitarLoginSinPassword,SolicitarLoginSinPassword>();
     builder.Services.AddScoped<IValidarLoginSinPassword,ValidarLoginSinPassword>();
     builder.Services.AddScoped<IRepositorioCodigoLoginSinPassword,RepositorioCodigoLoginSinPassword>();
+    builder.Services.AddScoped<IObtenerAuditorias, ObtenerAuditorias>();
 
 builder.Services.AddRateLimiter(options =>
 {

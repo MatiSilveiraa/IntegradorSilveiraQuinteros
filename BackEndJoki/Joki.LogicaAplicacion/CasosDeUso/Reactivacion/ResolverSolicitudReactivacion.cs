@@ -3,6 +3,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Reactivacion;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Reactivacion
 {
@@ -11,13 +12,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Reactivacion
     {
         private readonly IRepositorioSolicitudReactivacion _repositorioSolicitud;
         private readonly IRepositorioAlumno _repositorioAlumno;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public ResolverSolicitudReactivacion(
             IRepositorioSolicitudReactivacion repositorioSolicitud,
-            IRepositorioAlumno repositorioAlumno)
+            IRepositorioAlumno repositorioAlumno,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioSolicitud = repositorioSolicitud;
             _repositorioAlumno = repositorioAlumno;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
         public void Ejecutar(
@@ -70,6 +74,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Reactivacion
             solicitud.FechaResolucion = DateTime.UtcNow;
 
             _repositorioSolicitud.Modificar(solicitud);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = adminId,
+                    Entidad = "SolicitudReactivacion",
+                    EntidadId = solicitud.Id,
+                    Accion = request.Aprobar
+                        ? $"Aprobó solicitud de reactivación Id {solicitud.Id} del alumno Id {solicitud.AlumnoId}"
+                        : $"Rechazó solicitud de reactivación Id {solicitud.Id} del alumno Id {solicitud.AlumnoId}",
+                    Fecha = DateTime.UtcNow
+                });
         }
     }
 }

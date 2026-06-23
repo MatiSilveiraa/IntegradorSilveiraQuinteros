@@ -4,6 +4,8 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento
 {
     public interface ICrearDescuento
     {
-        void Ejecutar(CrearDescuentoRequest request);
+        void Ejecutar(
+            CrearDescuentoRequest request,
+            int usuarioId);
     }
 }

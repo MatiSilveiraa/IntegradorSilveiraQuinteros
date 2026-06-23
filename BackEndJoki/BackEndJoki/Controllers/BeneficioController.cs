@@ -54,7 +54,13 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                _entregarBeneficioFisico.Ejecutar(id);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _entregarBeneficioFisico.Ejecutar(
+                    id,
+                    usuarioId);
 
                 return Ok(new
                 {

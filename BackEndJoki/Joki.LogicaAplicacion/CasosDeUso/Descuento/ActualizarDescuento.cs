@@ -1,6 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Descuento;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento;
-using Joki.LogicaNegocio.Entidades;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -92,7 +92,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Descuento
             }
 
             _repositorioAuditoria.Agregar(
-                new Auditoria
+                new AuditoriaEntidad
                 {
                     UsuarioId = usuarioId,
                     Entidad = "Descuento",

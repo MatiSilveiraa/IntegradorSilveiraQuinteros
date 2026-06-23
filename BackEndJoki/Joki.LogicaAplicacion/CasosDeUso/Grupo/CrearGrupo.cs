@@ -3,45 +3,76 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
-public class CrearGrupo : ICrearGrupo
+namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
 {
-    private readonly IRepositorioGrupo _repositorioGrupo;
-
-    public CrearGrupo(IRepositorioGrupo repositorioGrupo)
+    public class CrearGrupo : ICrearGrupo
     {
-        _repositorioGrupo = repositorioGrupo;
-    }
+        private readonly IRepositorioGrupo _repositorioGrupo;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
-    public GrupoResponse Ejecutar(CrearGrupoRequest request)
-    {
-        if (request == null)
-            throw new LogicaNegocioException("Datos inválidos.");
-
-        if (string.IsNullOrWhiteSpace(request.Nombre))
-            throw new LogicaNegocioException("El nombre es obligatorio.");
-
-        if (string.IsNullOrWhiteSpace(request.Nivel))
-            throw new LogicaNegocioException("El nivel es obligatorio.");
-
-        if (request.Clases != null && request.Clases.Any(c => c.CupoMaximo <= 0))
+        public CrearGrupo(
+            IRepositorioGrupo repositorioGrupo,
+            IRepositorioAuditoria repositorioAuditoria)
         {
-            throw new LogicaNegocioException("Cupo inválido.");
+            _repositorioGrupo = repositorioGrupo;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
-        if (request.Clases != null)
+        public GrupoResponse Ejecutar(
+            CrearGrupoRequest request,
+            int usuarioId)
         {
-            foreach (var clase in request.Clases)
+            if (request == null)
             {
-                if (clase.HoraFin <= clase.HoraInicio)
-                    throw new LogicaNegocioException("Horario inválido.");
+                throw new LogicaNegocioException("Datos inválidos.");
             }
+
+            if (string.IsNullOrWhiteSpace(request.Nombre))
+            {
+                throw new LogicaNegocioException("El nombre es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Nivel))
+            {
+                throw new LogicaNegocioException("El nivel es obligatorio.");
+            }
+
+            if (request.Clases != null &&
+                request.Clases.Any(c => c.CupoMaximo <= 0))
+            {
+                throw new LogicaNegocioException("Cupo inválido.");
+            }
+
+            if (request.Clases != null)
+            {
+                foreach (var clase in request.Clases)
+                {
+                    if (clase.HoraFin <= clase.HoraInicio)
+                    {
+                        throw new LogicaNegocioException("Horario inválido.");
+                    }
+                }
+            }
+
+            var grupo =
+                MapperGrupo.ToEntity(request);
+
+            var grupoCreado =
+                _repositorioGrupo.Agregar(grupo);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Grupo",
+                    EntidadId = grupoCreado.Id,
+                    Accion = $"Creó el grupo {grupoCreado.Nombre}",
+                    Fecha = DateTime.UtcNow
+                });
+
+            return MapperGrupo.ToResponse(grupoCreado);
         }
-
-        var grupo = MapperGrupo.ToEntity(request);
-
-        var grupoCreado = _repositorioGrupo.Agregar(grupo);
-
-        return MapperGrupo.ToResponse(grupoCreado);
     }
 }

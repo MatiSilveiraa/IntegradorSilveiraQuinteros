@@ -4,7 +4,6 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio
 {
     public interface IAsignarGanadoresDesafio
     {
-        void Ejecutar(
-            AsignarGanadoresRequest request);
+        void Ejecutar(AsignarGanadoresRequest request, int usuarioId);
     }
 }

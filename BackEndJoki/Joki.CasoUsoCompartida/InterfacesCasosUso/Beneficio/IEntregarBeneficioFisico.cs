@@ -2,6 +2,8 @@
 {
     public interface IEntregarBeneficioFisico
     {
-        void Ejecutar(int beneficioId);
+        void Ejecutar(
+            int beneficioId,
+            int usuarioId);
     }
 }

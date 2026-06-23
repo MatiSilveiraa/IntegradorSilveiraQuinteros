@@ -1,15 +1,10 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Clase;
 using Joki.CasoUsoCompartida.DTOs.Grupo;
-
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
-
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-
 using Moq;
-
 using GrupoEntidad = Joki.LogicaNegocio.Entidades.Grupo;
 
 namespace Joki.Pruebas.CasosDeUso.Grupos
@@ -20,45 +15,28 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
         public void CrearGrupo_DeberiaCrearGrupo_CuandoDatosSonValidos()
         {
             var mockRepo = new Mock<IRepositorioGrupo>();
+            var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
 
             var request = new CrearGrupoRequest
             {
                 Nombre = "Running",
-
                 Nivel = "Intermedio",
-
                 EntrenadorId = 1,
-
                 Clases = new List<CrearClaseRequest>
                 {
                     new CrearClaseRequest
                     {
                         DiaSemana = DiaSemana.Lunes,
-
-                        HoraInicio =
-                            new TimeSpan(9, 0, 0),
-
-                        HoraFin =
-                            new TimeSpan(10, 0, 0),
-
+                        HoraInicio = new TimeSpan(9, 0, 0),
+                        HoraFin = new TimeSpan(10, 0, 0),
                         CupoMaximo = 20,
-
                         Latitud = -34.90m,
-
                         Longitud = -56.16m,
-
                         CodigoPostal = "11000",
-
                         RadioGeolocalizacion = 100,
-
                         EsFija = true,
-
-                        FechaInicio =
-                            DateTime.UtcNow,
-
-                        FechaFin =
-                            DateTime.UtcNow
-                                .AddMonths(1)
+                        FechaInicio = DateTime.UtcNow,
+                        FechaFin = DateTime.UtcNow.AddMonths(1)
                     }
                 }
             };
@@ -72,33 +50,26 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 });
 
             var casoUso =
-                new CrearGrupo(mockRepo.Object);
+                new CrearGrupo(
+                    mockRepo.Object,
+                    mockRepoAuditoria.Object);
 
             var resultado =
-                casoUso.Ejecutar(request);
+                casoUso.Ejecutar(request, 99);
 
             Assert.NotNull(resultado);
-
             Assert.Equal(1, resultado.Id);
-
-            Assert.Equal(
-                "Running",
-                resultado.Nombre);
-
-            Assert.Equal(
-                "Intermedio",
-                resultado.Nivel);
-
-            Assert.Equal(
-                "ACTIVO",
-                resultado.Estado);
-
-            Assert.Equal(
-                1,
-                resultado.EntrenadorId);
+            Assert.Equal("Running", resultado.Nombre);
+            Assert.Equal("Intermedio", resultado.Nivel);
+            Assert.Equal("ACTIVO", resultado.Estado);
+            Assert.Equal(1, resultado.EntrenadorId);
 
             mockRepo.Verify(r =>
                 r.Agregar(It.IsAny<GrupoEntidad>()),
+                Times.Once);
+
+            mockRepoAuditoria.Verify(r =>
+                r.Agregar(It.IsAny<Joki.LogicaNegocio.Entidades.Auditoria>()),
                 Times.Once);
         }
 
@@ -117,7 +88,6 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                     Estado = EstadoGrupo.ACTIVO,
                     EntrenadorId = 1
                 },
-
                 new GrupoEntidad
                 {
                     Id = 2,
@@ -139,16 +109,9 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 casoUso.Ejecutar().ToList();
 
             Assert.NotNull(resultado);
-
             Assert.Equal(2, resultado.Count);
-
-            Assert.Equal(
-                "Running",
-                resultado[0].Nombre);
-
-            Assert.Equal(
-                "Funcional",
-                resultado[1].Nombre);
+            Assert.Equal("Running", resultado[0].Nombre);
+            Assert.Equal("Funcional", resultado[1].Nombre);
 
             mockRepo.Verify(r =>
                 r.ObtenerTodos(),
@@ -171,7 +134,6 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 casoUso.Ejecutar().ToList();
 
             Assert.NotNull(resultado);
-
             Assert.Empty(resultado);
 
             mockRepo.Verify(r =>
@@ -204,20 +166,10 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 casoUso.Ejecutar(1);
 
             Assert.NotNull(resultado);
-
             Assert.Equal(1, resultado.Id);
-
-            Assert.Equal(
-                "Running",
-                resultado.Nombre);
-
-            Assert.Equal(
-                "Inicial",
-                resultado.Nivel);
-
-            Assert.Equal(
-                1,
-                resultado.EntrenadorId);
+            Assert.Equal("Running", resultado.Nombre);
+            Assert.Equal("Inicial", resultado.Nivel);
+            Assert.Equal(1, resultado.EntrenadorId);
 
             mockRepo.Verify(r =>
                 r.ObtenerPorId(1),
@@ -253,6 +205,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
         public void EditarGrupo_DeberiaEditarGrupo_CuandoExiste()
         {
             var mockRepo = new Mock<IRepositorioGrupo>();
+            var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
 
             var grupo = new GrupoEntidad
             {
@@ -275,32 +228,28 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 .Returns(grupo);
 
             var casoUso =
-                new EditarGrupo(mockRepo.Object);
+                new EditarGrupo(
+                    mockRepo.Object,
+                    mockRepoAuditoria.Object);
 
             var resultado =
-                casoUso.Ejecutar(1, request);
+                casoUso.Ejecutar(1, request, 99);
 
             Assert.NotNull(resultado);
-
-            Assert.Equal(
-                "Running Editado",
-                resultado.Nombre);
-
-            Assert.Equal(
-                "Avanzado",
-                resultado.Nivel);
-
-            Assert.Equal(
-                2,
-                resultado.EntrenadorId);
+            Assert.Equal("Running Editado", resultado.Nombre);
+            Assert.Equal("Avanzado", resultado.Nivel);
+            Assert.Equal(2, resultado.EntrenadorId);
 
             mockRepo.Verify(r =>
                 r.ObtenerPorId(1),
                 Times.Once);
 
             mockRepo.Verify(r =>
-                r.Actualizar(
-                    It.IsAny<GrupoEntidad>()),
+                r.Actualizar(It.IsAny<GrupoEntidad>()),
+                Times.Once);
+
+            mockRepoAuditoria.Verify(r =>
+                r.Agregar(It.IsAny<Joki.LogicaNegocio.Entidades.Auditoria>()),
                 Times.Once);
         }
 
@@ -308,6 +257,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
         public void EditarGrupo_DeberiaLanzarExcepcion_CuandoNoExiste()
         {
             var mockRepo = new Mock<IRepositorioGrupo>();
+            var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
 
             var request = new EditarGrupoRequest
             {
@@ -321,13 +271,13 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 .Returns((GrupoEntidad?)null);
 
             var casoUso =
-                new EditarGrupo(mockRepo.Object);
+                new EditarGrupo(
+                    mockRepo.Object,
+                    mockRepoAuditoria.Object);
 
             var exception =
                 Assert.Throws<LogicaNegocioException>(
-                    () => casoUso.Ejecutar(
-                        99,
-                        request));
+                    () => casoUso.Ejecutar(99, request, 99));
 
             Assert.Equal(
                 "El grupo solicitado no existe.",
@@ -338,8 +288,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 Times.Once);
 
             mockRepo.Verify(r =>
-                r.Actualizar(
-                    It.IsAny<GrupoEntidad>()),
+                r.Actualizar(It.IsAny<GrupoEntidad>()),
+                Times.Never);
+
+            mockRepoAuditoria.Verify(r =>
+                r.Agregar(It.IsAny<Joki.LogicaNegocio.Entidades.Auditoria>()),
                 Times.Never);
         }
 
@@ -347,6 +300,7 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
         public void EliminarGrupo_DeberiaEliminarGrupo_CuandoExiste()
         {
             var mockRepo = new Mock<IRepositorioGrupo>();
+            var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
 
             var grupo = new GrupoEntidad
             {
@@ -359,9 +313,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 .Returns(grupo);
 
             var casoUso =
-                new EliminarGrupo(mockRepo.Object);
+                new EliminarGrupo(
+                    mockRepo.Object,
+                    mockRepoAuditoria.Object);
 
-            casoUso.Ejecutar(1);
+            casoUso.Ejecutar(1, 99);
 
             mockRepo.Verify(r =>
                 r.ObtenerPorId(1),
@@ -370,8 +326,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
             mockRepo.Verify(r =>
                 r.Actualizar(
                     It.Is<GrupoEntidad>(
-                        g => g.Estado ==
-                             EstadoGrupo.INACTIVO)),
+                        g => g.Estado == EstadoGrupo.INACTIVO)),
+                Times.Once);
+
+            mockRepoAuditoria.Verify(r =>
+                r.Agregar(It.IsAny<Joki.LogicaNegocio.Entidades.Auditoria>()),
                 Times.Once);
         }
 
@@ -379,17 +338,20 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
         public void EliminarGrupo_DeberiaLanzarExcepcion_CuandoNoExiste()
         {
             var mockRepo = new Mock<IRepositorioGrupo>();
+            var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
 
             mockRepo.Setup(r =>
                 r.ObtenerPorId(99))
                 .Returns((GrupoEntidad?)null);
 
             var casoUso =
-                new EliminarGrupo(mockRepo.Object);
+                new EliminarGrupo(
+                    mockRepo.Object,
+                    mockRepoAuditoria.Object);
 
             var exception =
                 Assert.Throws<LogicaNegocioException>(
-                    () => casoUso.Ejecutar(99));
+                    () => casoUso.Ejecutar(99, 99));
 
             Assert.Equal(
                 "El grupo solicitado no existe.",
@@ -400,8 +362,11 @@ namespace Joki.Pruebas.CasosDeUso.Grupos
                 Times.Once);
 
             mockRepo.Verify(r =>
-                r.Actualizar(
-                    It.IsAny<GrupoEntidad>()),
+                r.Actualizar(It.IsAny<GrupoEntidad>()),
+                Times.Never);
+
+            mockRepoAuditoria.Verify(r =>
+                r.Agregar(It.IsAny<Joki.LogicaNegocio.Entidades.Auditoria>()),
                 Times.Never);
         }
     }

@@ -4,27 +4,30 @@ using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 {
     public class EditarClase : IEditarClase
     {
         private readonly IRepositorioClase _repositorioClase;
-
         private readonly IRepositorioGrupo _repositorioGrupo;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public EditarClase(
             IRepositorioClase repositorioClase,
-            IRepositorioGrupo repositorioGrupo)
+            IRepositorioGrupo repositorioGrupo,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioClase = repositorioClase;
-
             _repositorioGrupo = repositorioGrupo;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
         public ClaseResponse Ejecutar(
             int id,
-            EditarClaseRequest request)
+            EditarClaseRequest request,
+            int usuarioId)
         {
             var clase =
                 _repositorioClase.ObtenerPorId(id);
@@ -76,11 +79,31 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                     "La fecha de fin no puede ser anterior a la fecha de inicio");
             }
 
+            var diaAnterior =
+                clase.DiaSemana;
+
+            var horaInicioAnterior =
+                clase.HoraInicio;
+
+            var horaFinAnterior =
+                clase.HoraFin;
+
             MapperClase.UpdateEntity(
                 clase,
                 request);
 
             _repositorioClase.Actualizar(clase);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Clase",
+                    EntidadId = clase.Id,
+                    Accion =
+                        $"Editó clase Id {clase.Id}. Antes: {diaAnterior} {horaInicioAnterior}-{horaFinAnterior}. Ahora: {clase.DiaSemana} {clase.HoraInicio}-{clase.HoraFin}",
+                    Fecha = DateTime.UtcNow
+                });
 
             return MapperClase.ToResponse(clase);
         }

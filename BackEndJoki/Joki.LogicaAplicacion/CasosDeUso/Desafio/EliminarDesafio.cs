@@ -1,6 +1,7 @@
 ﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
@@ -8,14 +9,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
         IEliminarDesafio
     {
         private readonly IRepositorioDesafio _repositorioDesafio;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public EliminarDesafio(
-            IRepositorioDesafio repositorioDesafio)
+            IRepositorioDesafio repositorioDesafio,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioDesafio = repositorioDesafio;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
-        public void Ejecutar(int id)
+        public void Ejecutar(
+            int id,
+            int usuarioId)
         {
             var desafio =
                 _repositorioDesafio.ObtenerPorId(id);
@@ -29,6 +35,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             desafio.Activo = false;
 
             _repositorioDesafio.Modificar(desafio);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Desafio",
+                    EntidadId = desafio.Id,
+                    Accion = $"Eliminó el desafío {desafio.Titulo}",
+                    Fecha = DateTime.UtcNow
+                });
         }
     }
 }

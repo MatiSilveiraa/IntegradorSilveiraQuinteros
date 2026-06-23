@@ -14,6 +14,14 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context = context;
         }
 
+        public IEnumerable<Auditoria> ObtenerUltimas(int cantidad)
+        {
+            return _context.Auditorias
+                .OrderByDescending(a => a.Fecha)
+                .Take(cantidad)
+                .ToList();
+        }
+
         public void Agregar(
             Auditoria auditoria)
         {

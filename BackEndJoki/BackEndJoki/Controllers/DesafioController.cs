@@ -43,7 +43,6 @@ namespace Joki.WebApi.Controllers
             _obtenerMisDesafios = obtenerMisDesafios;
         }
 
-
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Crear(
@@ -51,7 +50,13 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                _crearDesafio.Ejecutar(request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _crearDesafio.Ejecutar(
+                    request,
+                    usuarioId);
 
                 return Ok(new
                 {
@@ -97,12 +102,19 @@ namespace Joki.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public IActionResult Actualizar(
-    int id,
-    ActualizarDesafioRequest request)
+            int id,
+            ActualizarDesafioRequest request)
         {
             try
             {
-                _actualizarDesafio.Ejecutar(id, request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _actualizarDesafio.Ejecutar(
+                    id,
+                    request,
+                    usuarioId);
 
                 return Ok(new
                 {
@@ -131,7 +143,13 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                _eliminarDesafio.Ejecutar(id);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _eliminarDesafio.Ejecutar(
+                    id,
+                    usuarioId);
 
                 return Ok(new
                 {
@@ -157,11 +175,17 @@ namespace Joki.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost("ganadores")]
         public IActionResult AsignarGanadores(
-    AsignarGanadoresRequest request)
+            AsignarGanadoresRequest request)
         {
             try
             {
-                _asignarGanadoresDesafio.Ejecutar(request);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _asignarGanadoresDesafio.Ejecutar(
+                    request,
+                    usuarioId);
 
                 return Ok(new
                 {

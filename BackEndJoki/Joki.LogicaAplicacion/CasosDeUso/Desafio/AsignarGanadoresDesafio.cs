@@ -4,6 +4,7 @@ using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Entidades = Joki.LogicaNegocio.Entidades;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
@@ -16,6 +17,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
         private readonly IRepositorioRecompensa _repositorioRecompensa;
         private readonly IRepositorioBeneficio _repositorioBeneficio;
         private readonly IRepositorioNotificacion _repositorioNotificacion;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public AsignarGanadoresDesafio(
             IRepositorioDesafio repositorioDesafio,
@@ -23,7 +25,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             IRepositorioParticipacionDesafio repositorioParticipacion,
             IRepositorioRecompensa repositorioRecompensa,
             IRepositorioBeneficio repositorioBeneficio,
-            IRepositorioNotificacion repositorioNotificacion)
+            IRepositorioNotificacion repositorioNotificacion,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioDesafio = repositorioDesafio;
             _repositorioAlumno = repositorioAlumno;
@@ -31,10 +34,12 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             _repositorioRecompensa = repositorioRecompensa;
             _repositorioBeneficio = repositorioBeneficio;
             _repositorioNotificacion = repositorioNotificacion;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
         public void Ejecutar(
-            AsignarGanadoresRequest request)
+            AsignarGanadoresRequest request,
+            int usuarioId)
         {
             var desafio =
                 _repositorioDesafio.ObtenerPorId(
@@ -144,6 +149,17 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                         });
                 }
             }
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Desafio",
+                    EntidadId = desafio.Id,
+                    Accion =
+                        $"Asignó {request.AlumnosIds.Count()} ganador/es al desafío {desafio.Titulo}",
+                    Fecha = DateTime.UtcNow
+                });
         }
     }
 }

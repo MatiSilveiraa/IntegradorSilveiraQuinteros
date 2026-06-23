@@ -4,6 +4,6 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio
 {
     public interface ICrearDesafio
     {
-        void Ejecutar(CrearDesafioRequest request);
+        void Ejecutar(CrearDesafioRequest request, int usuarioId);
     }
 }

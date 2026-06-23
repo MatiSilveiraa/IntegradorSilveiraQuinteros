@@ -5,6 +5,7 @@ using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Entidades = Joki.LogicaNegocio.Entidades;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Pago
 {
@@ -14,20 +15,25 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
         private readonly IRepositorioCuota _repositorioCuota;
         private readonly IRepositorioNotificacion _repositorioNotificacion;
         private readonly IActualizarBloqueoDeudaAlumno _actualizarBloqueoDeudaAlumno;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public RegistrarPago(
             IRepositorioPago repositorioPago,
             IRepositorioCuota repositorioCuota,
             IRepositorioNotificacion repositorioNotificacion,
-            IActualizarBloqueoDeudaAlumno actualizarBloqueoDeudaAlumno)
+            IActualizarBloqueoDeudaAlumno actualizarBloqueoDeudaAlumno,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioPago = repositorioPago;
             _repositorioCuota = repositorioCuota;
             _repositorioNotificacion = repositorioNotificacion;
             _actualizarBloqueoDeudaAlumno = actualizarBloqueoDeudaAlumno;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
-        public void Ejecutar(RegistrarPagoRequest request)
+        public void Ejecutar(
+            RegistrarPagoRequest request,
+            int usuarioId)
         {
             var cuota =
                 _repositorioCuota.ObtenerPorId(request.CuotaId);
@@ -44,15 +50,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
                     "La cuota ya se encuentra pagada");
             }
 
-            Entidades.Pago pago = new Entidades.Pago
-            {
-                CuotaId = cuota.Id,
-                MedioPago = request.MedioPago,
-                FechaPago = DateTime.UtcNow,
-                Monto = cuota.MontoFinal,
-                Estado = EstadoPago.APROBADO,
-                ReferenciaExterna = request.ReferenciaExterna
-            };
+            Entidades.Pago pago =
+                new Entidades.Pago
+                {
+                    CuotaId = cuota.Id,
+                    MedioPago = request.MedioPago,
+                    FechaPago = DateTime.UtcNow,
+                    Monto = cuota.MontoFinal,
+                    Estado = EstadoPago.APROBADO,
+                    ReferenciaExterna = request.ReferenciaExterna
+                };
 
             _repositorioPago.Agregar(pago);
 
@@ -61,7 +68,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
             _repositorioCuota.Modificar(cuota);
 
             _actualizarBloqueoDeudaAlumno.Ejecutar(
-    cuota.AlumnoId);
+                cuota.AlumnoId);
 
             _repositorioNotificacion.Agregar(
                 new Entidades.Notificacion
@@ -74,6 +81,17 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Pago
                     UrlDestino = "/cuotas",
                     EntidadReferencia = "Pago",
                     EntidadReferenciaId = pago.Id
+                });
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Pago",
+                    EntidadId = pago.Id,
+                    Accion =
+                        $"Registró pago manual para cuota Id {cuota.Id} por monto {cuota.MontoFinal}. Medio: {request.MedioPago}",
+                    Fecha = DateTime.UtcNow
                 });
         }
     }

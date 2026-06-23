@@ -4,6 +4,7 @@ using Joki.Infraestructura.AccesoDatos.Excepciones;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Joki.WebApi.Controllers
 {
@@ -12,13 +13,9 @@ namespace Joki.WebApi.Controllers
     public class ClaseController : ControllerBase
     {
         private readonly ICrearClase _crearClase;
-
         private readonly IEditarClase _editarClase;
-
         private readonly IEliminarClase _eliminarClase;
-
         private readonly IObtenerClase _obtenerClase;
-
         private readonly IObtenerClases _obtenerClases;
 
         public ClaseController(
@@ -29,13 +26,9 @@ namespace Joki.WebApi.Controllers
             IObtenerClases obtenerClases)
         {
             _crearClase = crearClase;
-
             _editarClase = editarClase;
-
             _eliminarClase = eliminarClase;
-
             _obtenerClase = obtenerClase;
-
             _obtenerClases = obtenerClases;
         }
 
@@ -46,8 +39,14 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
                 var response =
-                    _crearClase.Ejecutar(request);
+                    _crearClase.Ejecutar(
+                        request,
+                        usuarioId);
 
                 return StatusCode(201, response);
             }
@@ -129,10 +128,15 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
                 var clase =
                     _editarClase.Ejecutar(
                         id,
-                        request);
+                        request,
+                        usuarioId);
 
                 return Ok(clase);
             }
@@ -159,7 +163,13 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                _eliminarClase.Ejecutar(id);
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _eliminarClase.Ejecutar(
+                    id,
+                    usuarioId);
 
                 return Ok(new
                 {

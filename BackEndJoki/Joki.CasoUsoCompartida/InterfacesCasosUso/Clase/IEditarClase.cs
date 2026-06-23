@@ -6,6 +6,7 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Clase
     {
         ClaseResponse Ejecutar(
             int id,
-            EditarClaseRequest request);
+            EditarClaseRequest request,
+            int usuarioId);
     }
 }

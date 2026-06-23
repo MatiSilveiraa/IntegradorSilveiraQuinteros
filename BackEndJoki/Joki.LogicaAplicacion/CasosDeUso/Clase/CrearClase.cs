@@ -4,26 +4,29 @@ using Joki.LogicaAplicacion.Mappers;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 {
     public class CrearClase : ICrearClase
     {
         private readonly IRepositorioClase _repositorioClase;
-
         private readonly IRepositorioGrupo _repositorioGrupo;
+        private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public CrearClase(
             IRepositorioClase repositorioClase,
-            IRepositorioGrupo repositorioGrupo)
+            IRepositorioGrupo repositorioGrupo,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioClase = repositorioClase;
-
             _repositorioGrupo = repositorioGrupo;
+            _repositorioAuditoria = repositorioAuditoria;
         }
 
         public ClaseResponse Ejecutar(
-            CrearClaseRequest request)
+            CrearClaseRequest request,
+            int usuarioId)
         {
             if (request == null)
             {
@@ -71,6 +74,17 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 
             var claseCreada =
                 _repositorioClase.Agregar(clase);
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId = usuarioId,
+                    Entidad = "Clase",
+                    EntidadId = claseCreada.Id,
+                    Accion =
+                        $"Creó clase Id {claseCreada.Id} para grupo Id {claseCreada.GrupoId}, día {claseCreada.DiaSemana}, horario {claseCreada.HoraInicio}-{claseCreada.HoraFin}",
+                    Fecha = DateTime.UtcNow
+                });
 
             return MapperClase.ToResponse(
                 claseCreada);

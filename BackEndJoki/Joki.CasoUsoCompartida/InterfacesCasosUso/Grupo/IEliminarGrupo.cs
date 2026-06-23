@@ -2,6 +2,8 @@
 {
     public interface IEliminarGrupo
     {
-        void Ejecutar(int id);
+        void Ejecutar(
+            int id,
+            int usuarioId);
     }
 }
