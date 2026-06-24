@@ -39,6 +39,22 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Count(n => !n.Leida);
         }
 
+        public void MarcarTodasComoLeidas(int usuarioId)
+        {
+            var notificaciones = _context.Notificaciones
+                .Where(n => n.UsuarioId == usuarioId &&
+                            !n.Leida)
+                .ToList();
+
+            foreach (var notificacion in notificaciones)
+            {
+                notificacion.Leida = true;
+                notificacion.FechaLectura = DateTime.UtcNow;
+            }
+
+            _context.SaveChanges();
+        }
+
         public IEnumerable<Notificacion> ObtenerPorUsuario(int usuarioId)
         {
             return _context.Notificaciones

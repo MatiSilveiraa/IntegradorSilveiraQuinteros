@@ -12,6 +12,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         Notificacion? ObtenerPorId(int id);
         int ContarNoLeidas();
 
+        void MarcarTodasComoLeidas(int usuarioId);
         IEnumerable<Notificacion> ObtenerPorUsuario(int usuarioId);
 
         IEnumerable<Notificacion> ObtenerNoLeidasPorUsuario(int usuarioId);

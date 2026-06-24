@@ -14,7 +14,16 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context = context;
         }
 
-        public IEnumerable<Auditoria> ObtenerUltimas(int cantidad)
+        public void Agregar(
+            Auditoria auditoria)
+        {
+            _context.Auditorias.Add(auditoria);
+
+            _context.SaveChanges();
+        }
+
+        public IEnumerable<Auditoria> ObtenerUltimas(
+            int cantidad)
         {
             return _context.Auditorias
                 .OrderByDescending(a => a.Fecha)
@@ -22,12 +31,26 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .ToList();
         }
 
-        public void Agregar(
-            Auditoria auditoria)
+        public IEnumerable<Auditoria> ObtenerPorUsuario(
+            int usuarioId,
+            int cantidad)
         {
-            _context.Auditorias.Add(auditoria);
+            return _context.Auditorias
+                .Where(a => a.UsuarioId == usuarioId)
+                .OrderByDescending(a => a.Fecha)
+                .Take(cantidad)
+                .ToList();
+        }
 
-            _context.SaveChanges();
+        public IEnumerable<Auditoria> ObtenerPorEntidad(
+            string entidad,
+            int cantidad)
+        {
+            return _context.Auditorias
+                .Where(a => a.Entidad == entidad)
+                .OrderByDescending(a => a.Fecha)
+                .Take(cantidad)
+                .ToList();
         }
     }
 }

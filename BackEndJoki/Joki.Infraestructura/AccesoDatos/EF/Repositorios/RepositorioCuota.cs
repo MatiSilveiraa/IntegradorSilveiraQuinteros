@@ -71,7 +71,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _contexto.Cuotas
                 .Count(c =>
-                    c.Estado == EstadoCuota.PENDIENTE &&
+                    (c.Estado == EstadoCuota.PENDIENTE ||
+                     c.Estado == EstadoCuota.VENCIDA) &&
                     c.FechaVencimiento.Date < fecha.Date);
         }
 
@@ -106,15 +107,16 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
             return _contexto.Cuotas
                 .Where(c =>
-                    c.Estado == EstadoCuota.PENDIENTE &&
+                    (c.Estado == EstadoCuota.PENDIENTE ||
+                     c.Estado == EstadoCuota.VENCIDA) &&
                     c.FechaVencimiento.Date < fechaLimite)
                 .ToList();
         }
 
         public bool TieneCuotasVencidasPendientes(
-            int alumnoId,
-            DateTime fecha,
-            int diasAtraso)
+    int alumnoId,
+    DateTime fecha,
+    int diasAtraso)
         {
             DateTime fechaLimite =
                 fecha.Date.AddDays(-diasAtraso);
@@ -122,7 +124,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             return _contexto.Cuotas
                 .Any(c =>
                     c.AlumnoId == alumnoId &&
-                    c.Estado == EstadoCuota.PENDIENTE &&
+                    (c.Estado == EstadoCuota.PENDIENTE ||
+                     c.Estado == EstadoCuota.VENCIDA) &&
                     c.FechaVencimiento.Date < fechaLimite);
         }
     }

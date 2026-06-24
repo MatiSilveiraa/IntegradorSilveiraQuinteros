@@ -7,5 +7,13 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         void Agregar(Auditoria auditoria);
 
         IEnumerable<Auditoria> ObtenerUltimas(int cantidad);
+
+        IEnumerable<Auditoria> ObtenerPorUsuario(
+            int usuarioId,
+            int cantidad);
+
+        IEnumerable<Auditoria> ObtenerPorEntidad(
+            string entidad,
+            int cantidad);
     }
 }

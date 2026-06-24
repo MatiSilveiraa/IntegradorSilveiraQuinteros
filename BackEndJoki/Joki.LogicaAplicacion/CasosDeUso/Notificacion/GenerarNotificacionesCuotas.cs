@@ -52,8 +52,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Notificacion
             }
 
             var cuotasVencidas =
-                _repositorioCuota.ObtenerPendientesVencidas(
-                    hoy);
+    _repositorioCuota.ObtenerPendientesVencidas(
+        hoy);
 
             foreach (var cuota in cuotasVencidas)
             {

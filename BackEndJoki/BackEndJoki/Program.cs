@@ -220,6 +220,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IValidarLoginSinPassword,ValidarLoginSinPassword>();
     builder.Services.AddScoped<IRepositorioCodigoLoginSinPassword,RepositorioCodigoLoginSinPassword>();
     builder.Services.AddScoped<IObtenerAuditorias, ObtenerAuditorias>();
+    builder.Services.AddScoped<IObtenerAuditoriasPorUsuario,ObtenerAuditoriasPorUsuario>();
+    builder.Services.AddScoped<IObtenerAuditoriasPorEntidad,ObtenerAuditoriasPorEntidad>();
+    builder.Services.AddScoped<IMarcarTodasNotificacionesComoLeidas,MarcarTodasNotificacionesComoLeidas>();
 
 builder.Services.AddRateLimiter(options =>
 {
