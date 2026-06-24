@@ -1,23 +1,21 @@
 import toast from "react-hot-toast";
+import { cuentaBloqueada } from "./accountUtils";
+import type { Perfil } from "../types";
 
-import {
-  usuarioBloqueado,
-} from "./AuthUtils";
-export const validarCuentaActiva =
-  (): boolean => {
+export const validarCuentaActiva = (
+  perfil?: Perfil | null
+): boolean => {
 
-    if (
-      usuarioBloqueado()
-    ) {
+  if (cuentaBloqueada(perfil)) {
 
-      toast.error(
-        "Tu cuenta está bloqueada. Solicita una reactivación."
-      );
+    toast.error(
+      perfil?.bloqueadoPorDeuda
+        ? "Tu cuenta está bloqueada por impago"
+        : "Tu cuenta está bloqueada por inasistencias"
+    );
 
-      return false;
+    return false;
+  }
 
-    }
-
-    return true;
-
-  };
+  return true;
+};

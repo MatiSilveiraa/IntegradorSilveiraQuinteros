@@ -14,10 +14,11 @@ export interface Perfil {
   genero?: number;
 
   bloqueadoPorInasistencias?: boolean;
+  
   twoFactorEnabled?: boolean;
   rachaAsistenciaMensual?: number;
   rol?: string;
-  bloqueadoPorImpago?: boolean;
+  bloqueadoPorDeuda?: boolean;
 }
 
 export interface Cuota {
@@ -42,19 +43,17 @@ export interface Clase {
   diaSemana: string;
   horaInicio: string;
   horaFin: string;
-
   cupoMaximo?: number;
   grupoId?: number;
-
+  estado?: string;
+  esFija?: boolean;
   fechaInicio?: string;
   fechaFin?: string;
-
   radioGeolocalizacion?: number;
-
   latitud?: number;
   longitud?: number;
-
   codigoPostal?: string;
+  cantidadInscriptos?: number;
 }
 
 export interface Grupo {

@@ -26,6 +26,8 @@
 
         public bool BloqueadoPorInasistencias { get; set; }
 
+        public bool BloqueadoPorDeuda { get; set; }
+
         public int RachaAsistenciaMensual { get; set; }
 
         public bool DescuentoRachaGenerado { get; set; }

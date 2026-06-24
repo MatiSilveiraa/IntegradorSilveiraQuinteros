@@ -72,7 +72,9 @@ namespace Joki.LogicaAplicacion.Mappers
 
                 CupoMaximo = clase.CupoMaximo,
 
-                Estado = clase.Estado.ToString()
+                Estado = clase.Estado.ToString(),
+
+                CantidadInscriptos = clase.Inscripciones.Count
             };
         }
 

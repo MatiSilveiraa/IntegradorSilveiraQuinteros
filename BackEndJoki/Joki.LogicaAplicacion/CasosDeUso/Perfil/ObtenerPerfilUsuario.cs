@@ -31,6 +31,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
             bool bloqueadoPorInasistencias = false;
             int rachaAsistenciaMensual = 0;
             bool descuentoRachaGenerado = false;
+            bool bloqueadoPorDeuda = false;
 
             var alumno = _repositorioAlumno.ObtenerPorId(usuarioId);
 
@@ -44,6 +45,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
 
                 descuentoRachaGenerado =
                     alumno.DescuentoRachaGenerado;
+                bloqueadoPorDeuda = alumno.BloqueadoPorDeuda;
             }
 
             return new PerfilResponse
@@ -63,6 +65,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Perfil
 
                 BloqueadoPorInasistencias =
           bloqueadoPorInasistencias,
+                BloqueadoPorDeuda = bloqueadoPorDeuda,
 
                 RachaAsistenciaMensual =
           rachaAsistenciaMensual,

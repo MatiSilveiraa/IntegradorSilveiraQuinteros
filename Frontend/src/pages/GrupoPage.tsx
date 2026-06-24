@@ -19,67 +19,49 @@ export default function GruposPage() {
   const [loading, setLoading] = useState(true);
   const [grupos, setGrupos] = useState<any[]>([]);
   const [misClases, setMisClases] = useState<any[]>([]);
+  useState<any[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
 
   const proximaClase = obtenerProximaClase(misClases);
 
- useEffect(() => {
-  const cargarDatos = async () => {
-    try {
-      const [
-        perfilData,
-        gruposData,
-        clasesData,
-      ] = await Promise.all([
-        obtenerMiPerfil(),
-        obtenerGrupos(),
-        obtenerMisClases(),
-      ]);
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const [perfilData, gruposData, clasesData] = await Promise.all([
+          obtenerMiPerfil(),
+          obtenerGrupos(),
+          obtenerMisClases(),
+        ]);
 
-      setPerfil(perfilData);
-      setGrupos(gruposData);
-      setMisClases(clasesData);
+        setPerfil(perfilData);
+        setGrupos(gruposData);
+        setMisClases(clasesData);
+      } catch (error) {
+        console.error(error);
+
+        toast.error("No fue posible cargar la información");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
+  const handleDesinscribirse = async (claseId: number) => {
+    try {
+      await desinscribirseClase(claseId);
+
+      setMisClases((prev) => prev.filter((c) => c.id !== claseId));
+
+      toast.success("Te desinscribiste correctamente");
     } catch (error) {
       console.error(error);
 
-      toast.error(
-        "No fue posible cargar la información"
-      );
-    } finally {
-      setLoading(false);
+      toast.error("No fue posible desinscribirse");
     }
   };
-
-  cargarDatos();
-}, []);
-
- const handleDesinscribirse = async (
-  claseId: number
-) => {
-  try {
-    await desinscribirseClase(
-      claseId
-    );
-
-    setMisClases((prev) =>
-      prev.filter(
-        (c) => c.id !== claseId
-      )
-    );
-
-    toast.success(
-      "Te desinscribiste correctamente"
-    );
-  } catch (error) {
-    console.error(error);
-
-    toast.error(
-      "No fue posible desinscribirse"
-    );
-  }
-};
-
   const gruposFiltrados = grupos.filter((grupo) =>
     grupo.nombre.toLowerCase().includes(busqueda.toLowerCase()),
   );
@@ -87,7 +69,7 @@ export default function GruposPage() {
   const obtenerNombreGrupo = (grupoId: number) => {
     return grupos.find((g) => g.id === grupoId)?.nombre || "Grupo";
   };
-  if(loading) {
+  if (loading) {
     return <FullScreenLoading />;
   }
   return (
@@ -105,10 +87,54 @@ export default function GruposPage() {
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
         />
+        <div className="grid gap-4 md:grid-cols-3 mt-6 mb-8">
+          <div
+            className="
+      bg-[#1a2b24]
+      border
+      border-[#2d463b]
+      rounded-2xl
+      p-5
+    "
+          >
+            <p className="text-gray-400 text-sm">Clases activas</p>
 
+            <h2 className="text-3xl font-bold mt-2">{misClases.length}</h2>
+          </div>
+
+          <div
+            className="
+      bg-[#1a2b24]
+      border
+      border-[#2d463b]
+      rounded-2xl
+      p-5
+    "
+          >
+            <p className="text-gray-400 text-sm">Racha actual</p>
+
+            <h2 className="text-3xl font-bold mt-2">
+              🔥 {perfil?.rachaAsistenciaMensual ?? 0}
+            </h2>
+          </div>
+
+          <div
+            className="
+      bg-[#1a2b24]
+      border
+      border-[#2d463b]
+      rounded-2xl
+      p-5
+    "
+          >
+            <p className="text-gray-400 text-sm">Grupos disponibles</p>
+
+            <h2 className="text-3xl font-bold mt-2">{grupos.length}</h2>
+          </div>
+        </div>
         {perfil?.bloqueadoPorInasistencias && (
-  <div
-    className="
+          <div
+            className="
       mt-6
       bg-red-500/10
       border
@@ -116,18 +142,50 @@ export default function GruposPage() {
       rounded-2xl
       p-5
     "
-  >
-    <h3 className="text-red-400 font-bold">
-      🚫 Cuenta bloqueada
-    </h3>
+          >
+            <h3 className="text-red-400 font-bold">Cuenta bloqueada</h3>
 
-    <p className="text-gray-300 mt-2">
-      Tu cuenta se encuentra bloqueada por inasistencias.
-      No podrás inscribirte a nuevas clases hasta que tu
-      solicitud de reactivación sea aprobada.
-    </p>
-  </div>
-)}
+            <p className="text-gray-300 mt-2">
+              Tu cuenta se encuentra bloqueada por inasistencias. No podrás
+              inscribirte a nuevas clases hasta que tu solicitud de reactivación
+              sea aprobada.
+            </p>
+          </div>
+        )}
+
+        <div
+          className="
+    bg-[#1a2b24]
+    border
+    border-[#2d463b]
+    rounded-2xl
+    p-5
+    mb-8
+  "
+        >
+          <div className="flex justify-between">
+            <h3 className="font-bold">🎯 Objetivo semanal</h3>
+
+            <span>{misClases.length}/3</span>
+          </div>
+
+          <div
+            className="
+      mt-4
+      h-3
+      rounded-full
+      bg-[#12201b]
+      overflow-hidden
+    "
+          >
+            <div
+              className="h-full bg-[#4adea8]"
+              style={{
+                width: `${Math.min((misClases.length / 3) * 100, 100)}%`,
+              }}
+            />
+          </div>
+        </div>
         {/* PRÓXIMA CLASE */}
 
         <div
@@ -170,6 +228,17 @@ export default function GruposPage() {
                 )} - ${proximaClase.horaFin.substring(0, 5)}`
               : "No tienes clases registradas"}
           </p>
+          {proximaClase && (
+            <>
+              <p className="text-gray-300 mt-3">
+                Grupo: {obtenerNombreGrupo(proximaClase.grupoId)}
+              </p>
+
+              <p className="text-gray-500">
+                📍 {proximaClase.codigoPostal ?? "Sin ubicación"}
+              </p>
+            </>
+          )}
         </div>
 
         {/* MIS CLASES */}
@@ -244,7 +313,7 @@ export default function GruposPage() {
                           </p>
 
                           <p className="text-gray-500 text-sm mt-2">
-                            Clase #{clase.id}
+                            {obtenerNombreGrupo(clase.grupoId)}
                           </p>
                         </div>
 
@@ -333,16 +402,8 @@ export default function GruposPage() {
                   horario={`${obtenerDias(grupo.clases)} — ${obtenerHora(
                     grupo.clases,
                   )}`}
-                  ubicacion={
-                    grupo.clases?.length
-                      ? grupo.clases[0].codigoPostal
-                      : "Sin ubicación"
-                  }
                   nivel={grupo.nivel}
-                  cuposOcupados={0}
-                  cuposTotales={
-                    grupo.clases?.length ? grupo.clases[0].cupoMaximo : 0
-                  }
+                  cantidadClases={grupo.clases?.length ?? 0}
                 />
               ))}
             </div>

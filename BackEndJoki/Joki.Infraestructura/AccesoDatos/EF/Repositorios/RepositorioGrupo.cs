@@ -24,6 +24,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _context.Grupos
                 .Include(g => g.Clases)
+                .ThenInclude(c => c.Inscripciones)
                 .ToList();
         }
 

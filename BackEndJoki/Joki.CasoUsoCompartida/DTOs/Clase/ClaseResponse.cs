@@ -30,6 +30,8 @@
 
         public string Estado { get; set; }
 
+        public int CantidadInscriptos { get; set; }
+
         public ClaseResponse()
         {
             DiaSemana = string.Empty;
