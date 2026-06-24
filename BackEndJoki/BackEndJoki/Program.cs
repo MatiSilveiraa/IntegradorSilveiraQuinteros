@@ -223,6 +223,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerAuditoriasPorUsuario,ObtenerAuditoriasPorUsuario>();
     builder.Services.AddScoped<IObtenerAuditoriasPorEntidad,ObtenerAuditoriasPorEntidad>();
     builder.Services.AddScoped<IMarcarTodasNotificacionesComoLeidas,MarcarTodasNotificacionesComoLeidas>();
+    builder.Services.AddScoped<IResetearRachasMensuales, ResetearRachasMensuales>();
+    builder.Services.AddScoped<RachasJob>();
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -314,6 +316,15 @@ RecurringJob.AddOrUpdate<BloqueoDeudaJob>(
         TimeZone = zonaHorariaUruguay
     });
 
+RecurringJob.AddOrUpdate<RachasJob>(
+    "resetear-rachas-mensuales",
+    job => job.ResetearRachasMensuales(),
+    "5 0 1 * *",
+    new RecurringJobOptions
+    {
+        TimeZone = zonaHorariaUruguay
+    });
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -325,9 +336,7 @@ using (var scope = app.Services.CreateScope())
 //app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
-app.UseAuthentication();
 app.UseRateLimiter();
-app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
