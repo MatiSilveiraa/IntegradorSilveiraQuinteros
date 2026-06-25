@@ -57,6 +57,13 @@ export interface Clase {
   grupoNombre?: string;
 }
 
+export type EstadoClaseValor = 0 | 1 | 2 | 3;
+
+export interface CambiarEstadoClaseRequest {
+  estado: EstadoClaseValor;
+  motivo?: string;
+}
+
 export interface Grupo {
   id: number;
   nombre: string;

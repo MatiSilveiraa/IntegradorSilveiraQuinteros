@@ -9,9 +9,10 @@ import ClassLocationMap from "../../../components/maps/ClassLocationMap";
 import {
   obtenerClases,
   eliminarClase,
+  cambiarEstadoClase,
 } from "../../../services/Clase.Service";
 
-import type { Clase } from "../../../types";
+import type { Clase, EstadoClaseValor } from "../../../types";
 
 export default function ClasesPage() {
   const navigate = useNavigate();
@@ -28,6 +29,11 @@ export default function ClasesPage() {
   const [eliminando, setEliminando] = useState(false);
 
   const [claseUbicacion, setClaseUbicacion] = useState<Clase | null>(null);
+
+  const [claseEstado, setClaseEstado] = useState<Clase | null>(null);
+  const [nuevoEstado, setNuevoEstado] = useState<EstadoClaseValor>(0);
+  const [motivoEstado, setMotivoEstado] = useState("");
+  const [cambiandoEstado, setCambiandoEstado] = useState(false);
 
   const cargarClases = async () => {
     try {
@@ -67,22 +73,81 @@ export default function ClasesPage() {
     return clase.grupoNombre ?? `Grupo #${clase.grupoId}`;
   };
 
+  const obtenerValorEstado = (estado?: string): EstadoClaseValor => {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado === "PROGRAMADA") return 0;
+    if (normalizado === "REALIZADA") return 1;
+    if (normalizado === "CANCELADA") return 2;
+    if (normalizado === "SUSPENDIDA") return 3;
+
+    return 0;
+  };
+
+  const obtenerTextoEstado = (estado?: string) => {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado === "PROGRAMADA") return "🟢 Programada";
+    if (normalizado === "REALIZADA") return "✅ Realizada";
+    if (normalizado === "CANCELADA") return "🔴 Cancelada";
+    if (normalizado === "SUSPENDIDA") return "🟡 Suspendida";
+
+    return estado ?? "Sin estado";
+  };
+
   const obtenerClaseEstado = (estado?: string) => {
     const normalizado = estado?.toUpperCase();
 
-    if (normalizado === "ACTIVA") {
+    if (normalizado === "PROGRAMADA") {
       return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
+    }
+
+    if (normalizado === "REALIZADA") {
+      return "bg-blue-500/10 text-blue-300 border-blue-500/30";
+    }
+
+    if (normalizado === "CANCELADA") {
+      return "bg-red-500/10 text-red-400 border-red-500/30";
     }
 
     if (normalizado === "SUSPENDIDA") {
       return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
     }
 
-    if (normalizado === "FINALIZADA" || normalizado === "INACTIVA") {
-      return "bg-gray-500/10 text-gray-300 border-gray-500/30";
-    }
-
     return "bg-[#12201b] text-gray-300 border-[#2d463b]";
+  };
+
+  const abrirModalEstado = (clase: Clase) => {
+    setClaseEstado(clase);
+    setNuevoEstado(obtenerValorEstado(clase.estado));
+    setMotivoEstado("");
+  };
+
+  const confirmarCambiarEstado = async () => {
+    if (!claseEstado) return;
+
+    try {
+      setCambiandoEstado(true);
+
+      await cambiarEstadoClase(claseEstado.id, {
+        estado: nuevoEstado,
+        motivo: motivoEstado.trim() || undefined,
+      });
+
+      toast.success("Estado de clase actualizado correctamente");
+
+      setClaseEstado(null);
+      setMotivoEstado("");
+      cargarClases();
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.mensaje ?? "No se pudo cambiar el estado"
+      );
+    } finally {
+      setCambiandoEstado(false);
+    }
   };
 
   const clasesFiltradas = useMemo(() => {
@@ -121,7 +186,10 @@ export default function ClasesPage() {
     }, {});
   }, [clasesFiltradas]);
 
-  const totalActivas = clases.filter((c) => c.estado === "ACTIVA").length;
+  const totalProgramadas = clases.filter(
+    (c) => c.estado?.toUpperCase() === "PROGRAMADA"
+  ).length;
+
   const totalFijas = clases.filter((c) => c.esFija).length;
   const totalEventuales = clases.filter((c) => !c.esFija).length;
 
@@ -188,8 +256,8 @@ export default function ClasesPage() {
           </div>
 
           <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5">
-            <p className="text-gray-400 text-sm">Activas</p>
-            <h2 className="text-3xl font-bold mt-2">{totalActivas}</h2>
+            <p className="text-gray-400 text-sm">Programadas</p>
+            <h2 className="text-3xl font-bold mt-2">{totalProgramadas}</h2>
           </div>
 
           <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5">
@@ -349,11 +417,11 @@ export default function ClasesPage() {
 
                             <td className="px-6 py-4">
                               <span
-                                className={`px-3 py-1 rounded-full border text-xs ${obtenerClaseEstado(
+                                className={`px-3 py-1 rounded-full border text-xs font-semibold ${obtenerClaseEstado(
                                   clase.estado
                                 )}`}
                               >
-                                {clase.estado ?? "Sin estado"}
+                                {obtenerTextoEstado(clase.estado)}
                               </span>
                             </td>
 
@@ -364,6 +432,13 @@ export default function ClasesPage() {
                                   className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] transition-all"
                                 >
                                   Ubicación
+                                </button>
+
+                                <button
+                                  onClick={() => abrirModalEstado(clase)}
+                                  className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-yellow-400 transition-all"
+                                >
+                                  Estado
                                 </button>
 
                                 <button
@@ -393,6 +468,123 @@ export default function ClasesPage() {
           </div>
         )}
       </main>
+
+      {claseEstado && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
+          <div className="w-full max-w-lg bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-3xl mb-5">
+              ⚙️
+            </div>
+
+            <h2 className="text-2xl font-bold mb-2">
+              Cambiar estado de clase
+            </h2>
+
+            <p className="text-gray-400 mb-6">
+              Modificá el estado de la clase. Si corresponde, los alumnos
+              inscriptos recibirán una notificación automática.
+            </p>
+
+            <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6 space-y-2">
+              <p>
+                <span className="text-gray-400">Grupo:</span>{" "}
+                <strong>{obtenerNombreGrupo(claseEstado)}</strong>
+              </p>
+
+              <p>
+                <span className="text-gray-400">Día:</span>{" "}
+                <strong>{claseEstado.diaSemana}</strong>
+              </p>
+
+              <p>
+                <span className="text-gray-400">Horario:</span>{" "}
+                <strong>
+                  {formatearHora(claseEstado.horaInicio)} -{" "}
+                  {formatearHora(claseEstado.horaFin)}
+                </strong>
+              </p>
+
+              <p>
+                <span className="text-gray-400">Estado actual:</span>{" "}
+                <strong>{obtenerTextoEstado(claseEstado.estado)}</strong>
+              </p>
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 text-sm text-gray-300">
+                Nuevo estado
+              </label>
+
+              <select
+                value={nuevoEstado}
+                onChange={(e) =>
+                  setNuevoEstado(Number(e.target.value) as EstadoClaseValor)
+                }
+                className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+              >
+                <option value={0}>Programada</option>
+                <option value={1}>Realizada</option>
+                <option value={2}>Cancelada</option>
+                <option value={3}>Suspendida</option>
+              </select>
+            </div>
+
+            {(nuevoEstado === 0 || nuevoEstado === 2 || nuevoEstado === 3) && (
+              <div className="mb-6">
+                <label className="block mb-2 text-sm text-gray-300">
+                  Motivo opcional
+                </label>
+
+                <textarea
+                  value={motivoEstado}
+                  onChange={(e) => setMotivoEstado(e.target.value)}
+                  placeholder={
+                    nuevoEstado === 3
+                      ? "Ej: Se suspende por lluvia."
+                      : nuevoEstado === 2
+                      ? "Ej: Se cancela por falta de disponibilidad."
+                      : "Ej: Se retoma normalmente."
+                  }
+                  rows={4}
+                  className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8] resize-none"
+                />
+              </div>
+            )}
+
+            {(nuevoEstado === 0 || nuevoEstado === 2 || nuevoEstado === 3) && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 mb-6 text-yellow-200 text-sm">
+                ⚠ Al guardar este cambio, los alumnos inscriptos serán
+                notificados automáticamente.
+              </div>
+            )}
+
+            {nuevoEstado === 1 && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-6 text-blue-200 text-sm">
+                ℹ Al marcar la clase como realizada, el backend no enviará
+                notificaciones automáticas.
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setClaseEstado(null)}
+                disabled={cambiandoEstado}
+                className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={confirmarCambiarEstado}
+                disabled={cambiandoEstado}
+                className="px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90 disabled:opacity-60"
+              >
+                {cambiandoEstado ? "Guardando..." : "Guardar estado"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {claseAEliminar && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
