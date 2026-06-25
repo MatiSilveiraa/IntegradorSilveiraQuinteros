@@ -1,4 +1,6 @@
-﻿namespace Joki.CasoUsoCompartida.DTOs.Admin
+﻿using Joki.CasoUsoCompartida.DTOs.Pago;
+
+namespace Joki.CasoUsoCompartida.DTOs.Admin
 {
     public class AdminDashboardResponse
     {
@@ -17,5 +19,6 @@
         public int NotificacionesNoLeidas { get; set; }
 
         public decimal IngresosMesActual { get; set; }
+        public List<IngresoMensualDTO> IngresosUltimos6Meses { get; set; } = [];
     }
 }

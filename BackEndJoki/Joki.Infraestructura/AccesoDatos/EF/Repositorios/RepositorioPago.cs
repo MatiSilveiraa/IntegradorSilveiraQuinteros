@@ -2,6 +2,7 @@
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Joki.LogicaNegocio.ValueObjects;
 
 namespace Joki.Infraestructura.AccesoDatos.Repositorios
 {
@@ -31,6 +32,32 @@ namespace Joki.Infraestructura.AccesoDatos.Repositorios
                     p.FechaPago.Month == mes &&
                     p.FechaPago.Year == anio)
                 .Sum(p => p.Monto);
+        }
+
+        public List<IngresoMensual> ObtenerIngresosUltimos6Meses()
+        {
+            var resultado = new List<IngresoMensual>();
+
+            var hoy = DateTime.Today;
+
+            for (int i = 5; i >= 0; i--)
+            {
+                var fecha = hoy.AddMonths(-i);
+
+                var total = _contexto.Pagos
+                    .Where(p =>
+                        p.Estado == EstadoPago.APROBADO &&
+                        p.FechaPago.Month == fecha.Month &&
+                        p.FechaPago.Year == fecha.Year)
+                    .Sum(p => (decimal?)p.Monto) ?? 0;
+
+                resultado.Add(new IngresoMensual(
+                    fecha.Month,
+                    fecha.Year,
+                    total));
+            }
+
+            return resultado;
         }
 
         public IEnumerable<Pago> ObtenerPorCuota(int cuotaId)

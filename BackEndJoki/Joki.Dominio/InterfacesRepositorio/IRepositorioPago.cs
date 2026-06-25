@@ -1,6 +1,8 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.ValueObjects;
 
 namespace Joki.LogicaNegocio.InterfacesRepositorio
+
 {
     public interface IRepositorioPago
     {
@@ -16,5 +18,6 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         IEnumerable<Pago> ObtenerPorCuota(int cuotaId);
 
         IEnumerable<Pago> ObtenerPorAlumno(int alumnoId);
+        List<IngresoMensual> ObtenerIngresosUltimos6Meses();
     }
 }

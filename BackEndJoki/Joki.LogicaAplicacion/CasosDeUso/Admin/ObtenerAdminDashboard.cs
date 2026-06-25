@@ -1,12 +1,16 @@
-﻿using Joki.CasoUsoCompartida.DTOs.Admin;
+﻿using System.Globalization;
+using Joki.CasoUsoCompartida.DTOs.Admin;
+using Joki.CasoUsoCompartida.DTOs.Pago;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Admin;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Admin
 {
     public class ObtenerAdminDashboard :
         IObtenerAdminDashboard
     {
+
         private readonly IRepositorioAlumno _repositorioAlumno;
         private readonly IRepositorioDesafio _repositorioDesafio;
         private readonly IRepositorioCuota _repositorioCuota;
@@ -34,7 +38,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Admin
         {
             DateTime hoy = DateTime.Today;
 
-            return new AdminDashboardResponse
+            var dashboard = new AdminDashboardResponse
             {
                 AlumnosActivos =
                     _repositorioAlumno.ContarActivos(),
@@ -62,6 +66,20 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Admin
                         hoy.Month,
                         hoy.Year)
             };
+
+            dashboard.IngresosUltimos6Meses =
+                _repositorioPago.ObtenerIngresosUltimos6Meses()
+                .Select(i => new IngresoMensualDTO
+                {
+                    Mes = new CultureInfo("es-UY")
+    .DateTimeFormat
+    .GetAbbreviatedMonthName(i.Mes),
+
+                    Total = i.Total
+                })
+                .ToList();
+
+            return dashboard;
         }
     }
 }
