@@ -377,6 +377,31 @@ return (
               Revisar solicitudes de reactivación.
             </p>
           </button>
+
+          <button
+              onClick={() => navigate("/admin/clases")}
+              className="
+                bg-[#1a2b24]
+                border
+                border-[#2d463b]
+                rounded-3xl
+                p-6
+                text-left
+                hover:border-[#4adea8]
+                hover:-translate-y-1
+                transition-all
+              "
+            >
+              <div className="text-3xl mb-3">📅</div>
+
+              <h3 className="font-semibold text-lg">
+                Gestionar Clases
+              </h3>
+
+              <p className="text-sm text-gray-400 mt-2">
+                Crear, editar y eliminar clases.
+              </p>
+          </button>
         </div>
       </section>
     </main>

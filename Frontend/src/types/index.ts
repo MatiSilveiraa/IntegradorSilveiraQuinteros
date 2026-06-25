@@ -40,20 +40,21 @@ export interface Cuota {
 
 export interface Clase {
   id: number;
+  grupoId: number;
   diaSemana: string;
   horaInicio: string;
   horaFin: string;
-  cupoMaximo?: number;
-  grupoId?: number;
-  estado?: string;
-  esFija?: boolean;
-  fechaInicio?: string;
-  fechaFin?: string;
-  radioGeolocalizacion?: number;
-  latitud?: number;
-  longitud?: number;
-  codigoPostal?: string;
-  cantidadInscriptos?: number;
+  latitud: number;
+  longitud: number;
+  codigoPostal: string;
+  radioGeolocalizacion: number;
+  esFija: boolean;
+  fechaInicio: string;
+  fechaFin?: string | null;
+  cupoMaximo: number;
+  estado: string;
+  cantidadInscriptos: number;
+  grupoNombre?: string;
 }
 
 export interface Grupo {
@@ -168,4 +169,19 @@ export interface SolicitudReactivacion {
   fechaSolicitud: string;
   estado: string;
   motivoAlumno: string;
+}
+
+export interface CrearClaseRequest {
+  grupoId: number;
+  diaSemana: number;
+  horaInicio: string;
+  horaFin: string;
+  latitud: number;
+  longitud: number;
+  codigoPostal: string;
+  radioGeolocalizacion: number;
+  esFija: boolean;
+  fechaInicio: string;
+  fechaFin?: string | null;
+  cupoMaximo: number;
 }

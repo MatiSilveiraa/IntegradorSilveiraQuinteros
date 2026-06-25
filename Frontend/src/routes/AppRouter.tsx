@@ -38,6 +38,9 @@ import SolicitarReactivacionPage from "../pages/SolicitarReactivacionPage";
 import PasswordlessLoginPage from "../pages/PasswordlessLoginPage";
 import PasswordlessCodePage from "../pages/PasswordlessCodePage";
 
+import ClasesPage from "../pages/Admin/Clases/ClasesPage";
+import ClaseFormPage from "../pages/Admin/Clases/ClaseFormPage";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -112,6 +115,33 @@ export default function AppRouter() {
           element={
             <ProtectedRoute rolPermitido="Alumno">
               <SolicitarReactivacionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/clases"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <ClasesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/clases/nueva"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <ClaseFormPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/clases/editar/:id"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <ClaseFormPage />
             </ProtectedRoute>
           }
         />
