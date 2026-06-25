@@ -17,19 +17,22 @@ namespace Joki.WebApi.Controllers
         private readonly IEliminarClase _eliminarClase;
         private readonly IObtenerClase _obtenerClase;
         private readonly IObtenerClases _obtenerClases;
+        private readonly ICambiarEstadoClase _cambiarEstadoClase;
 
         public ClaseController(
             ICrearClase crearClase,
             IEditarClase editarClase,
             IEliminarClase eliminarClase,
             IObtenerClase obtenerClase,
-            IObtenerClases obtenerClases)
+            IObtenerClases obtenerClases,
+            ICambiarEstadoClase cambiarEstadoClase)
         {
             _crearClase = crearClase;
             _editarClase = editarClase;
             _eliminarClase = eliminarClase;
             _obtenerClase = obtenerClase;
             _obtenerClases = obtenerClases;
+            _cambiarEstadoClase = cambiarEstadoClase;
         }
 
         [Authorize(Roles = "Admin")]
@@ -156,6 +159,45 @@ namespace Joki.WebApi.Controllers
                 });
             }
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/estado")]
+        public IActionResult CambiarEstado(
+    int id,
+    [FromBody] CambiarEstadoClaseRequest request)
+        {
+            try
+            {
+                int usuarioId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                _cambiarEstadoClase.Ejecutar(
+                    id,
+                    request,
+                    usuarioId);
+
+                return Ok(new
+                {
+                    mensaje = "Estado de clase actualizado correctamente"
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]

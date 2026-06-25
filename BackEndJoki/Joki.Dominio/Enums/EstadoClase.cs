@@ -1,10 +1,10 @@
-﻿
-namespace Joki.LogicaNegocio.Enums
+﻿namespace Joki.LogicaNegocio.Enums
 {
     public enum EstadoClase
     {
         Programada,
         Realizada,
-        Cancelada
+        Cancelada,
+        Suspendida
     }
 }

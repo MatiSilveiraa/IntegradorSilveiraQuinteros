@@ -13,5 +13,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         int CantidadPorClase(int claseId);
 
         IEnumerable<Inscripcion> ObtenerPorAlumno(int alumnoId);
+
+        IEnumerable<Inscripcion> ObtenerPorClase(int claseId);
     }
 }

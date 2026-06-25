@@ -57,5 +57,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Where(i => i.AlumnoId == alumnoId)
                 .ToList();
         }
+
+        public IEnumerable<Inscripcion> ObtenerPorClase(int claseId)
+        {
+            return _context.Inscripciones
+                .Include(i => i.Alumno)
+                .Where(i => i.ClaseId == claseId)
+                .ToList();
+        }
     }
 }

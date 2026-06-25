@@ -225,6 +225,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IMarcarTodasNotificacionesComoLeidas,MarcarTodasNotificacionesComoLeidas>();
     builder.Services.AddScoped<IResetearRachasMensuales, ResetearRachasMensuales>();
     builder.Services.AddScoped<RachasJob>();
+    builder.Services.AddScoped<ICambiarEstadoClase, CambiarEstadoClase>();
 
 builder.Services.AddRateLimiter(options =>
 {
