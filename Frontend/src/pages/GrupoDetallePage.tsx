@@ -10,7 +10,7 @@ import {
   desinscribirseClase,
 } from "../services/Inscripciones.Service";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 
 import type { Grupo, Clase } from "../types";
 import { obtenerMiPerfil } from "../services/Perfil.service";

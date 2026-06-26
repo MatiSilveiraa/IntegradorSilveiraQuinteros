@@ -5,7 +5,7 @@ import MetodoPagoCard from "../components/pagos/MetodoPagoCard";
 import HistorialPagosCard from "../components/pagos/HistorialPagosCard";
 import SecurityNote from "../components/pagos/SecurityNote";
 import PagoFooter from "../components/pagos/PageFooter";
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 
 import { generarPagoMercadoPago } from "../services/Pago.service";
 import { obtenerMiPerfil } from "../services/Perfil.service";

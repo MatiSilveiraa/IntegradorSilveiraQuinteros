@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 
 import { setup2FA, confirmar2FA } from "../services/Auth2FA.Service";
 import toast from "react-hot-toast";

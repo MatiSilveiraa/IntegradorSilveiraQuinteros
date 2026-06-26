@@ -5,7 +5,7 @@ import {
   solicitarReactivacion,
 } from "../services/Reactivacion.Service";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 
 export default function SolicitarReactivacionPage() {
 

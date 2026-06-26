@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import DashboardLayout from "../components/layout/DashboardLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import toast from "react-hot-toast";
@@ -77,11 +77,12 @@ export default function NotificacionPage() {
   const esAlumno = usuario.rol === "Alumno";
 
   return (
-    <AlumnoLayout
-      nombre={perfil?.nombre}
-      mostrarNavegacion={esAlumno}
-      contentClassName={esAlumno ? "" : "pt-24 pb-8"}
-    >
+  <DashboardLayout
+  nombre={perfil?.nombre}
+  mostrarSidebar={esAlumno}
+  mostrarBottomNav={esAlumno}
+  contentClassName="pb-8"
+>
       <main className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Notificaciones</h1>
@@ -196,6 +197,6 @@ export default function NotificacionPage() {
           </div>
         )}
       </main>
-    </AlumnoLayout>
+    </DashboardLayout>
   );
 }

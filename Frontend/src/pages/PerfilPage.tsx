@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 import FullScreenLoading from "../components/FullScreenSpinner";
 
 import PerfilHero from "../components/perfil/PerfilHero";

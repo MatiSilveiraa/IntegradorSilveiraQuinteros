@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { obtenerMiPerfil } from "../../services/Perfil.service";
-import AlumnoLayout from "../../components/layout/AlumnoLayout";
+import AlumnoLayout from "../../components/layout/DashboardLayout";
 
 import { setup2FA, confirmar2FA } from "../../services/Auth2FA.Service";
 

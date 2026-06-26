@@ -249,6 +249,15 @@ export default function AppRouter() {
           }
         />
 
+        <Route
+  path="/admin/notificaciones"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <NotificacionPage />
+    </ProtectedRoute>
+  }
+/>
+
         {/* Entrenador */}
 
         <Route

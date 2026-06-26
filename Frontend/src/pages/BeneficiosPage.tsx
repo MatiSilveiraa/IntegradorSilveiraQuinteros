@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import AlumnoLayout from "../components/layout/AlumnoLayout";
+import AlumnoLayout from "../components/layout/DashboardLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMisBeneficios } from "../services/Beneficio.Service";

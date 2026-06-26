@@ -14,7 +14,7 @@ import NovedadesCard from "../../components/dashboard/NovedadesCard";
 
 import { useNavigate } from "react-router-dom";
 
-import AlumnoLayout from "../../components/layout/AlumnoLayout";
+import AlumnoLayout from "../../components/layout/DashboardLayout";
 
 import toast from "react-hot-toast";
 import FullScreenLoading from "../../components/FullScreenSpinner";

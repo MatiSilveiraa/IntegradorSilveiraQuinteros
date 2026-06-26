@@ -169,8 +169,11 @@ export interface Alumno {
   bloqueadoPorInasistencias?: boolean;
   bloqueadoPorDeuda?: boolean;
 
-  cuotasPendientes?: number;
   clasesInscriptas?: number;
+  cantidadClasesInscripto?: number;
+  cuotasPendientes?: number;
+
+  twoFactorEnabled?: boolean;
 }
 
 export interface ApiError {

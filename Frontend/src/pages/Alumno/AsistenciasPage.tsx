@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import AlumnoLayout from "../../components/layout/AlumnoLayout";
+import AlumnoLayout from "../../components/layout/DashboardLayout";
 import { obtenerMisClases } from "../../services/Inscripciones.Service";
 import obtenerDiaActual from "../../utils/dayUtils";
 import { registrarAsistenciaGeolocalizacion } from "../../services/Asistencia.Service";

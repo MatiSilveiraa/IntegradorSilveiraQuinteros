@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import AlumnoTopBar from "../navigation/DashboardTopBar";
+import DashboardTopBar from "../navigation/DashboardTopBar";
 import AlumnoSidebar from "../navigation/AlumnoSidebar";
 import AlumnoBottomNav from "../navigation/AlumnoBottomNav";
 
@@ -12,16 +12,18 @@ type Props = {
   nombre?: string;
   children: ReactNode;
   contentClassName?: string;
-  mostrarNavegacion?: boolean;
+
+  mostrarSidebar?: boolean;
+  mostrarBottomNav?: boolean;
 };
 
-export default function AlumnoLayout({
+export default function DashboardLayout({
   nombre,
   children,
   contentClassName = "",
-  mostrarNavegacion = true,
+  mostrarSidebar = true,
+  mostrarBottomNav = true,
 }: Props) {
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,21 +51,26 @@ export default function AlumnoLayout({
     }
   };
 
-  const clasesContenido = mostrarNavegacion
-    ? `pt-20 pb-24 px-4 lg:px-6 lg:ml-64 ${contentClassName}`
-    : contentClassName;
+  const clasesContenido = `
+    pt-20
+    px-4
+    lg:px-6
+    ${mostrarSidebar ? "lg:ml-64" : ""}
+    ${mostrarBottomNav ? "pb-24" : ""}
+    ${contentClassName}
+  `;
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
-      {mostrarNavegacion && <AlumnoTopBar nombre={nombre} />}
+      <DashboardTopBar nombre={nombre} />
 
-      {mostrarNavegacion && <AlumnoSidebar />}
+      {mostrarSidebar && <AlumnoSidebar />}
 
       <div className={clasesContenido.trim()}>
         {children}
       </div>
 
-      {mostrarNavegacion && <AlumnoBottomNav />}
+      {mostrarBottomNav && <AlumnoBottomNav />}
     </div>
   );
 }

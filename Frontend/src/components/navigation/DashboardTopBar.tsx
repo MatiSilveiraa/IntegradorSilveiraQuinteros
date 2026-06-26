@@ -3,55 +3,76 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import {
-  obtenerMisNotificaciones,
-} from "../../services/Notificacion.Service";
+import { useCallback, useEffect, useState } from "react";
 
+import { obtenerMisNotificaciones } from "../../services/Notificacion.Service";
 import type { Notificacion } from "../../types";
 
 type Props = {
   nombre?: string;
 };
 
+const INTERVALO_NOTIFICACIONES = 30000;
 
-export default function AlumnoTopBar({ nombre }: Props) {
+export default function DashboardTopBar({ nombre }: Props) {
   const navigate = useNavigate();
-
   const location = useLocation();
 
-  const [
-  cantidadNoLeidas,
-  setCantidadNoLeidas,
-] = useState(0);
+  const [cantidadNoLeidas, setCantidadNoLeidas] = useState(0);
 
-useEffect(() => {
+  const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
 
-  obtenerMisNotificaciones()
-    .then((data: Notificacion[]) => {
+  const esAdmin = usuario.rol === "Admin";
+  const esAlumno = usuario.rol === "Alumno";
+  const esEntrenador = usuario.rol === "Entrenador";
 
-      const pendientes =
-        data.filter(
-          (n: Notificacion) =>
-            !n.leida
-        ).length;
+  const cargarCantidadNoLeidas = useCallback(async () => {
+    try {
+      const data: Notificacion[] = await obtenerMisNotificaciones();
 
-      setCantidadNoLeidas(
-        pendientes
-      );
+      const pendientes = data.filter((n) => !n.leida).length;
 
-    })
-    .catch(console.error);
+      setCantidadNoLeidas(pendientes);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
-}, []);
+  useEffect(() => {
+    cargarCantidadNoLeidas();
+
+    const intervalo = window.setInterval(() => {
+      cargarCantidadNoLeidas();
+    }, INTERVALO_NOTIFICACIONES);
+
+    return () => {
+      window.clearInterval(intervalo);
+    };
+  }, [cargarCantidadNoLeidas]);
 
   const handleLogout = () => {
-  localStorage.clear();
+    localStorage.clear();
+    navigate("/");
+  };
 
-  navigate("/");
-};
+  const irANotificaciones = () => {
+    if (esAdmin) {
+      navigate("/admin/notificaciones");
+      return;
+    }
 
-  const mostrarVolver = location.pathname !== "/alumno";
+    if (esEntrenador) {
+      navigate("/entrenador/notificaciones");
+      return;
+    }
+
+    navigate("/alumno/notificaciones");
+  };
+
+  const mostrarVolver =
+    (esAlumno && location.pathname !== "/alumno") ||
+    (esAdmin && location.pathname !== "/admin") ||
+    (esEntrenador && location.pathname !== "/entrenador");
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0e1511] border-b border-[#2d463b] flex items-center justify-between px-4">
@@ -84,51 +105,47 @@ useEffect(() => {
       </div>
 
       <div className="flex items-center gap-2">
-       <button
-  onClick={() =>
-    navigate(
-      "/alumno/notificaciones"
-    )
-  }
-  className="
-    relative
-    w-10
-    h-10
-    flex
-    items-center
-    justify-center
-    rounded-full
-    text-gray-400
-    hover:bg-[#1f2d27]
-    hover:text-[#4adea8]
-    transition-all
-  "
->
-  <NotificationsOutlinedIcon />
+        <button
+          onClick={irANotificaciones}
+          className="
+            relative
+            w-10
+            h-10
+            flex
+            items-center
+            justify-center
+            rounded-full
+            text-gray-400
+            hover:bg-[#1f2d27]
+            hover:text-[#4adea8]
+            transition-all
+          "
+        >
+          <NotificationsOutlinedIcon />
 
-  {cantidadNoLeidas > 0 && (
-    <span
-      className="
-        absolute
-        -top-1
-        -right-1
-        min-w-[18px]
-        h-[18px]
-        px-1
-        rounded-full
-        bg-red-500
-        text-white
-        text-[10px]
-        font-bold
-        flex
-        items-center
-        justify-center
-      "
-    >
-      {cantidadNoLeidas}
-    </span>
-  )}
-</button>
+          {cantidadNoLeidas > 0 && (
+            <span
+              className="
+                absolute
+                -top-1
+                -right-1
+                min-w-[18px]
+                h-[18px]
+                px-1
+                rounded-full
+                bg-red-500
+                text-white
+                text-[10px]
+                font-bold
+                flex
+                items-center
+                justify-center
+              "
+            >
+              {cantidadNoLeidas}
+            </span>
+          )}
+        </button>
 
         <button
           onClick={handleLogout}
