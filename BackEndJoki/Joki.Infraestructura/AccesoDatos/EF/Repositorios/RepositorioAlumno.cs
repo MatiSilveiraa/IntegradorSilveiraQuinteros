@@ -34,7 +34,9 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
         public IEnumerable<Alumno> ObtenerTodos()
         {
-            return _contexto.Set<Alumno>().ToList();
+            return _contexto.Set<Alumno>()
+        .Include(a => a.Cuotas)
+        .ToList();
         }
 
         public Alumno? ObtenerPorId(int id)

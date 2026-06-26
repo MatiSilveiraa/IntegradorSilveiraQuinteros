@@ -47,12 +47,17 @@ namespace Joki.LogicaAplicacion.Mappers
 
         public static DtoAlumno ToDto(Alumno alumno)
         {
+            int cuotasPendientes = alumno.Cuotas == null
+                ? 0
+                : alumno.Cuotas.Count(c => c.Estado == EstadoCuota.VENCIDA);
+
             return new DtoAlumno(
                 alumno.UsuarioId,
                 alumno.Nombre.Valor,
                 alumno.Apellido.Valor,
                 alumno.Email.Valor,
-                alumno.Estado.ToString()
+                alumno.Estado.ToString(),
+                cuotasPendientes
             );
         }
 
