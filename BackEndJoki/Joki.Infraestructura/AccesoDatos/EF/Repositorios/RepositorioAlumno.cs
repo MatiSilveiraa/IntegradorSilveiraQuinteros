@@ -1,6 +1,7 @@
 ﻿using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
@@ -39,9 +40,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         public Alumno? ObtenerPorId(int id)
         {
             return _contexto.Set<Alumno>()
+                .Include(a => a.Inscripciones)
+                .Include(a => a.Cuotas)
                 .FirstOrDefault(a => a.UsuarioId == id);
         }
-
         public void Modificar(Alumno alumno)
         {
             if (alumno == null)

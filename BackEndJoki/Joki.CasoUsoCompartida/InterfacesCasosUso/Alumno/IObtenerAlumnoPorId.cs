@@ -3,6 +3,6 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Alumno
 {
     public interface IObtenerAlumnoPorId
     {
-        DtoAlumno Ejecutar(int id);
+        AlumnoDetalleResponse Ejecutar(int id);
     }
 }
