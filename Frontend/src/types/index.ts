@@ -148,14 +148,29 @@ export interface Alumno {
 
   nombre: string;
   apellido: string;
-
   email: string;
 
   celular?: string;
-
   rol?: string;
-
   estado?: string;
+
+  sociedadMedica?: string;
+  fechaNacimiento?: string;
+  genero?: number;
+
+  peso?: number;
+  estatura?: number;
+  imc?: number;
+
+  rachaMensual?: number;
+  rachaAsistenciaMensual?: number;
+  rachaInasistencias?: number;
+
+  bloqueadoPorInasistencias?: boolean;
+  bloqueadoPorDeuda?: boolean;
+
+  cuotasPendientes?: number;
+  clasesInscriptas?: number;
 }
 
 export interface ApiError {
