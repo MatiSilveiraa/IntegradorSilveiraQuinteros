@@ -22,5 +22,7 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
             int descuentoId);
 
         IEnumerable<Beneficio> ObtenerFisicosPendientes();
+
+        IEnumerable<Beneficio> ObtenerPendientes();
     }
 }

@@ -30,6 +30,15 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context.SaveChanges();
         }
 
+        public IEnumerable<Beneficio> ObtenerPendientes()
+        {
+            return _context.Beneficios
+                .Include(b => b.Alumno)
+                .Include(b => b.Descuento)
+                .Where(b => b.Estado == EstadoBeneficio.PENDIENTE)
+                .ToList();
+        }
+
         public IEnumerable<Beneficio> ObtenerPendientesPorAlumno(
     int alumnoId)
         {

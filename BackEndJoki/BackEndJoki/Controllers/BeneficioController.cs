@@ -13,15 +13,18 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerMisBeneficios _obtenerMisBeneficios;
         private readonly IEntregarBeneficioFisico _entregarBeneficioFisico;
         private readonly IObtenerBeneficiosFisicosPendientes _obtenerBeneficiosFisicosPendientes;
+        private readonly IObtenerBeneficiosPendientesAdmin _obtenerBeneficiosPendientesAdmin;
 
         public BeneficioController(
             IObtenerMisBeneficios obtenerMisBeneficios,
             IEntregarBeneficioFisico entregarBeneficioFisico,
-            IObtenerBeneficiosFisicosPendientes obtenerBeneficiosFisicosPendientes)
+            IObtenerBeneficiosFisicosPendientes obtenerBeneficiosFisicosPendientes,
+            IObtenerBeneficiosPendientesAdmin obtenerBeneficiosPendientesAdmin)
         {
             _obtenerMisBeneficios = obtenerMisBeneficios;
             _entregarBeneficioFisico = entregarBeneficioFisico;
             _obtenerBeneficiosFisicosPendientes = obtenerBeneficiosFisicosPendientes;
+            _obtenerBeneficiosPendientesAdmin = obtenerBeneficiosPendientesAdmin;
         }
 
         [Authorize]
@@ -91,6 +94,26 @@ namespace Joki.WebApi.Controllers
             {
                 var beneficios =
                     _obtenerBeneficiosFisicosPendientes.Ejecutar();
+
+                return Ok(beneficios);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pendientes")]
+        public IActionResult ObtenerPendientes()
+        {
+            try
+            {
+                var beneficios =
+                    _obtenerBeneficiosPendientesAdmin.Ejecutar();
 
                 return Ok(beneficios);
             }

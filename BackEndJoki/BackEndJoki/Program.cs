@@ -198,6 +198,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerParticipantesDesafio, ObtenerParticipantesDesafio>();
     builder.Services.AddScoped<IObtenerMisDesafios, ObtenerMisDesafios>();
     builder.Services.AddScoped<IObtenerMisBeneficios, ObtenerMisBeneficios>();
+    builder.Services.AddScoped<IObtenerBeneficiosPendientesAdmin, ObtenerBeneficiosPendientesAdmin>();
     builder.Services.AddScoped<IEntregarBeneficioFisico, EntregarBeneficioFisico>();
     builder.Services.AddScoped<IObtenerBeneficiosFisicosPendientes,ObtenerBeneficiosFisicosPendientes>();
     builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
