@@ -17,10 +17,10 @@ export default function DashboardSystemStatus({ dashboard }: Props) {
   const beneficiosPendientes = dashboard.beneficiosPendientes ?? 0;
   const premiosFisicosPendientes = dashboard.premiosFisicosPendientes ?? 0;
 
-  const totalPendientes =
-    cuotasVencidas + beneficiosPendientes + premiosFisicosPendientes;
+  const totalPendientesManuales =
+  cuotasVencidas + premiosFisicosPendientes;
 
-  const sistemaOk = totalPendientes === 0;
+  const sistemaOk = totalPendientesManuales === 0;
 
   return (
     <div className="rounded-3xl border border-[#2d463b] bg-[#1a211d] p-7 h-full">
@@ -40,7 +40,7 @@ export default function DashboardSystemStatus({ dashboard }: Props) {
               : "bg-yellow-500/10 text-yellow-300 border-yellow-500/30"
           }`}
         >
-          {sistemaOk ? "Todo al día" : `${totalPendientes} pendientes`}
+          {sistemaOk ? "Todo al día" : `${totalPendientesManuales} acciones pendientes`}
         </span>
       </div>
 
@@ -60,24 +60,24 @@ export default function DashboardSystemStatus({ dashboard }: Props) {
           onClick={() => navigate("/admin/alumnos?filtro=cuotas-pendientes")}
         />
 
-        <StatusCard
-          icon={<CardGiftcardOutlinedIcon />}
-          color="bg-amber-500/10 text-amber-400"
-          titulo="Beneficios pendientes"
-          valor={beneficiosPendientes}
-          descripcion={
-            beneficiosPendientes > 0
-              ? "Hay beneficios pendientes de revisión."
-              : "No hay beneficios pendientes."
-          }
-          alerta={beneficiosPendientes > 0}
-          accionTexto="Ver beneficios"
-          onClick={() => navigate("/admin/recompensas")}
-        />
+<StatusCard
+  icon={<CardGiftcardOutlinedIcon />}
+  color="bg-sky-500/10 text-sky-400"
+  titulo="Beneficios económicos"
+  valor={beneficiosPendientes}
+  descripcion={
+    beneficiosPendientes > 0
+      ? "Se aplicarán automáticamente en las próximas cuotas."
+      : "No hay beneficios económicos pendientes."
+  }
+  alerta={false}
+  accionTexto="Ver beneficios"
+  onClick={() => navigate("/admin/beneficios-pendientes")}
+/>
 
         <StatusCard
           icon={<EmojiEventsOutlinedIcon />}
-          color="bg-sky-500/10 text-sky-400"
+          color="bg-yellow-500/10 text-yellow-300"
           titulo="Premios físicos"
           valor={premiosFisicosPendientes}
           descripcion={

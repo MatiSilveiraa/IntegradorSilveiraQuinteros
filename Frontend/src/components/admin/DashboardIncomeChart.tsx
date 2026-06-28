@@ -47,7 +47,7 @@ const promedioPeriodo = useMemo(() => {
       : "Últimos 6 meses";
 
   return (
-    <div className="rounded-3xl border border-[#2d463b] bg-[#1a211d] p-7 h-full">
+    <div className="rounded-3xl border border-[#2d463b] bg-[#1a211d] p-7">
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-5 mb-8">
         <div>
           <h2 className="text-2xl font-bold">Ingresos</h2>

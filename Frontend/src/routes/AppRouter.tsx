@@ -8,6 +8,7 @@ import AlumnoDashboard from "../pages/Alumno/AlumnoDashboard";
 import EntrenadorDashboard from "../pages/entrenador/EntrenadorDashboard";
 
 import PagosPage from "../pages/PagoPage";
+import AdminBeneficiosPendientesPage from "../pages/AdminBeneficiosPendientesPage";
 
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import VerifyCodePage from "../pages/VerifyCodePage";
@@ -203,6 +204,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/beneficios-pendientes"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminBeneficiosPendientesPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/admin/desafios"

@@ -176,6 +176,19 @@ export interface Alumno {
   twoFactorEnabled?: boolean;
 }
 
+export interface BeneficioPendienteAdmin {
+  beneficioId: number;
+  alumnoId: number;
+  nombreAlumno: string;
+  apellidoAlumno: string;
+  descripcion: string;
+  estado: string;
+  mesesAplicados: number;
+  mesesDuracion: number;
+  cuotaGratis: boolean;
+  descuento?: number | null;
+}
+
 export interface ApiError {
   response?: {
     data?: {

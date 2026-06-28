@@ -23,3 +23,14 @@ export const marcarPremioEntregado =
 
     return response.data;
   };
+
+export const obtenerBeneficiosPendientes =
+  async () => {
+
+    const response =
+      await axiosInstance.get(
+        "/api/Beneficio/pendientes"
+      );
+
+    return response.data;
+  };

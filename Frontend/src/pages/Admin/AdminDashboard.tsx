@@ -122,15 +122,15 @@ return (
 
       {/* GRAFICO + ESTADO */}
 
-      <div className="grid xl:grid-cols-[2fr_1fr] gap-6 mb-10">
-        <DashboardIncomeChart
-          data={dashboard.ingresosUltimos6Meses}
-        />
+     <div className="grid xl:grid-cols-[2fr_1fr] gap-6 mb-10 items-start">
+  <DashboardIncomeChart
+    data={dashboard.ingresosUltimos6Meses}
+  />
 
-        <DashboardSystemStatus
-          dashboard={dashboard}
-        />
-      </div>
+  <DashboardSystemStatus
+    dashboard={dashboard}
+  />
+</div>
 
       {/* ACCIONES RAPIDAS */}
 
