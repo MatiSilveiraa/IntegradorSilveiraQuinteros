@@ -11,6 +11,7 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.ConfiguracionCuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Cuota;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Descuento;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Grupo;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Historial;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Notificacion;
@@ -34,6 +35,7 @@ using Joki.LogicaAplicacion.CasosDeUso.ConfiguracionCuota;
 using Joki.LogicaAplicacion.CasosDeUso.Cuota;
 using Joki.LogicaAplicacion.CasosDeUso.Desafio;
 using Joki.LogicaAplicacion.CasosDeUso.Descuento;
+using Joki.LogicaAplicacion.CasosDeUso.Entrenador;
 using Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias;
 using Joki.LogicaAplicacion.CasosDeUso.Grupo;
 using Joki.LogicaAplicacion.CasosDeUso.Historial;
@@ -227,6 +229,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IResetearRachasMensuales, ResetearRachasMensuales>();
     builder.Services.AddScoped<RachasJob>();
     builder.Services.AddScoped<ICambiarEstadoClase, CambiarEstadoClase>();
+    builder.Services.AddScoped<IObtenerEntrenadorDashboard,ObtenerEntrenadorDashboard>();
+    builder.Services.AddScoped<IObtenerEntrenadorDashboard,ObtenerEntrenadorDashboard>();
+    builder.Services.AddScoped<IRepositorioGrupo,RepositorioGrupo>();
 
 builder.Services.AddRateLimiter(options =>
 {

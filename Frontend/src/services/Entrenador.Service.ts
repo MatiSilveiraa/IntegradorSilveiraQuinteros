@@ -2,10 +2,10 @@
 
 import axiosInstance from "../api/axios";
 
-export const obtenerEntrenadores =
+export const obtenerDashboardEntrenador =
   async () => {
     const response = await axiosInstance.get(
-      "/api/Entrenador"
+      "/api/Entrenador/Dashboard"
     );
 
     return response.data;

@@ -10,6 +10,7 @@ using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.LogicaNegocio.ValueObjects;
 using Microsoft.Extensions.Options;
 using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
+using entrenadorEntidad = Joki.LogicaNegocio.Entidades.Entrenador;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
@@ -154,7 +155,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 
             return usuario switch
             {
-                Entrenador => "Entrenador",
+                entrenadorEntidad => "Entrenador",
                 alumnoEntidad => "Alumno",
                 _ => "Alumno"
             };

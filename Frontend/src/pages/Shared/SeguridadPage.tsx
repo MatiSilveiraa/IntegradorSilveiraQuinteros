@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { obtenerMiPerfil } from "../../services/Perfil.service";
 import AlumnoLayout from "../../components/layout/DashboardLayout";
-
 import { setup2FA, confirmar2FA } from "../../services/Auth2FA.Service";
-
 import type { Perfil } from "../../types";
 import toast from "react-hot-toast";
 import FullScreenLoading from "../../components/FullScreenSpinner";
@@ -90,7 +87,11 @@ export default function SeguridadPage() {
   }
 
   return (
-    <AlumnoLayout nombre={perfil?.nombre} mostrarNavegacion={esAlumno}>
+    <AlumnoLayout
+      nombre={perfil?.nombre}
+      mostrarSidebar={esAlumno}
+      mostrarBottomNav={esAlumno}
+    >
       <main
         className={esAlumno ? "max-w-6xl mx-auto" : "py-10 max-w-6xl mx-auto"}
       >

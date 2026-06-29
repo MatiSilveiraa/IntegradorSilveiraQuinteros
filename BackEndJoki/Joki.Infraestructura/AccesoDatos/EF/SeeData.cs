@@ -279,33 +279,43 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         // =========================
         private void Grupos()
         {
-            var entrenador =
-                _context.Set<Entrenador>().First();
+            var entrenador = _context.Set<Entrenador>()
+                .First(e => e.Email == new Email("entrenador@joki.com"));
 
             var grupos = new List<Grupo>
-            {
-                new Grupo
-                {
-                    Nombre = "Funcional Mañana",
+    {
+        new Grupo
+        {
+            Nombre = "Funcional Mañana",
+            Nivel = "Intermedio",
+            Estado = EstadoGrupo.ACTIVO,
+            EntrenadorId = entrenador.UsuarioId
+        },
 
-                    Nivel = "Intermedio",
+        new Grupo
+        {
+            Nombre = "Funcional Tarde",
+            Nivel = "Avanzado",
+            Estado = EstadoGrupo.ACTIVO,
+            EntrenadorId = entrenador.UsuarioId
+        },
 
-                    Estado = EstadoGrupo.ACTIVO,
+        new Grupo
+        {
+            Nombre = "Cross Training",
+            Nivel = "Avanzado",
+            Estado = EstadoGrupo.ACTIVO,
+            EntrenadorId = entrenador.UsuarioId
+        },
 
-                    EntrenadorId = entrenador.UsuarioId
-                },
-
-                new Grupo
-                {
-                    Nombre = "Funcional Tarde",
-
-                    Nivel = "Avanzado",
-
-                    Estado = EstadoGrupo.ACTIVO,
-
-                    EntrenadorId = entrenador.UsuarioId
-                }
-            };
+        new Grupo
+        {
+            Nombre = "HIIT",
+            Nivel = "Intermedio",
+            Estado = EstadoGrupo.ACTIVO,
+            EntrenadorId = entrenador.UsuarioId
+        }
+    };
 
             _context.Grupos.AddRange(grupos);
 

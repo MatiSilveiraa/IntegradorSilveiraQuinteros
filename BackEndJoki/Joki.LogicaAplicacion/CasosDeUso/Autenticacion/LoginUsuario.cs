@@ -6,6 +6,8 @@ using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Microsoft.AspNetCore.Identity;
 using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
+using entrenadorEntidad = Joki.LogicaNegocio.Entidades.Entrenador;
+
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
     public class LoginUsuario : ILoginUsuario
@@ -21,7 +23,6 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 
         public DtoDatosUsuario? Ejecutar(LoginRequest request)
         {
-            // 🔴 Validaciones básicas
             if (request == null ||
                 string.IsNullOrWhiteSpace(request.Email) ||
                 string.IsNullOrWhiteSpace(request.Password))
@@ -67,7 +68,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 // fallback para no romper tests
                 rol = usuario switch
                 {
-                    Entrenador => "Entrenador",
+                    entrenadorEntidad => "Entrenador",
                     alumnoEntidad => "Alumno",
                     _ => "Alumno"
                 };

@@ -85,5 +85,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 n.EntidadReferencia == entidadReferencia &&
                 n.EntidadReferenciaId == entidadReferenciaId);
         }
+
+        public int ContarNoLeidasPorUsuario(int usuarioId)
+        {
+            return _context.Notificaciones
+                .Count(n =>
+                    n.UsuarioId == usuarioId &&
+                    !n.Leida);
+        }
     }
 }

@@ -6,6 +6,7 @@ using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using OtpNet;
 using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
+using entrenadorEntidad = Joki.LogicaNegocio.Entidades.Entrenador;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
@@ -75,7 +76,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
             {
                 rol = usuario switch
                 {
-                    Entrenador => "Entrenador",
+                    entrenadorEntidad => "Entrenador",
                     alumnoEntidad => "Alumno",
                     _ => "Alumno"
                 };

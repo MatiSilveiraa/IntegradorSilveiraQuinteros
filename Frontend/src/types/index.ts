@@ -223,3 +223,54 @@ export interface CrearClaseRequest {
   fechaFin?: string | null;
   cupoMaximo: number;
 }
+
+export interface AlumnoAgenda {
+    id:number;
+    nombre:string;
+    apellido:string;
+}
+
+export interface AgendaClase {
+    claseId:number;
+
+    grupo:string;
+
+    horaInicio:string;
+
+    horaFin:string;
+
+    cantidadAlumnos:number;
+
+    cupoMaximo:number;
+
+    cuposDisponibles:number;
+
+    alumnos:AlumnoAgenda[];
+}
+
+export interface ProximaClase{
+    claseId:number;
+
+    grupo:string;
+
+    horaInicio:string;
+
+    horaFin:string;
+}
+
+export interface DashboardEntrenador{
+
+    grupos:number;
+
+    alumnos:number;
+
+    clasesHoy:number;
+
+    desafiosActivos:number;
+
+    notificacionesNoLeidas:number;
+
+    proximaClase?:ProximaClase;
+
+    agendaHoy:AgendaClase[];
+}
