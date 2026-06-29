@@ -189,6 +189,14 @@ export interface BeneficioPendienteAdmin {
   descuento?: number | null;
 }
 
+export interface ParticipanteDesafio {
+  alumnoId: number;
+  nombre: string;
+  apellido: string;
+  resultado?: string;
+  ganador: boolean;
+}
+
 export interface ApiError {
   response?: {
     data?: {

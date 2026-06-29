@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import {
@@ -12,9 +13,11 @@ import type { Desafio } from "../types";
 import FullScreenLoading from "../components/FullScreenSpinner";
 import TopBar from "../components/navigation/DashboardTopBar";
 
+
 type EstadoVisual = "ACTIVO" | "PROXIMO" | "FINALIZADO";
 
 export default function AdminDesafiosPage() {
+  const navigate = useNavigate();
   const [desafios, setDesafios] = useState<Desafio[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -279,9 +282,7 @@ export default function AdminDesafiosPage() {
                   <div className="grid grid-cols-1 gap-3 mt-5">
                     <button
                       type="button"
-                      onClick={() =>
-                        toast("Próximo paso: pantalla de participantes")
-                      }
+                     onClick={() => navigate(`/admin/desafios/${desafio.id}`)}
                       className="py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
                     >
                       Ver participantes

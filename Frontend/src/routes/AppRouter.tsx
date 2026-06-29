@@ -6,6 +6,7 @@ import RegisterPage from "../pages/RegisterPage";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AlumnoDashboard from "../pages/Alumno/AlumnoDashboard";
 import EntrenadorDashboard from "../pages/entrenador/EntrenadorDashboard";
+import AdminDesafioDetallePage from "../pages/AdminDesafioDetallePage";
 
 import PagosPage from "../pages/PagoPage";
 import AdminBeneficiosPendientesPage from "../pages/AdminBeneficiosPendientesPage";
@@ -137,6 +138,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/desafios/:id"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminDesafioDetallePage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/admin/clases/editar/:id"
