@@ -22,5 +22,12 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         List<AgendaClaseVO> ObtenerAgendaHoy(int entrenadorId);
 
         ProximaClaseVO? ObtenerProximaClase(int entrenadorId);
+
+        List<GrupoEntrenadorVO> ObtenerGruposPorEntrenador(
+    int entrenadorId);
+
+        GrupoDetalleVO? ObtenerDetalleGrupo(
+    int grupoId,
+    int entrenadorId);
     }
 }

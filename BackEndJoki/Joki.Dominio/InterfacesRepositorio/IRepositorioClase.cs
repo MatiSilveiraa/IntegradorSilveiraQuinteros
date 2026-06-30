@@ -1,4 +1,5 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.ValueObjects;
 
 namespace Joki.LogicaNegocio.InterfacesRepositorio
 {
@@ -19,5 +20,12 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         bool TieneConflictoHorario(
             int alumnoId,
             Clase nuevaClase);
+
+        List<ClaseDetalleVO> ObtenerClasesPorEntrenador(
+            int entrenadorId);
+
+        ClaseDetalleVO? ObtenerDetalleClase(
+            int claseId,
+            int entrenadorId);
     }
 }

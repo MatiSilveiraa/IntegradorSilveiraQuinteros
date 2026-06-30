@@ -171,5 +171,173 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .FirstOrDefault();
         }
 
+        public List<GrupoEntrenadorVO> ObtenerGruposPorEntrenador(int entrenadorId)
+        {
+            var hoy = DateTime.Today.DayOfWeek switch
+            {
+                DayOfWeek.Monday => DiaSemana.Lunes,
+                DayOfWeek.Tuesday => DiaSemana.Martes,
+                DayOfWeek.Wednesday => DiaSemana.Miercoles,
+                DayOfWeek.Thursday => DiaSemana.Jueves,
+                DayOfWeek.Friday => DiaSemana.Viernes,
+                DayOfWeek.Saturday => DiaSemana.Sabado,
+                DayOfWeek.Sunday => DiaSemana.Domingo,
+                _ => DiaSemana.Lunes
+            };
+
+            var grupos = _context.Grupos
+                .AsNoTracking()
+                .Include(g => g.Clases)
+                    .ThenInclude(c => c.Inscripciones)
+                .Where(g => g.EntrenadorId == entrenadorId)
+                .ToList();
+
+            var resultado = grupos
+                .Select(g =>
+                {
+                    var proximaClase = g.Clases
+                        .Where(c => c.Estado == EstadoClase.Programada)
+                        .OrderBy(c => c.DiaSemana == hoy ? 0 : 1)
+                        .ThenBy(c => c.HoraInicio)
+                        .FirstOrDefault();
+
+                    return new GrupoEntrenadorVO
+                    {
+                        Id = g.Id,
+
+                        Nombre = g.Nombre,
+
+                        Nivel = g.Nivel,
+
+                        Estado = g.Estado.ToString(),
+
+                        CantidadClases = g.Clases.Count,
+
+                        CantidadAlumnos = g.Clases
+                            .SelectMany(c => c.Inscripciones)
+                            .Select(i => i.AlumnoId)
+                            .Distinct()
+                            .Count(),
+
+                        ProximoDia = proximaClase?.DiaSemana.ToString(),
+
+                        ProximaHoraInicio = proximaClase?.HoraInicio,
+
+                        ProximaHoraFin = proximaClase?.HoraFin,
+
+                        ClaseId = proximaClase?.Id ?? 0,
+
+                        CupoMaximo = proximaClase?.CupoMaximo ?? 0,
+
+                        Inscriptos = proximaClase?.Inscripciones.Count ?? 0,
+
+                        CuposDisponibles = proximaClase == null
+                            ? 0
+                            : proximaClase.CupoMaximo - proximaClase.Inscripciones.Count
+                    };
+                })
+                .OrderBy(g => g.Nombre)
+                .ToList();
+
+            return resultado;
+        }
+
+        public GrupoDetalleVO? ObtenerDetalleGrupo(
+    int grupoId,
+    int entrenadorId)
+        {
+            var grupo = _context.Grupos
+
+                .AsNoTracking()
+
+                .Include(g => g.Clases)
+                    .ThenInclude(c => c.Inscripciones)
+                        .ThenInclude(i => i.Alumno)
+
+                .FirstOrDefault(g =>
+                    g.Id == grupoId &&
+                    g.EntrenadorId == entrenadorId);
+
+            if (grupo == null)
+            {
+                return null;
+            }
+
+            return new GrupoDetalleVO
+            {
+                Id = grupo.Id,
+
+                Nombre = grupo.Nombre,
+
+                Nivel = grupo.Nivel,
+
+                Estado = grupo.Estado.ToString(),
+
+                CantidadClases = grupo.Clases.Count,
+
+                CantidadAlumnos = grupo.Clases
+                    .SelectMany(c => c.Inscripciones)
+                    .Select(i => i.AlumnoId)
+                    .Distinct()
+                    .Count(),
+
+                Alumnos = grupo.Clases
+
+                    .SelectMany(c => c.Inscripciones)
+
+                    .GroupBy(i => i.AlumnoId)
+
+                    .Select(g => g.First())
+
+                    .OrderBy(i => i.Alumno.Nombre)
+
+                    .Select(i => new AlumnoGrupoVO
+                    {
+                        Id = i.Alumno.UsuarioId,
+
+                        Nombre = i.Alumno.Nombre.Valor,
+
+                        Apellido = i.Alumno.Apellido.Valor,
+
+                        Peso = i.Alumno.Peso,
+
+                        Estatura = i.Alumno.Estatura,
+
+                        IMC = i.Alumno.IMC,
+
+                        Bloqueado =
+                            i.Alumno.BloqueadoPorDeuda ||
+                            i.Alumno.BloqueadoPorInasistencias
+                    })
+
+                    .ToList(),
+
+                Clases = grupo.Clases
+
+                    .OrderBy(c => c.DiaSemana)
+
+                    .ThenBy(c => c.HoraInicio)
+
+                    .Select(c => new ClaseGrupoVO
+                    {
+                        Id = c.Id,
+
+                        DiaSemana = c.DiaSemana.ToString(),
+
+                        HoraInicio = c.HoraInicio,
+
+                        HoraFin = c.HoraFin,
+
+                        CupoMaximo = c.CupoMaximo,
+
+                        Inscriptos = c.Inscripciones.Count,
+
+                        Activa = c.Estado == EstadoClase.Programada
+                    })
+
+                    .ToList()
+            };
+        }
+
     }
 }
