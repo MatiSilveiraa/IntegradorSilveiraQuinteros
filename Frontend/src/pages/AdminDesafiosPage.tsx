@@ -13,20 +13,19 @@ import type { Desafio } from "../types";
 import FullScreenLoading from "../components/FullScreenSpinner";
 import TopBar from "../components/navigation/DashboardTopBar";
 
-
 type EstadoVisual = "ACTIVO" | "PROXIMO" | "FINALIZADO";
 
 export default function AdminDesafiosPage() {
   const navigate = useNavigate();
+
   const [desafios, setDesafios] = useState<Desafio[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Desafio | null>(null);
 
-  const [desafioAEliminar, setDesafioAEliminar] = useState<Desafio | null>(
-    null
-  );
+  const [desafioAEliminar, setDesafioAEliminar] =
+    useState<Desafio | null>(null);
 
   const [form, setForm] = useState({
     titulo: "",
@@ -181,8 +180,9 @@ export default function AdminDesafiosPage() {
     const proximos = desafios.filter((d) => obtenerEstado(d) === "PROXIMO")
       .length;
 
-    const finalizados = desafios.filter((d) => obtenerEstado(d) === "FINALIZADO")
-      .length;
+    const finalizados = desafios.filter(
+      (d) => obtenerEstado(d) === "FINALIZADO"
+    ).length;
 
     return {
       total: desafios.length,
@@ -206,7 +206,7 @@ export default function AdminDesafiosPage() {
             <h1 className="text-4xl font-bold">Desafíos</h1>
 
             <p className="text-gray-400 mt-2">
-              Crear, editar y administrar desafíos para los alumnos.
+              Crear, editar y administrar desafíos, recompensas y ganadores.
             </p>
           </div>
 
@@ -282,10 +282,12 @@ export default function AdminDesafiosPage() {
                   <div className="grid grid-cols-1 gap-3 mt-5">
                     <button
                       type="button"
-                     onClick={() => navigate(`/admin/desafios/${desafio.id}`)}
+                      onClick={() =>
+                        navigate(`/admin/desafios/${desafio.id}`)
+                      }
                       className="py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
                     >
-                      Ver participantes
+                      Gestionar desafío
                     </button>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -323,23 +325,17 @@ export default function AdminDesafiosPage() {
             </p>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Título *
-                </label>
-
-                <input
-                  value={form.titulo}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      titulo: e.target.value,
-                    })
-                  }
-                  placeholder="Ej: Desafío de asistencia mensual"
-                  className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-                />
-              </div>
+              <Input
+                label="Título"
+                value={form.titulo}
+                onChange={(value) =>
+                  setForm({
+                    ...form,
+                    titulo: value,
+                  })
+                }
+                placeholder="Ej: Desafío de Invierno"
+              />
 
               <div>
                 <label className="block text-sm text-gray-400 mb-2">
@@ -354,48 +350,36 @@ export default function AdminDesafiosPage() {
                       descripcion: e.target.value,
                     })
                   }
-                  placeholder="Explicá qué debe cumplir el alumno para participar."
+                  placeholder="Explicá en qué consiste el desafío."
                   rows={4}
                   className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Fecha inicio *
-                  </label>
+                <Input
+                  label="Fecha inicio"
+                  type="datetime-local"
+                  value={form.fechaInicio}
+                  onChange={(value) =>
+                    setForm({
+                      ...form,
+                      fechaInicio: value,
+                    })
+                  }
+                />
 
-                  <input
-                    type="datetime-local"
-                    value={form.fechaInicio}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        fechaInicio: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Fecha fin *
-                  </label>
-
-                  <input
-                    type="datetime-local"
-                    value={form.fechaFin}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        fechaFin: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-                  />
-                </div>
+                <Input
+                  label="Fecha fin"
+                  type="datetime-local"
+                  value={form.fechaFin}
+                  onChange={(value) =>
+                    setForm({
+                      ...form,
+                      fechaFin: value,
+                    })
+                  }
+                />
               </div>
             </div>
 
@@ -429,6 +413,7 @@ export default function AdminDesafiosPage() {
 
             <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6">
               <p className="text-gray-400 text-sm">Desafío</p>
+
               <p className="font-bold mt-1">{desafioAEliminar.titulo}</p>
             </div>
 
@@ -460,6 +445,36 @@ function ResumenCard({ titulo, valor }: { titulo: string; valor: number }) {
       <p className="text-sm text-gray-400">{titulo}</p>
 
       <h2 className="text-4xl font-bold mt-3">{valor}</h2>
+    </div>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm text-gray-400 mb-2">
+        {label}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+      />
     </div>
   );
 }

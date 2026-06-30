@@ -2,17 +2,52 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+
 import TopBar from "../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../components/FullScreenSpinner";
 
 import {
+  obtenerDesafios,
   obtenerParticipantesDesafio,
   asignarGanadoresDesafio,
 } from "../services/AdminDesafio.Service";
 
-import type { ParticipanteDesafio } from "../types";
+import {
+  obtenerRecompensasPorDesafio,
+  crearRecompensa,
+  editarRecompensa,
+  eliminarRecompensa,
+} from "../services/AdminRecompensa.Service";
+
+import { obtenerDescuentos } from "../services/AdminDescuento.service";
+
+import type {
+  Desafio,
+  ParticipanteDesafio,
+  Recompensa,
+  Descuento,
+} from "../types";
 
 type Filtro = "todos" | "ganadores" | "pendientes";
+type EstadoVisual = "ACTIVO" | "PROXIMO" | "FINALIZADO";
+type TipoRecompensa = "PRODUCTO_REGALO" | "DESCUENTO_CUOTA" | "CUOTA_GRATIS";
+
+type FormRecompensa = {
+  descripcion: string;
+  tipo: TipoRecompensa;
+  premioFisico: string;
+  descuentoId: string;
+};
+
+const formRecompensaInicial: FormRecompensa = {
+  descripcion: "",
+  tipo: "PRODUCTO_REGALO",
+  premioFisico: "",
+  descuentoId: "",
+};
 
 export default function AdminDesafioDetallePage() {
   const { id } = useParams();
@@ -20,7 +55,11 @@ export default function AdminDesafioDetallePage() {
 
   const desafioId = Number(id);
 
+  const [desafio, setDesafio] = useState<Desafio | null>(null);
   const [participantes, setParticipantes] = useState<ParticipanteDesafio[]>([]);
+  const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
+  const [descuentos, setDescuentos] = useState<Descuento[]>([]);
+
   const [seleccionados, setSeleccionados] = useState<number[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todos");
@@ -29,19 +68,44 @@ export default function AdminDesafioDetallePage() {
   const [confirmando, setConfirmando] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
+  const [modalRecompensa, setModalRecompensa] = useState(false);
+  const [editandoRecompensa, setEditandoRecompensa] =
+    useState<Recompensa | null>(null);
+  const [recompensaAEliminar, setRecompensaAEliminar] =
+    useState<Recompensa | null>(null);
+  const [formRecompensa, setFormRecompensa] =
+    useState<FormRecompensa>(formRecompensaInicial);
+
   const cargarDatos = async () => {
     try {
       setLoading(true);
 
-      const data = await obtenerParticipantesDesafio(desafioId);
+      const [
+        desafiosData,
+        participantesData,
+        recompensasData,
+        descuentosData,
+      ] = await Promise.all([
+        obtenerDesafios(),
+        obtenerParticipantesDesafio(desafioId),
+        obtenerRecompensasPorDesafio(desafioId),
+        obtenerDescuentos(),
+      ]);
 
-      setParticipantes(data);
+      const desafioEncontrado = desafiosData.find(
+        (d: Desafio) => d.id === desafioId || d.desafioId === desafioId
+      );
+
+      setDesafio(desafioEncontrado ?? null);
+      setParticipantes(participantesData);
+      setRecompensas(recompensasData);
+      setDescuentos(descuentosData);
     } catch (error: any) {
       console.error(error);
 
       toast.error(
         error.response?.data?.mensaje ??
-          "No fue posible cargar los participantes"
+          "No fue posible cargar los datos del desafío"
       );
     } finally {
       setLoading(false);
@@ -54,21 +118,66 @@ export default function AdminDesafioDetallePage() {
     cargarDatos();
   }, [desafioId]);
 
-  const participantesFiltrados = useMemo(() => {
-    return participantes.filter((participante) => {
-      if (filtro === "ganadores" && !participante.ganador) return false;
-      if (filtro === "pendientes" && participante.ganador) return false;
+  const obtenerEstado = (desafioActual?: Desafio | null): EstadoVisual => {
+    if (!desafioActual) return "ACTIVO";
 
-      const texto = `${participante.nombre} ${participante.apellido} ${
-        participante.resultado ?? ""
-      }`.toLowerCase();
+    const hoy = new Date();
+    const inicio = new Date(desafioActual.fechaInicio);
+    const fin = new Date(desafioActual.fechaFin);
 
-      return texto.includes(busqueda.toLowerCase());
+    if (hoy < inicio) return "PROXIMO";
+    if (hoy > fin) return "FINALIZADO";
+
+    return "ACTIVO";
+  };
+
+  const obtenerEstadoClase = (estado: EstadoVisual) => {
+    if (estado === "ACTIVO") {
+      return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
+    }
+
+    if (estado === "PROXIMO") {
+      return "bg-blue-500/10 text-blue-300 border-blue-500/30";
+    }
+
+    return "bg-gray-500/10 text-gray-300 border-gray-500/30";
+  };
+
+  const formatearFecha = (fecha?: string) => {
+    if (!fecha) return "-";
+
+    return new Date(fecha).toLocaleDateString("es-UY", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
-  }, [participantes, busqueda, filtro]);
+  };
 
   const totalGanadores = participantes.filter((p) => p.ganador).length;
   const totalPendientes = participantes.length - totalGanadores;
+
+  const participantesFiltrados = useMemo(() => {
+    return participantes
+      .filter((participante) => {
+        if (filtro === "ganadores" && !participante.ganador) return false;
+        if (filtro === "pendientes" && participante.ganador) return false;
+
+        const texto = `${participante.nombre} ${participante.apellido} ${
+          participante.resultado ?? ""
+        }`.toLowerCase();
+
+        return texto.includes(busqueda.toLowerCase());
+      })
+      .sort((a, b) => {
+        if (a.ganador !== b.ganador) {
+          return a.ganador ? -1 : 1;
+        }
+
+        return `${a.nombre} ${a.apellido}`.localeCompare(
+          `${b.nombre} ${b.apellido}`
+        );
+      });
+  }, [participantes, busqueda, filtro]);
 
   const alternarSeleccion = (alumnoId: number) => {
     setSeleccionados((prev) =>
@@ -108,6 +217,11 @@ export default function AdminDesafioDetallePage() {
       return;
     }
 
+    if (recompensas.length === 0) {
+      toast.error("Configurá al menos una recompensa antes de asignar ganadores");
+      return;
+    }
+
     try {
       setGuardando(true);
 
@@ -131,9 +245,169 @@ export default function AdminDesafioDetallePage() {
     }
   };
 
+  const abrirCrearRecompensa = () => {
+    setEditandoRecompensa(null);
+    setFormRecompensa(formRecompensaInicial);
+    setModalRecompensa(true);
+  };
+
+  const abrirEditarRecompensa = (recompensa: Recompensa) => {
+    let tipo: TipoRecompensa = "PRODUCTO_REGALO";
+
+    if (recompensa.tipo === "CUOTA_GRATIS" || recompensa.otorgaCuotaGratis) {
+      tipo = "CUOTA_GRATIS";
+    } else if (recompensa.tipo === "DESCUENTO_CUOTA" || recompensa.descuentoId) {
+      tipo = "DESCUENTO_CUOTA";
+    }
+
+    setEditandoRecompensa(recompensa);
+
+    setFormRecompensa({
+      descripcion: recompensa.descripcion ?? "",
+      tipo,
+      premioFisico: recompensa.premioFisico ?? "",
+      descuentoId: recompensa.descuentoId ? String(recompensa.descuentoId) : "",
+    });
+
+    setModalRecompensa(true);
+  };
+
+  const descuentoSeleccionado = useMemo(() => {
+    return descuentos.find((d) => String(d.id) === formRecompensa.descuentoId);
+  }, [descuentos, formRecompensa.descuentoId]);
+
+  const validarRecompensa = () => {
+    if (!formRecompensa.descripcion.trim()) {
+      toast.error("La descripción es obligatoria");
+      return false;
+    }
+
+    if (
+      formRecompensa.tipo === "PRODUCTO_REGALO" &&
+      !formRecompensa.premioFisico.trim()
+    ) {
+      toast.error("Indicá el premio físico");
+      return false;
+    }
+
+    if (
+      formRecompensa.tipo === "DESCUENTO_CUOTA" &&
+      !formRecompensa.descuentoId.trim()
+    ) {
+      toast.error("Seleccioná un descuento");
+      return false;
+    }
+
+    if (formRecompensa.tipo === "CUOTA_GRATIS") {
+  const yaTieneCuotaGratis = recompensas.some(
+    (r) =>
+      (r.tipo === "CUOTA_GRATIS" || r.otorgaCuotaGratis) &&
+      r.id !== editandoRecompensa?.id
+  );
+
+  if (yaTieneCuotaGratis) {
+    toast.error("Este desafío ya tiene una recompensa de cuota gratis");
+    return false;
+  }
+}
+
+    return true;
+  };
+
+  const guardarRecompensa = async () => {
+    if (!validarRecompensa()) return;
+
+    const payload: Recompensa = {
+      id: editandoRecompensa?.id ?? 0,
+      desafioId,
+      descripcion: formRecompensa.descripcion,
+      tipo: formRecompensa.tipo,
+      premioFisico:
+        formRecompensa.tipo === "PRODUCTO_REGALO"
+          ? formRecompensa.premioFisico
+          : null,
+      descuentoId:
+        formRecompensa.tipo === "DESCUENTO_CUOTA"
+          ? Number(formRecompensa.descuentoId)
+          : null,
+      otorgaCuotaGratis: formRecompensa.tipo === "CUOTA_GRATIS",
+    };
+
+    try {
+      if (editandoRecompensa) {
+        await editarRecompensa(editandoRecompensa.id, payload);
+        toast.success("Recompensa actualizada correctamente");
+      } else {
+        await crearRecompensa(payload);
+        toast.success("Recompensa creada correctamente");
+      }
+
+      setModalRecompensa(false);
+      cargarDatos();
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.mensaje ?? "No fue posible guardar la recompensa"
+      );
+    }
+  };
+
+  const confirmarEliminarRecompensa = async () => {
+    if (!recompensaAEliminar) return;
+
+    try {
+      await eliminarRecompensa(recompensaAEliminar.id);
+
+      toast.success("Recompensa eliminada correctamente");
+
+      setRecompensaAEliminar(null);
+      cargarDatos();
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.mensaje ??
+          "No fue posible eliminar la recompensa"
+      );
+    }
+  };
+
+  const obtenerVisualRecompensa = (recompensa: Recompensa) => {
+    if (recompensa.tipo === "CUOTA_GRATIS" || recompensa.otorgaCuotaGratis) {
+      return {
+        titulo: "Cuota gratis",
+        detalle: "La próxima cuota del ganador quedará bonificada.",
+        badge: "bg-purple-500/10 text-purple-300 border-purple-500/30",
+      };
+    }
+
+    if (recompensa.tipo === "DESCUENTO_CUOTA" || recompensa.descuentoId) {
+      const descuento = descuentos.find((d) => d.id === recompensa.descuentoId);
+
+      return {
+        titulo: "Descuento",
+        detalle: descuento
+          ? `${descuento.nombre} • ${descuento.porcentaje}% durante ${
+              descuento.mesesDuracion
+            } mes${descuento.mesesDuracion > 1 ? "es" : ""}`
+          : "Descuento asociado",
+        badge: "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30",
+      };
+    }
+
+    return {
+      titulo: "Premio físico",
+      detalle: recompensa.premioFisico ?? "Premio físico",
+      badge: "bg-sky-500/10 text-sky-300 border-sky-500/30",
+    };
+  };
+
   if (loading) {
     return <FullScreenLoading />;
   }
+
+  const estadoDesafio = obtenerEstado(desafio);
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
@@ -148,21 +422,33 @@ export default function AdminDesafioDetallePage() {
         </button>
 
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
             <div>
-              <span className="inline-block px-3 py-1 rounded-full bg-[#4adea8]/10 text-[#4adea8] border border-[#4adea8]/30 text-xs font-bold mb-4">
-                Gestión de ganadores
+              <span
+                className={`inline-block px-3 py-1 rounded-full border text-xs font-bold mb-4 ${obtenerEstadoClase(
+                  estadoDesafio
+                )}`}
+              >
+                {estadoDesafio}
               </span>
 
               <h1 className="text-4xl font-bold">
-                Participantes del desafío
+                {desafio?.titulo ?? "Detalle del desafío"}
               </h1>
 
               <p className="text-gray-400 mt-3 max-w-3xl">
-                Seleccioná uno o varios alumnos como ganadores. Al confirmar,
-                el sistema generará automáticamente los beneficios configurados,
-                enviará notificaciones y registrará la auditoría.
+                {desafio?.descripcion ??
+                  "Gestioná los participantes, recompensas y ganadores del desafío."}
               </p>
+
+              <div className="mt-5 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 inline-block">
+                <p className="text-sm text-gray-400">Duración</p>
+
+                <p className="font-bold mt-1">
+                  {formatearFecha(desafio?.fechaInicio)} -{" "}
+                  {formatearFecha(desafio?.fechaFin)}
+                </p>
+              </div>
             </div>
 
             <button
@@ -170,7 +456,7 @@ export default function AdminDesafioDetallePage() {
               onClick={() => setConfirmando(true)}
               className="px-6 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirmar ganadores
+              Asignar ganadores
             </button>
           </div>
         </div>
@@ -181,6 +467,89 @@ export default function AdminDesafioDetallePage() {
           <ResumenCard titulo="Pendientes" valor={totalPendientes} />
           <ResumenCard titulo="Seleccionados" valor={seleccionados.length} />
         </div>
+
+        <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">
+                Recompensas del desafío
+              </h2>
+
+              <p className="text-gray-400 mt-1">
+                Estas recompensas se entregarán a los alumnos que sean marcados
+                como ganadores.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={abrirCrearRecompensa}
+              className="px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90 flex items-center justify-center gap-2"
+            >
+              <AddOutlinedIcon sx={{ fontSize: 18 }} />
+              Nueva recompensa
+            </button>
+          </div>
+
+          {recompensas.length === 0 ? (
+            <div className="bg-[#12201b] border border-yellow-500/30 rounded-2xl p-5">
+              <p className="text-yellow-300 font-bold">
+                Este desafío todavía no tiene recompensas
+              </p>
+
+              <p className="text-sm text-gray-300 mt-1">
+                Antes de asignar ganadores, configurá al menos una recompensa.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {recompensas.map((recompensa) => {
+                const visual = obtenerVisualRecompensa(recompensa);
+
+                return (
+                  <div
+                    key={recompensa.id}
+                    className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5"
+                  >
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full border text-xs font-bold mb-3 ${visual.badge}`}
+                    >
+                      {visual.titulo}
+                    </span>
+
+                    <h3 className="text-lg font-bold">
+                      {recompensa.descripcion}
+                    </h3>
+
+                    <p className="text-sm text-gray-400 mt-2">
+                      {visual.detalle}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                      <button
+                        type="button"
+                        onClick={() => abrirEditarRecompensa(recompensa)}
+                        className="py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 font-semibold hover:border-blue-400 flex items-center justify-center gap-2"
+                      >
+                        <EditOutlinedIcon sx={{ fontSize: 17 }} />
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRecompensaAEliminar(recompensa)}
+                        className="py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold hover:border-red-400 flex items-center justify-center gap-2"
+                      >
+                        <DeleteOutlineOutlinedIcon sx={{ fontSize: 17 }} />
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 mb-8">
           <div className="grid xl:grid-cols-[1fr_auto] gap-4">
@@ -249,9 +618,7 @@ export default function AdminDesafioDetallePage() {
 
         {participantesFiltrados.length === 0 ? (
           <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-10 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              No hay participantes
-            </h2>
+            <h2 className="text-2xl font-bold mb-2">No hay participantes</h2>
 
             <p className="text-gray-400">
               No se encontraron alumnos para el filtro seleccionado.
@@ -298,7 +665,7 @@ export default function AdminDesafioDetallePage() {
                         </h3>
 
                         <p className="text-gray-400 text-sm">
-                          Alumno #{participante.alumnoId}
+                          Participante del desafío
                         </p>
                       </div>
                     </div>
@@ -319,9 +686,11 @@ export default function AdminDesafioDetallePage() {
                   </div>
 
                   <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
-                    <p className="text-sm text-gray-400">Resultado</p>
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">
+                      Resultado
+                    </p>
 
-                    <p className="font-semibold mt-1">
+                    <p className="font-semibold mt-2">
                       {participante.resultado ?? "Sin resultado registrado"}
                     </p>
                   </div>
@@ -332,11 +701,204 @@ export default function AdminDesafioDetallePage() {
         )}
       </main>
 
+      {modalRecompensa && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
+          <div className="w-full max-w-xl bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-2">
+              {editandoRecompensa ? "Editar recompensa" : "Nueva recompensa"}
+            </h2>
+
+            <p className="text-gray-400 mb-6">
+              Esta recompensa quedará asociada a este desafío.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Tipo de recompensa
+                </label>
+
+                <select
+                  value={formRecompensa.tipo}
+                  onChange={(e) =>
+                    setFormRecompensa({
+                      ...formRecompensa,
+                      tipo: e.target.value as TipoRecompensa,
+                      premioFisico: "",
+                      descuentoId: "",
+                    })
+                  }
+                  className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                >
+                  <option value="PRODUCTO_REGALO">Premio físico</option>
+                  <option value="DESCUENTO_CUOTA">Descuento</option>
+                  <option value="CUOTA_GRATIS">Cuota gratis</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Descripción
+                </label>
+
+                <textarea
+                  rows={3}
+                  value={formRecompensa.descripcion}
+                  onChange={(e) =>
+                    setFormRecompensa({
+                      ...formRecompensa,
+                      descripcion: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: Premio para ganadores del desafío"
+                  className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                />
+              </div>
+
+              {formRecompensa.tipo === "PRODUCTO_REGALO" && (
+                <Input
+                  label="Premio físico"
+                  value={formRecompensa.premioFisico}
+                  onChange={(value) =>
+                    setFormRecompensa({
+                      ...formRecompensa,
+                      premioFisico: value,
+                    })
+                  }
+                  placeholder="Ej: Remera, botella, medalla"
+                />
+              )}
+
+              {formRecompensa.tipo === "DESCUENTO_CUOTA" && (
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Descuento
+                  </label>
+
+                  <select
+                    value={formRecompensa.descuentoId}
+                    onChange={(e) =>
+                      setFormRecompensa({
+                        ...formRecompensa,
+                        descuentoId: e.target.value,
+                      })
+                    }
+                    className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                  >
+                    <option value="">Seleccione un descuento...</option>
+
+                    {descuentos
+                      .filter((d) => d.activo)
+                      .map((descuento) => (
+                        <option key={descuento.id} value={descuento.id}>
+                          {descuento.nombre} • {descuento.porcentaje}% •{" "}
+                          {descuento.mesesDuracion} mes
+                          {descuento.mesesDuracion > 1 ? "es" : ""}
+                        </option>
+                      ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/descuentos")}
+                    className="mt-3 text-[#4adea8] text-sm font-semibold hover:underline"
+                  >
+                    + Crear nuevo descuento
+                  </button>
+
+                  {!descuentoSeleccionado ? (
+                    <div className="mt-4 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+                      <p className="text-yellow-300 font-bold">
+                        No hay descuento seleccionado
+                      </p>
+
+                      <p className="text-sm text-gray-300 mt-1">
+                        Seleccioná un descuento para ver sus características.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-4">
+                      <p className="text-[#4adea8] font-bold mb-3">
+                        Descuento seleccionado
+                      </p>
+
+                      <p className="text-sm text-gray-300">
+                        {descuentoSeleccionado.nombre} —{" "}
+                        {descuentoSeleccionado.porcentaje}% durante{" "}
+                        {descuentoSeleccionado.mesesDuracion} mes
+                        {descuentoSeleccionado.mesesDuracion > 1 ? "es" : ""}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <VistaPrevia
+                form={formRecompensa}
+                descuentoSeleccionado={descuentoSeleccionado}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-7">
+              <button
+                onClick={() => setModalRecompensa(false)}
+                className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8]"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={guardarRecompensa}
+                className="px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {recompensaAEliminar && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
+          <div className="w-full max-w-lg bg-[#1a2b24] border border-red-500/30 rounded-3xl p-7 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-2">Eliminar recompensa</h2>
+
+            <p className="text-gray-400 mb-6">
+              Esta recompensa dejará de estar asociada al desafío.
+            </p>
+
+            <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6">
+              <p className="text-gray-400 text-sm">Recompensa</p>
+
+              <p className="font-bold mt-1">
+                {recompensaAEliminar.descripcion}
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setRecompensaAEliminar(null)}
+                className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8]"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={confirmarEliminarRecompensa}
+                className="px-5 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmando && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
           <div className="w-full max-w-lg bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl">
             <h2 className="text-2xl font-bold mb-2">
-              Confirmar ganadores
+              Confirmar asignación
             </h2>
 
             <p className="text-gray-400 mb-6">
@@ -345,10 +907,20 @@ export default function AdminDesafioDetallePage() {
               {seleccionados.length === 1 ? "" : "es"}.
             </p>
 
-            <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6 space-y-2 text-sm text-gray-300">
-              <p>✔ Se generarán los beneficios configurados.</p>
-              <p>✔ Se enviarán notificaciones a los alumnos.</p>
-              <p>✔ Se registrará auditoría del administrador.</p>
+            <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6">
+              <p className="font-bold mb-3">Recibirán:</p>
+
+              <div className="space-y-2 text-sm text-gray-300">
+                {recompensas.map((recompensa) => {
+                  const visual = obtenerVisualRecompensa(recompensa);
+
+                  return (
+                    <p key={recompensa.id}>
+                      ✔ {visual.titulo}: {visual.detalle}
+                    </p>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3">
@@ -405,5 +977,85 @@ function BotonFiltro({
     >
       {texto}
     </button>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm text-gray-400 mb-2">{label}</label>
+
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+      />
+    </div>
+  );
+}
+
+function VistaPrevia({
+  form,
+  descuentoSeleccionado,
+}: {
+  form: FormRecompensa;
+  descuentoSeleccionado?: Descuento;
+}) {
+  if (form.tipo === "PRODUCTO_REGALO") {
+    return (
+      <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4">
+        <p className="text-sky-300 font-bold">Vista previa: premio físico</p>
+
+        <p className="text-sm text-gray-300 mt-2">
+          Los ganadores recibirán:{" "}
+          <strong>{form.premioFisico || "premio físico sin definir"}</strong>.
+        </p>
+      </div>
+    );
+  }
+
+  if (form.tipo === "DESCUENTO_CUOTA") {
+    return (
+      <div className="rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-4">
+        <p className="text-[#4adea8] font-bold">Vista previa: descuento</p>
+
+        {descuentoSeleccionado ? (
+          <p className="text-sm text-gray-300 mt-2">
+            Los ganadores recibirán un descuento de{" "}
+            <strong>{descuentoSeleccionado.porcentaje}%</strong> durante{" "}
+            <strong>
+              {descuentoSeleccionado.mesesDuracion} mes
+              {descuentoSeleccionado.mesesDuracion > 1 ? "es" : ""}
+            </strong>
+            .
+          </p>
+        ) : (
+          <p className="text-sm text-gray-300 mt-2">
+            Seleccioná un descuento para ver la vista previa.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4">
+      <p className="text-purple-300 font-bold">Vista previa: cuota gratis</p>
+
+      <p className="text-sm text-gray-300 mt-2">
+        Los ganadores recibirán una cuota gratis.
+      </p>
+    </div>
   );
 }

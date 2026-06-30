@@ -38,6 +38,29 @@ export interface Cuota {
   año?: number;
 }
 
+export interface Descuento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  porcentaje: number;
+  mesesDuracion: number;
+  tipo: string;
+  alcance: string;
+  activo: boolean;
+  desafioId?: number | null;
+}
+
+export interface CrearDescuentoRequest {
+  nombre: string;
+  descripcion: string;
+  porcentaje: number;
+  mesesDuracion: number;
+  tipo: string;
+  alcance: string;
+  desafioId?: number | null;
+  alumnosIds: number[];
+}
+
 export interface Clase {
   id: number;
   grupoId: number;
@@ -89,10 +112,16 @@ export interface Desafio {
 export interface Recompensa {
   id: number;
 
+  desafioId?: number;
+
   tipo: string;
   descripcion: string;
 
-  premioFisico?: string;
+  premioFisico?: string | null;
+
+  descuentoId?: number | null;
+
+  otorgaCuotaGratis?: boolean;
 
   beneficioId?: number;
   alumnoId?: number;

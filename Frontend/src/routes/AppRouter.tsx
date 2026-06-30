@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import AdminDescuentosPage from "../pages/AdminDescuentosPage";
 
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AlumnoDashboard from "../pages/Alumno/AlumnoDashboard";
@@ -111,6 +112,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/descuentos"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminDescuentosPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/alumno/reactivacion"
