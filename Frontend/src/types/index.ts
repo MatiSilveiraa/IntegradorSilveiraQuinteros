@@ -59,6 +59,7 @@ export interface CrearDescuentoRequest {
   alcance: string;
   desafioId?: number | null;
   alumnosIds: number[];
+  soloPlantilla?: boolean;
 }
 
 export interface Clase {

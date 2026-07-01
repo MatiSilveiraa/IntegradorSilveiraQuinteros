@@ -280,13 +280,18 @@ export default function AdminDesafioDetallePage() {
       return false;
     }
 
-    if (
-      formRecompensa.tipo === "DESCUENTO_CUOTA" &&
-      !formRecompensa.descuentoId.trim()
-    ) {
-      toast.error("Seleccioná un descuento");
-      return false;
-    }
+    if (formRecompensa.tipo === "DESCUENTO_CUOTA") {
+  const yaTieneEseDescuento = recompensas.some(
+    (r) =>
+      r.descuentoId === Number(formRecompensa.descuentoId) &&
+      r.id !== editandoRecompensa?.id
+  );
+
+  if (yaTieneEseDescuento) {
+    toast.error("Este desafío ya tiene una recompensa con ese descuento");
+    return false;
+  }
+}
 
     if (formRecompensa.tipo === "CUOTA_GRATIS") {
       const yaTieneCuotaGratis = recompensas.some(
@@ -357,16 +362,17 @@ export default function AdminDesafioDetallePage() {
     try {
       setGuardandoDescuento(true);
 
-      await crearDescuento({
-        nombre: formDescuento.nombre,
-        descripcion: formDescuento.descripcion,
-        porcentaje: formDescuento.porcentaje,
-        mesesDuracion: formDescuento.mesesDuracion,
-        tipo: "DESAFIO",
-        alcance: "ALUMNOS_SELECCIONADOS",
-        desafioId: null,
-        alumnosIds: [],
-      });
+     await crearDescuento({
+  nombre: formDescuento.nombre,
+  descripcion: formDescuento.descripcion,
+  porcentaje: formDescuento.porcentaje,
+  mesesDuracion: formDescuento.mesesDuracion,
+  tipo: "DESAFIO",
+  alcance: "ALUMNOS_SELECCIONADOS",
+  desafioId: null,
+  alumnosIds: [],
+  soloPlantilla: true,
+});
 
       const descuentosActualizados = await obtenerDescuentos();
 
