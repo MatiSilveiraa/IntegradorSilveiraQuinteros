@@ -60,20 +60,24 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Descuento
                     request.Alcance,
                     true);
 
-            var descuento =
-                new Entidades.Descuento
-                {
-                    Nombre = request.Nombre,
-                    Descripcion = request.Descripcion,
-                    Porcentaje = request.Porcentaje,
-                    MesesDuracion = request.MesesDuracion,
-                    Tipo = tipo,
-                    Alcance = alcance,
-                    DesafioId = request.DesafioId,
-                    Activo = true
-                };
+            var descuento = new Entidades.Descuento
+            {
+                Nombre = request.Nombre,
+                Descripcion = request.Descripcion,
+                Porcentaje = request.Porcentaje,
+                MesesDuracion = request.MesesDuracion,
+                Tipo = tipo,
+                Alcance = alcance,
+                DesafioId = request.DesafioId,
+                Activo = true
+            };
 
             _repositorioDescuento.Agregar(descuento);
+
+            if (request.SoloPlantilla)
+            {
+                return;
+            }
 
             List<Entidades.Alumno> alumnos =
                 new List<Entidades.Alumno>();

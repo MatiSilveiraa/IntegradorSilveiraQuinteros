@@ -18,5 +18,8 @@
 
         public List<int> AlumnosIds { get; set; } =
             new List<int>();
+
+        public bool SoloPlantilla { get; set; }
+
     }
 }
