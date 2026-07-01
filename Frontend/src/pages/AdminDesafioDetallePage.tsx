@@ -9,6 +9,11 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import TopBar from "../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../components/FullScreenSpinner";
 
+import ResumenCard from "../components/ui/ResumenCard";
+import FormInput from "../components/ui/FormInput";
+import BotonFiltro from "../components/desafios/BotonFiltro";
+import VistaPreviaRecompensa from "../components/desafios/VistaPreviaRecompensa";
+
 import {
   obtenerDesafios,
   obtenerParticipantesDesafio,
@@ -22,7 +27,10 @@ import {
   eliminarRecompensa,
 } from "../services/AdminRecompensa.Service";
 
-import { obtenerDescuentos } from "../services/AdminDescuento.service";
+import {
+  obtenerDescuentos,
+  crearDescuento,
+} from "../services/AdminDescuento.service";
 
 import type {
   Desafio,
@@ -49,6 +57,17 @@ const formRecompensaInicial: FormRecompensa = {
   descuentoId: "",
 };
 
+const formDescuentoInicial = {
+  nombre: "",
+  descripcion: "",
+  porcentaje: 10,
+  mesesDuracion: 1,
+};
+
+const porcentajesDisponibles = [
+  5, 10, 15, 20, 25, 30, 40, 50, 75, 100,
+];
+
 export default function AdminDesafioDetallePage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -73,8 +92,13 @@ export default function AdminDesafioDetallePage() {
     useState<Recompensa | null>(null);
   const [recompensaAEliminar, setRecompensaAEliminar] =
     useState<Recompensa | null>(null);
+
   const [formRecompensa, setFormRecompensa] =
     useState<FormRecompensa>(formRecompensaInicial);
+
+  const [modalDescuentoRapido, setModalDescuentoRapido] = useState(false);
+  const [guardandoDescuento, setGuardandoDescuento] = useState(false);
+  const [formDescuento, setFormDescuento] = useState(formDescuentoInicial);
 
   const cargarDatos = async () => {
     try {
@@ -117,6 +141,10 @@ export default function AdminDesafioDetallePage() {
 
     cargarDatos();
   }, [desafioId]);
+
+  const descuentoSeleccionado = useMemo(() => {
+    return descuentos.find((d) => String(d.id) === formRecompensa.descuentoId);
+  }, [descuentos, formRecompensa.descuentoId]);
 
   const obtenerEstado = (desafioActual?: Desafio | null): EstadoVisual => {
     if (!desafioActual) return "ACTIVO";
@@ -211,40 +239,6 @@ export default function AdminDesafioDetallePage() {
     setSeleccionados([]);
   };
 
-  const confirmarGanadores = async () => {
-    if (seleccionados.length === 0) {
-      toast.error("Seleccioná al menos un ganador");
-      return;
-    }
-
-    if (recompensas.length === 0) {
-      toast.error("Configurá al menos una recompensa antes de asignar ganadores");
-      return;
-    }
-
-    try {
-      setGuardando(true);
-
-      await asignarGanadoresDesafio(desafioId, seleccionados);
-
-      toast.success("Ganadores asignados correctamente");
-
-      setConfirmando(false);
-      setSeleccionados([]);
-
-      cargarDatos();
-    } catch (error: any) {
-      console.error(error);
-
-      toast.error(
-        error.response?.data?.mensaje ??
-          "No fue posible asignar los ganadores"
-      );
-    } finally {
-      setGuardando(false);
-    }
-  };
-
   const abrirCrearRecompensa = () => {
     setEditandoRecompensa(null);
     setFormRecompensa(formRecompensaInicial);
@@ -272,10 +266,6 @@ export default function AdminDesafioDetallePage() {
     setModalRecompensa(true);
   };
 
-  const descuentoSeleccionado = useMemo(() => {
-    return descuentos.find((d) => String(d.id) === formRecompensa.descuentoId);
-  }, [descuentos, formRecompensa.descuentoId]);
-
   const validarRecompensa = () => {
     if (!formRecompensa.descripcion.trim()) {
       toast.error("La descripción es obligatoria");
@@ -299,17 +289,17 @@ export default function AdminDesafioDetallePage() {
     }
 
     if (formRecompensa.tipo === "CUOTA_GRATIS") {
-  const yaTieneCuotaGratis = recompensas.some(
-    (r) =>
-      (r.tipo === "CUOTA_GRATIS" || r.otorgaCuotaGratis) &&
-      r.id !== editandoRecompensa?.id
-  );
+      const yaTieneCuotaGratis = recompensas.some(
+        (r) =>
+          (r.tipo === "CUOTA_GRATIS" || r.otorgaCuotaGratis) &&
+          r.id !== editandoRecompensa?.id
+      );
 
-  if (yaTieneCuotaGratis) {
-    toast.error("Este desafío ya tiene una recompensa de cuota gratis");
-    return false;
-  }
-}
+      if (yaTieneCuotaGratis) {
+        toast.error("Este desafío ya tiene una recompensa de cuota gratis");
+        return false;
+      }
+    }
 
     return true;
   };
@@ -353,6 +343,64 @@ export default function AdminDesafioDetallePage() {
     }
   };
 
+  const guardarDescuentoRapido = async () => {
+    if (!formDescuento.nombre.trim()) {
+      toast.error("El nombre del descuento es obligatorio");
+      return;
+    }
+
+    if (!formDescuento.descripcion.trim()) {
+      toast.error("La descripción del descuento es obligatoria");
+      return;
+    }
+
+    try {
+      setGuardandoDescuento(true);
+
+      await crearDescuento({
+        nombre: formDescuento.nombre,
+        descripcion: formDescuento.descripcion,
+        porcentaje: formDescuento.porcentaje,
+        mesesDuracion: formDescuento.mesesDuracion,
+        tipo: "DESAFIO",
+        alcance: "ALUMNOS_SELECCIONADOS",
+        desafioId: null,
+        alumnosIds: [],
+      });
+
+      const descuentosActualizados = await obtenerDescuentos();
+
+      setDescuentos(descuentosActualizados);
+
+      const descuentoCreado = descuentosActualizados.find(
+        (d: Descuento) =>
+          d.nombre === formDescuento.nombre &&
+          d.porcentaje === formDescuento.porcentaje &&
+          d.mesesDuracion === formDescuento.mesesDuracion
+      );
+
+      if (descuentoCreado) {
+        setFormRecompensa((prev) => ({
+          ...prev,
+          descuentoId: String(descuentoCreado.id),
+        }));
+      }
+
+      toast.success("Descuento creado correctamente");
+
+      setModalDescuentoRapido(false);
+      setFormDescuento(formDescuentoInicial);
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.mensaje ?? "No fue posible crear el descuento"
+      );
+    } finally {
+      setGuardandoDescuento(false);
+    }
+  };
+
   const confirmarEliminarRecompensa = async () => {
     if (!recompensaAEliminar) return;
 
@@ -370,6 +418,40 @@ export default function AdminDesafioDetallePage() {
         error.response?.data?.mensaje ??
           "No fue posible eliminar la recompensa"
       );
+    }
+  };
+
+  const confirmarGanadores = async () => {
+    if (seleccionados.length === 0) {
+      toast.error("Seleccioná al menos un ganador");
+      return;
+    }
+
+    if (recompensas.length === 0) {
+      toast.error("Configurá al menos una recompensa antes de asignar ganadores");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+
+      await asignarGanadoresDesafio(desafioId, seleccionados);
+
+      toast.success("Ganadores asignados correctamente");
+
+      setConfirmando(false);
+      setSeleccionados([]);
+
+      cargarDatos();
+    } catch (error: any) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.mensaje ??
+          "No fue posible asignar los ganadores"
+      );
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -471,9 +553,7 @@ export default function AdminDesafioDetallePage() {
         <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold">
-                Recompensas del desafío
-              </h2>
+              <h2 className="text-2xl font-bold">Recompensas del desafío</h2>
 
               <p className="text-gray-400 mt-1">
                 Estas recompensas se entregarán a los alumnos que sean marcados
@@ -553,11 +633,10 @@ export default function AdminDesafioDetallePage() {
 
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 mb-8">
           <div className="grid xl:grid-cols-[1fr_auto] gap-4">
-            <input
+            <FormInput
               value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              onChange={setBusqueda}
               placeholder="Buscar por nombre, apellido o resultado..."
-              className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
             />
 
             <div className="flex flex-wrap gap-3">
@@ -756,7 +835,7 @@ export default function AdminDesafioDetallePage() {
               </div>
 
               {formRecompensa.tipo === "PRODUCTO_REGALO" && (
-                <Input
+                <FormInput
                   label="Premio físico"
                   value={formRecompensa.premioFisico}
                   onChange={(value) =>
@@ -800,10 +879,10 @@ export default function AdminDesafioDetallePage() {
 
                   <button
                     type="button"
-                    onClick={() => navigate("/admin/descuentos")}
+                    onClick={() => setModalDescuentoRapido(true)}
                     className="mt-3 text-[#4adea8] text-sm font-semibold hover:underline"
                   >
-                    + Crear nuevo descuento
+                    ¿No existe el descuento que necesitás? Crear uno nuevo
                   </button>
 
                   {!descuentoSeleccionado ? (
@@ -833,7 +912,7 @@ export default function AdminDesafioDetallePage() {
                 </div>
               )}
 
-              <VistaPrevia
+              <VistaPreviaRecompensa
                 form={formRecompensa}
                 descuentoSeleccionado={descuentoSeleccionado}
               />
@@ -852,6 +931,131 @@ export default function AdminDesafioDetallePage() {
                 className="px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90"
               >
                 Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalDescuentoRapido && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000] px-4">
+          <div className="w-full max-w-lg bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-2">Crear descuento</h2>
+
+            <p className="text-gray-400 mb-6">
+              Creá un descuento para usarlo en esta recompensa.
+            </p>
+
+            <div className="space-y-4">
+              <FormInput
+                label="Nombre"
+                value={formDescuento.nombre}
+                onChange={(value) =>
+                  setFormDescuento({
+                    ...formDescuento,
+                    nombre: value,
+                  })
+                }
+                placeholder="Ej: Ganadores Oro"
+              />
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Descripción
+                </label>
+
+                <textarea
+                  rows={3}
+                  value={formDescuento.descripcion}
+                  onChange={(e) =>
+                    setFormDescuento({
+                      ...formDescuento,
+                      descripcion: e.target.value,
+                    })
+                  }
+                  placeholder="Ej: Descuento para ganadores del desafío"
+                  className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Porcentaje
+                  </label>
+
+                  <select
+                    value={formDescuento.porcentaje}
+                    onChange={(e) =>
+                      setFormDescuento({
+                        ...formDescuento,
+                        porcentaje: Number(e.target.value),
+                      })
+                    }
+                    className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                  >
+                    {porcentajesDisponibles.map((porcentaje) => (
+                      <option key={porcentaje} value={porcentaje}>
+                        {porcentaje}%
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Duración
+                  </label>
+
+                  <select
+                    value={formDescuento.mesesDuracion}
+                    onChange={(e) =>
+                      setFormDescuento({
+                        ...formDescuento,
+                        mesesDuracion: Number(e.target.value),
+                      })
+                    }
+                    className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 12].map((meses) => (
+                      <option key={meses} value={meses}>
+                        {meses} mes{meses > 1 ? "es" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-4">
+                <p className="text-[#4adea8] font-bold">Vista previa</p>
+
+                <p className="text-sm text-gray-300 mt-2">
+                  Los ganadores recibirán un descuento de{" "}
+                  <strong>{formDescuento.porcentaje}%</strong> durante{" "}
+                  <strong>
+                    {formDescuento.mesesDuracion} mes
+                    {formDescuento.mesesDuracion > 1 ? "es" : ""}
+                  </strong>
+                  .
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-7">
+              <button
+                disabled={guardandoDescuento}
+                onClick={() => setModalDescuentoRapido(false)}
+                className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+
+              <button
+                disabled={guardandoDescuento}
+                onClick={guardarDescuentoRapido}
+                className="px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90 disabled:opacity-60"
+              >
+                {guardandoDescuento ? "Guardando..." : "Guardar descuento"}
               </button>
             </div>
           </div>
@@ -943,119 +1147,6 @@ export default function AdminDesafioDetallePage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function ResumenCard({ titulo, valor }: { titulo: string; valor: number }) {
-  return (
-    <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-      <p className="text-sm text-gray-400">{titulo}</p>
-      <h2 className="text-4xl font-bold mt-3">{valor}</h2>
-    </div>
-  );
-}
-
-function BotonFiltro({
-  texto,
-  activo,
-  onClick,
-}: {
-  texto: string;
-  activo: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-5 py-3 rounded-xl border font-semibold transition-all ${
-        activo
-          ? "bg-[#4adea8] text-[#12201b] border-[#4adea8]"
-          : "bg-[#12201b] text-gray-300 border-[#2d463b] hover:border-[#4adea8]"
-      }`}
-    >
-      {texto}
-    </button>
-  );
-}
-
-function Input({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-sm text-gray-400 mb-2">{label}</label>
-
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-      />
-    </div>
-  );
-}
-
-function VistaPrevia({
-  form,
-  descuentoSeleccionado,
-}: {
-  form: FormRecompensa;
-  descuentoSeleccionado?: Descuento;
-}) {
-  if (form.tipo === "PRODUCTO_REGALO") {
-    return (
-      <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4">
-        <p className="text-sky-300 font-bold">Vista previa: premio físico</p>
-
-        <p className="text-sm text-gray-300 mt-2">
-          Los ganadores recibirán:{" "}
-          <strong>{form.premioFisico || "premio físico sin definir"}</strong>.
-        </p>
-      </div>
-    );
-  }
-
-  if (form.tipo === "DESCUENTO_CUOTA") {
-    return (
-      <div className="rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-4">
-        <p className="text-[#4adea8] font-bold">Vista previa: descuento</p>
-
-        {descuentoSeleccionado ? (
-          <p className="text-sm text-gray-300 mt-2">
-            Los ganadores recibirán un descuento de{" "}
-            <strong>{descuentoSeleccionado.porcentaje}%</strong> durante{" "}
-            <strong>
-              {descuentoSeleccionado.mesesDuracion} mes
-              {descuentoSeleccionado.mesesDuracion > 1 ? "es" : ""}
-            </strong>
-            .
-          </p>
-        ) : (
-          <p className="text-sm text-gray-300 mt-2">
-            Seleccioná un descuento para ver la vista previa.
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4">
-      <p className="text-purple-300 font-bold">Vista previa: cuota gratis</p>
-
-      <p className="text-sm text-gray-300 mt-2">
-        Los ganadores recibirán una cuota gratis.
-      </p>
     </div>
   );
 }
