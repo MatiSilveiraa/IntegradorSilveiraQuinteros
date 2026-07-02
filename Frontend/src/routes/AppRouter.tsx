@@ -43,6 +43,8 @@ import PasswordlessCodePage from "../pages/PasswordlessCodePage";
 
 import ClasesPage from "../pages/Admin/Clases/ClasesPage";
 import ClaseFormPage from "../pages/Admin/Clases/ClaseFormPage";
+import EntrenadorGruposPage from "../pages/entrenador/EntrenadorGruposPage";
+import EntrenadorGrupoDetallePage from "../pages/entrenador/GrupoDetallePage";
 
 export default function AppRouter() {
   return (
@@ -114,13 +116,13 @@ export default function AppRouter() {
         />
 
         <Route
-  path="/admin/descuentos"
-  element={
-    <ProtectedRoute rolPermitido="Admin">
-      <AdminDescuentosPage />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin/descuentos"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <AdminDescuentosPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/alumno/reactivacion"
@@ -150,13 +152,13 @@ export default function AppRouter() {
         />
 
         <Route
-  path="/admin/desafios/:id"
-  element={
-    <ProtectedRoute rolPermitido="Admin">
-      <AdminDesafioDetallePage />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin/desafios/:id"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <AdminDesafioDetallePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin/clases/editar/:id"
@@ -226,13 +228,13 @@ export default function AppRouter() {
         />
 
         <Route
-  path="/admin/beneficios-pendientes"
-  element={
-    <ProtectedRoute rolPermitido="Admin">
-      <AdminBeneficiosPendientesPage />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin/beneficios-pendientes"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <AdminBeneficiosPendientesPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin/desafios"
@@ -280,13 +282,13 @@ export default function AppRouter() {
         />
 
         <Route
-  path="/admin/notificaciones"
-  element={
-    <ProtectedRoute rolPermitido="Admin">
-      <NotificacionPage />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin/notificaciones"
+          element={
+            <ProtectedRoute rolPermitido="Admin">
+              <NotificacionPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Entrenador */}
 
@@ -312,16 +314,20 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route path="/passwordless-login" element={<PasswordlessLoginPage />} />
+
+        <Route path="/otp-login-codigo" element={<PasswordlessCodePage />} />
+
+        <Route path="/entrenador/grupos" element={<EntrenadorGruposPage />} />
+
         <Route
-  path="/passwordless-login"
-  element={<PasswordlessLoginPage />}
-/>
-
-<Route
-  path="/otp-login-codigo"
-  element={<PasswordlessCodePage />}
-/>
-
+          path="/entrenador/grupos/:id"
+          element={
+            <ProtectedRoute rolPermitido="Entrenador">
+              <EntrenadorGrupoDetallePage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

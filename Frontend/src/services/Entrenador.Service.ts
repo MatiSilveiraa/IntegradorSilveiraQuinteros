@@ -10,3 +10,27 @@ export const obtenerDashboardEntrenador =
 
     return response.data;
   };
+
+export const obtenerMisGrupos = async () => {
+
+    const response =
+        await axiosInstance.get(
+            "/api/Entrenador/grupos"
+        );
+
+    return response.data;
+
+};
+
+export const obtenerDetalleGrupo = async (
+  id: number
+) => {
+
+  const response =
+    await axiosInstance.get(
+      `/api/Entrenador/grupos/${id}`
+    );
+
+  return response.data;
+
+};
