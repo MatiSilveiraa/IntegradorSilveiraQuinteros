@@ -91,10 +91,11 @@ export interface CambiarEstadoClaseRequest {
 export interface Grupo {
   id: number;
   nombre: string;
-  nivel?: string;
+  nivel: string;
+  estado?: string;
   clases?: Clase[];
+  cantidadClases?: number;
 }
-
 export interface Desafio {
   id?: number;
   desafioId?: number;

@@ -15,9 +15,11 @@ import AdminBeneficiosPendientesPage from "../pages/AdminBeneficiosPendientesPag
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import VerifyCodePage from "../pages/VerifyCodePage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import AdminGrupoDetallePage from "../pages/AdminGrupoDetallePage";
 
 import GruposPage from "../pages/GrupoPage";
 import GrupoDetallePage from "../pages/GrupoDetallePage";
+import AdminGruposPage from "../pages/AdminGruposPage";
 
 import PerfilPage from "../pages/PerfilPage";
 import NotificacionPage from "../pages/NotificacionPage";
@@ -132,6 +134,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/grupos/:id"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminGrupoDetallePage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/admin/clases"
@@ -289,6 +300,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/grupos"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminGruposPage />
+    </ProtectedRoute>
+  }
+/>
 
         {/* Entrenador */}
 

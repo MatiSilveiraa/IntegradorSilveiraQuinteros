@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import TopBar from "../../../components/navigation/DashboardTopBar";
@@ -30,6 +30,9 @@ type TipoClase = "puntual" | "recurrente";
 export default function ClaseFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const esEdicion = Boolean(id);
 
@@ -53,7 +56,7 @@ export default function ClaseFormPage() {
   ]);
 
   const [form, setForm] = useState<CrearClaseRequest>({
-    grupoId: 0,
+    grupoId: grupoIdDesdeUrl ? Number(grupoIdDesdeUrl) : 0,
     diaSemana: 1,
     horaInicio: "",
     horaFin: "",
@@ -66,6 +69,9 @@ export default function ClaseFormPage() {
     fechaFin: null,
     cupoMaximo: 20,
   });
+
+  const grupoSeleccionadoDesdeUrl =
+  grupos.find((g) => g.id === Number(grupoIdDesdeUrl));
 
   const inputClass =
     "w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]";
@@ -233,7 +239,7 @@ export default function ClaseFormPage() {
           ]);
 
           setForm({
-            grupoId: clase.grupoId,
+            grupoId: grupoIdDesdeUrl ? Number(grupoIdDesdeUrl) : 0,
             diaSemana: diaNumero,
             horaInicio: clase.horaInicio?.substring(0, 5) ?? "",
             horaFin: clase.horaFin?.substring(0, 5) ?? "",
@@ -594,79 +600,119 @@ export default function ClaseFormPage() {
             ← Volver a clases
           </button>
 
-          <h1 className="text-4xl font-bold">
-            {esEdicion ? "Editar clase" : "Nueva clase"}
-          </h1>
+          <h1 className="text-3xl font-bold">
+  {esEdicion
+    ? "Editar clase"
+    : grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl
+    ? `Nueva clase para ${grupoSeleccionadoDesdeUrl.nombre}`
+    : "Nueva clase"}
+</h1>
 
           <p className="text-gray-400 mt-2">
-            {esEdicion
-              ? "Modificá los datos de la clase seleccionada."
-              : "Creá una clase puntual o varias clases recurrentes."}
-          </p>
+  {grupoIdDesdeUrl
+    ? "La clase quedará asociada automáticamente al grupo seleccionado."
+    : "Configurá la información general de la clase."}
+</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 space-y-6"
+<form
+  onSubmit={handleSubmit}
+  className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 space-y-6"
+>
+  {grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl && (
+    <div className="bg-[#12201b] border border-[#4adea8]/30 rounded-2xl p-5">
+      <p className="text-xs uppercase tracking-wide text-[#4adea8] font-bold">
+        Grupo seleccionado
+      </p>
+
+      <h2 className="text-2xl font-bold mt-2">
+        {grupoSeleccionadoDesdeUrl.nombre}
+      </h2>
+
+      <p className="text-gray-400 mt-2">
+        Nivel{" "}
+        <span className="text-white font-semibold">
+          {grupoSeleccionadoDesdeUrl.nivel}
+        </span>
+      </p>
+
+      <p className="text-sm text-gray-500 mt-3">
+        La clase quedará asociada automáticamente a este grupo.
+      </p>
+    </div>
+  )}
+
+  <div>
+    <label className="block mb-3 text-sm text-gray-300">
+      Tipo de clase
+    </label>
+
+    <div className="grid md:grid-cols-2 gap-4">
+      <button
+        type="button"
+        onClick={() => cambiarTipoClase("puntual")}
+        className={`rounded-2xl border p-5 text-left transition-all ${
+          tipoClase === "puntual"
+            ? "border-[#4adea8] bg-[#4adea8]/10"
+            : "border-[#2d463b] bg-[#12201b]"
+        }`}
+      >
+        <h3 className="font-bold">Clase puntual</h3>
+
+        <p className="text-sm text-gray-400 mt-2">
+          Se dicta una sola vez en una fecha específica.
+        </p>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => cambiarTipoClase("recurrente")}
+        className={`rounded-2xl border p-5 text-left transition-all ${
+          tipoClase === "recurrente"
+            ? "border-[#4adea8] bg-[#4adea8]/10"
+            : "border-[#2d463b] bg-[#12201b]"
+        }`}
+      >
+        <h3 className="font-bold">Clase recurrente</h3>
+
+        <p className="text-sm text-gray-400 mt-2">
+          Se repite semanalmente uno o varios días.
+        </p>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <label className="block mb-2 text-sm text-gray-300">
+      Grupo
+    </label>
+
+  {grupoIdDesdeUrl ? (
+  <div className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] text-gray-400">
+    Grupo definido desde la pantalla anterior.
+  </div>
+) : (
+    <select
+      name="grupoId"
+      value={form.grupoId}
+      onChange={handleChange}
+      className={inputClass}
+    >
+      <option value={0}>
+        Seleccionar grupo
+      </option>
+
+      {grupos.map((grupo) => (
+        <option
+          key={grupo.id}
+          value={grupo.id}
         >
-          <div>
-            <label className="block mb-3 text-sm text-gray-300">
-              Tipo de clase
-            </label>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => cambiarTipoClase("puntual")}
-                className={`rounded-2xl border p-5 text-left transition-all ${
-                  tipoClase === "puntual"
-                    ? "border-[#4adea8] bg-[#4adea8]/10"
-                    : "border-[#2d463b] bg-[#12201b]"
-                }`}
-              >
-                <h3 className="font-bold">Clase puntual</h3>
-
-                <p className="text-sm text-gray-400 mt-2">
-                  Se dicta una sola vez en una fecha específica.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => cambiarTipoClase("recurrente")}
-                className={`rounded-2xl border p-5 text-left transition-all ${
-                  tipoClase === "recurrente"
-                    ? "border-[#4adea8] bg-[#4adea8]/10"
-                    : "border-[#2d463b] bg-[#12201b]"
-                }`}
-              >
-                <h3 className="font-bold">Clase recurrente</h3>
-
-                <p className="text-sm text-gray-400 mt-2">
-                  Se repite semanalmente uno o varios días.
-                </p>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-2 text-sm text-gray-300">Grupo</label>
-
-            <select
-              name="grupoId"
-              value={form.grupoId}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              <option value={0}>Seleccionar grupo</option>
-
-              {grupos.map((grupo) => (
-                <option key={grupo.id} value={grupo.id}>
-                  {grupo.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+          {grupo.nombre}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
 
           {tipoClase === "puntual" ? (
             <div>
