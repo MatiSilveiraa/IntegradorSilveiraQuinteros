@@ -348,6 +348,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+    path="/entrenador/clases/:id"
+    element={
+        <ProtectedRoute rolPermitido="Entrenador">
+            <ClaseDetallePage />
+        </ProtectedRoute>
+    }
+/>
       </Routes>
     </BrowserRouter>
   );

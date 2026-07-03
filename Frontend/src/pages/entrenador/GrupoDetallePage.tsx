@@ -12,9 +12,9 @@ import { obtenerMiPerfil } from "../../services/Perfil.service";
 
 import type { Perfil } from "../../types";
 import type { GrupoDetalle } from "../../types/grupoDetalle";
-import GrupoDetalleHero from "../../components/entrenador/grupos/GrupoDetalleHero";
-import GrupoResumen from "../../components/entrenador/grupos/GrupoResumen";
 import GrupoAlumnos from "../../components/entrenador/grupos/GrupoAlumnos";
+import GrupoHeader from "../../components/entrenador/grupos/GrupoHeader";
+import GrupoClases from "../../components/entrenador/grupos/GrupoClases";
 
 export default function GrupoDetallePage() {
   const navigate = useNavigate();
@@ -64,46 +64,51 @@ export default function GrupoDetallePage() {
 
       <main
         className="
-          max-w-7xl
-          mx-auto
-          px-4
-          sm:px-6
-          lg:px-8
-          pt-24
-          pb-10
-        "
+        max-w-7xl
+        mx-auto
+        px-4
+        sm:px-6
+        lg:px-8
+        pt-24
+        pb-10
+      "
       >
+        {/* Volver */}
+
         <button
           onClick={() => navigate(-1)}
           className="
-            flex
-            items-center
-            gap-2
-            text-[#4adea8]
-            mb-8
-            hover:underline
-          "
+          flex
+          items-center
+          gap-2
+          text-[#4adea8]
+          mb-8
+          hover:underline
+        "
         >
           <ArrowBackOutlinedIcon />
           Volver
         </button>
 
-        <GrupoResumen
-          cantidadAlumnos={grupo.cantidadAlumnos}
-          cantidadClases={grupo.cantidadClases}
-          estado={grupo.estado}
-          nivel={grupo.nivel}
-        />
+        {/* Header */}
 
-        <GrupoAlumnos alumnos={grupo.alumnos} />
-
-        <GrupoDetalleHero
+        <GrupoHeader
           nombre={grupo.nombre}
           nivel={grupo.nivel}
           estado={grupo.estado}
-          cantidadAlumnos={grupo.cantidadAlumnos}
-          cantidadClases={grupo.cantidadClases}
         />
+
+        {/* Alumnos */}
+
+        <section className="mt-10">
+          <GrupoAlumnos alumnos={grupo.alumnos} />
+        </section>
+
+        {/* Clases */}
+
+        <section className="mt-10">
+          <GrupoClases clases={grupo.clases} />
+        </section>
       </main>
     </div>
   );
