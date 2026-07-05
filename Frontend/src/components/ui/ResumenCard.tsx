@@ -1,6 +1,6 @@
 type Props = {
   titulo: string;
-  valor: number;
+  valor: number | string;
 };
 
 export default function ResumenCard({ titulo, valor }: Props) {

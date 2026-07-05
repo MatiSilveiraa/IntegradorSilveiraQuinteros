@@ -564,7 +564,11 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
         );
       }
 
-      navigate("/admin/clases");
+      if (grupoIdDesdeUrl) {
+  navigate(`/admin/grupos/${grupoIdDesdeUrl}`);
+} else {
+  navigate("/admin/clases");
+}
     } catch (error: any) {
       console.error(error);
       toast.error(
