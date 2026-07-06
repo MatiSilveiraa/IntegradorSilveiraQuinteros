@@ -48,6 +48,7 @@ namespace Joki.LogicaAplicacion.Mappers
                 Id = clase.Id,
 
                 GrupoId = clase.GrupoId,
+                GrupoNombre = clase.Grupo?.Nombre,
 
                 DiaSemana = clase.DiaSemana.ToString(),
 

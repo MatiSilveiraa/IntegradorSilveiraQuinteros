@@ -46,6 +46,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         public Clase? ObtenerPorId(int id)
         {
             return _context.Clases
+                .Include(c => c.Grupo)
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
                 .Include(c => c.MaterialesEjercicio)
