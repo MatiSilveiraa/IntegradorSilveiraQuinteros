@@ -18,6 +18,7 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerClase _obtenerClase;
         private readonly IObtenerClases _obtenerClases;
         private readonly ICambiarEstadoClase _cambiarEstadoClase;
+        private readonly IObtenerInscriptosClase _obtenerInscriptosClase;
 
         public ClaseController(
             ICrearClase crearClase,
@@ -25,7 +26,8 @@ namespace Joki.WebApi.Controllers
             IEliminarClase eliminarClase,
             IObtenerClase obtenerClase,
             IObtenerClases obtenerClases,
-            ICambiarEstadoClase cambiarEstadoClase)
+            ICambiarEstadoClase cambiarEstadoClase,
+            IObtenerInscriptosClase obtenerInscriptosClase)
         {
             _crearClase = crearClase;
             _editarClase = editarClase;
@@ -33,6 +35,7 @@ namespace Joki.WebApi.Controllers
             _obtenerClase = obtenerClase;
             _obtenerClases = obtenerClases;
             _cambiarEstadoClase = cambiarEstadoClase;
+            _obtenerInscriptosClase = obtenerInscriptosClase;
         }
 
         [Authorize(Roles = "Admin")]
@@ -72,6 +75,33 @@ namespace Joki.WebApi.Controllers
                 {
                     mensaje =
                         "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{id}/inscriptos")]
+        public IActionResult ObtenerInscriptos(int id)
+        {
+            try
+            {
+                var inscriptos =
+                    _obtenerInscriptosClase.Ejecutar(id);
+
+                return Ok(inscriptos);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
