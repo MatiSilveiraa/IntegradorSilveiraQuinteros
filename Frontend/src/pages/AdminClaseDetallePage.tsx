@@ -10,9 +10,10 @@ import ClassLocationMap from "../components/maps/ClassLocationMap";
 import {
   obtenerClasePorId,
   cambiarEstadoClase,
+  obtenerInscriptosClase,
 } from "../services/Clase.Service";
 
-import type { Clase, EstadoClaseValor } from "../types";
+import type { Clase, EstadoClaseValor, InscriptoClase, } from "../types";
 
 type TabClase =
   | "informacion"
@@ -28,12 +29,17 @@ const estados = [
   { value: 3, label: "Suspendida" },
 ];
 
+
 export default function AdminClaseDetallePage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [clase, setClase] = useState<Clase | null>(null);
+
+  const [inscriptos, setInscriptos] = useState<InscriptoClase[]>([]);
+const [busquedaInscriptos, setBusquedaInscriptos] = useState("");
+
 
   const [modalEstado, setModalEstado] = useState(false);
   const [estado, setEstado] = useState<EstadoClaseValor>(0);
@@ -50,6 +56,9 @@ export default function AdminClaseDetallePage() {
 
       setClase(data);
 
+      const inscriptosData = await obtenerInscriptosClase(Number(id));
+setInscriptos(inscriptosData);
+
       const actual = estados.find((x) => x.label === data.estado);
 
       setEstado((actual?.value ?? 0) as EstadoClaseValor);
@@ -64,6 +73,12 @@ export default function AdminClaseDetallePage() {
   useEffect(() => {
     cargarClase();
   }, []);
+
+  const inscriptosFiltrados = inscriptos.filter((alumno) => {
+  const texto = `${alumno.nombre} ${alumno.apellido} ${alumno.email}`.toLowerCase();
+
+  return texto.includes(busquedaInscriptos.toLowerCase());
+});
 
   const resumen = useMemo(() => {
     return {
@@ -277,11 +292,76 @@ export default function AdminClaseDetallePage() {
         )}
 
         {tabActiva === "inscriptos" && (
-          <EstadoVacio
-            titulo="Inscriptos"
-            descripcion="Próximamente se mostrará el listado de alumnos inscriptos a esta clase."
-          />
-        )}
+  <div className="space-y-6">
+    <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold">Inscriptos</h2>
+
+          <p className="text-gray-400 mt-1">
+            Alumnos actualmente inscriptos a esta clase.
+          </p>
+        </div>
+
+        <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl px-5 py-3">
+          <p className="text-sm text-gray-400">Total</p>
+          <p className="text-2xl font-bold text-[#4adea8]">
+            {inscriptos.length}
+          </p>
+        </div>
+      </div>
+
+      <input
+        value={busquedaInscriptos}
+        onChange={(e) => setBusquedaInscriptos(e.target.value)}
+        placeholder="Buscar por nombre, apellido o email..."
+        className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
+      />
+    </div>
+
+    {inscriptosFiltrados.length === 0 ? (
+      <EstadoVacio
+        titulo="Sin alumnos inscriptos"
+        descripcion="No hay alumnos para mostrar en esta clase."
+      />
+    ) : (
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {inscriptosFiltrados.map((alumno) => (
+          <div
+            key={alumno.alumnoId}
+            className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6"
+          >
+            <span className="inline-block px-3 py-1 rounded-full bg-[#4adea8]/10 text-[#4adea8] border border-[#4adea8]/30 text-xs font-bold mb-4">
+              {alumno.estadoAlumno}
+            </span>
+
+            <h3 className="text-xl font-bold">
+              {alumno.nombre} {alumno.apellido}
+            </h3>
+
+            <div className="mt-5 space-y-3">
+              <Info titulo="Email" valor={alumno.email ?? "-"} />
+
+              <Info titulo="Celular" valor={alumno.celular ?? "-"} />
+
+              <Info
+                titulo="Inscripción"
+                valor={formatearFecha(alumno.fechaInscripcion)}
+              />
+            </div>
+
+            <button
+              onClick={() => navigate(`/admin/alumnos/${alumno.alumnoId}`)}
+              className="w-full mt-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
+            >
+              Ver alumno
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         {tabActiva === "espera" && (
           <EstadoVacio

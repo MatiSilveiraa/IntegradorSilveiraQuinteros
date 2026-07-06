@@ -88,6 +88,16 @@ export interface CambiarEstadoClaseRequest {
   motivo?: string;
 }
 
+export interface InscriptoClase {
+  alumnoId: number;
+  nombre: string;
+  apellido: string;
+  email: string;
+  celular?: string;
+  estadoAlumno: string;
+  fechaInscripcion: string;
+}
+
 export interface Grupo {
   id: number;
   nombre: string;

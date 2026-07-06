@@ -1,6 +1,7 @@
 import axiosInstance from "../api/axios";
 import type { CrearClaseRequest } from "../types";
 import type { CambiarEstadoClaseRequest } from "../types";
+import type { InscriptoClase } from "../types";
 
 export const inscribirseClase = async (claseId: number) => {
   const response = await axiosInstance.post(
@@ -23,6 +24,16 @@ export const obtenerClasePorId = async (id: number) => {
 
 export const crearClase = async (data: CrearClaseRequest) => {
   const response = await axiosInstance.post("/api/Clase", data);
+  return response.data;
+};
+
+export const obtenerInscriptosClase = async (
+  claseId: number
+): Promise<InscriptoClase[]> => {
+  const response = await axiosInstance.get(
+    `/api/Clase/${claseId}/inscriptos`
+  );
+
   return response.data;
 };
 
