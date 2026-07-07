@@ -31,13 +31,16 @@ export default function AdminAuditoriaPage() {
   const [cantidad, setCantidad] = useState(50);
   const [entidad, setEntidad] = useState("");
 
-  const cargarAuditorias = async () => {
+  const cargarAuditorias = async (
+    entidadFiltro = entidad,
+    cantidadFiltro = cantidad
+  ) => {
     try {
       setLoading(true);
 
-      const data = entidad
-        ? await obtenerAuditoriasPorEntidad(entidad)
-        : await obtenerAuditorias(cantidad);
+      const data = entidadFiltro
+        ? await obtenerAuditoriasPorEntidad(entidadFiltro)
+        : await obtenerAuditorias(cantidadFiltro);
 
       setAuditorias(data);
     } catch (error: any) {
@@ -56,16 +59,29 @@ export default function AdminAuditoriaPage() {
     cargarAuditorias();
   }, []);
 
+  const cambiarEntidad = (valor: string) => {
+    setEntidad(valor);
+    cargarAuditorias(valor, cantidad);
+  };
+
+  const cambiarCantidad = (valor: number) => {
+    setCantidad(valor);
+
+    if (!entidad) {
+      cargarAuditorias("", valor);
+    }
+  };
+
   const limpiarFiltros = () => {
     setEntidad("");
     setCantidad(50);
+    cargarAuditorias("", 50);
   };
 
   const auditoriasOrdenadas = useMemo(() => {
     return [...auditorias].sort(
       (a, b) =>
-        new Date(b.fecha).getTime() -
-        new Date(a.fecha).getTime()
+        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
     );
   }, [auditorias]);
 
@@ -81,8 +97,7 @@ export default function AdminAuditoriaPage() {
 
   const obtenerNombreModulo = (entidad: string) => {
     const encontrada = entidades.find(
-      (e) =>
-        e.valor.toLowerCase() === entidad.toLowerCase()
+      (e) => e.valor.toLowerCase() === entidad.toLowerCase()
     );
 
     return encontrada?.texto ?? entidad;
@@ -103,10 +118,7 @@ export default function AdminAuditoriaPage() {
       return "bg-purple-500/10 text-purple-300 border-purple-500/30";
     }
 
-    if (
-      valor.includes("descuento") ||
-      valor.includes("beneficio")
-    ) {
+    if (valor.includes("descuento") || valor.includes("beneficio")) {
       return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
     }
 
@@ -135,20 +147,11 @@ export default function AdminAuditoriaPage() {
   const resumirAccion = (auditoria: Auditoria) => {
     const accion = auditoria.accion.toLowerCase();
     const entidad = auditoria.entidad.toLowerCase();
-    const texto = limpiarTextoTecnico(auditoria.accion);
 
     if (accion.includes("creó") || accion.includes("creo")) {
-      if (entidad.includes("clase")) {
-        return "Creó una nueva clase.";
-      }
-
-      if (entidad.includes("grupo")) {
-        return "Creó un nuevo grupo.";
-      }
-
-      if (entidad.includes("desafio")) {
-        return "Creó un nuevo desafío.";
-      }
+      if (entidad.includes("clase")) return "Creó una nueva clase.";
+      if (entidad.includes("grupo")) return "Creó un nuevo grupo.";
+      if (entidad.includes("desafio")) return "Creó un nuevo desafío.";
 
       if (entidad.includes("descuento")) {
         const porcentaje = auditoria.accion.match(/Porcentaje:\s?([\d.]+)/i);
@@ -171,21 +174,10 @@ export default function AdminAuditoriaPage() {
       accion.includes("editó") ||
       accion.includes("edito")
     ) {
-      if (entidad.includes("clase")) {
-        return "Actualizó los datos de una clase.";
-      }
-
-      if (entidad.includes("grupo")) {
-        return "Actualizó los datos de un grupo.";
-      }
-
-      if (entidad.includes("descuento")) {
-        return "Actualizó un descuento.";
-      }
-
-      if (entidad.includes("desafio")) {
-        return "Actualizó un desafío.";
-      }
+      if (entidad.includes("clase")) return "Actualizó una clase.";
+      if (entidad.includes("grupo")) return "Actualizó un grupo.";
+      if (entidad.includes("descuento")) return "Actualizó un descuento.";
+      if (entidad.includes("desafio")) return "Actualizó un desafío.";
 
       return "Actualizó un registro.";
     }
@@ -196,25 +188,14 @@ export default function AdminAuditoriaPage() {
       accion.includes("desactivó") ||
       accion.includes("desactivo")
     ) {
-      if (entidad.includes("grupo")) {
-        return "Desactivó un grupo.";
-      }
-
-      if (entidad.includes("clase")) {
-        return "Eliminó una clase.";
-      }
-
-      if (entidad.includes("descuento")) {
-        return "Desactivó un descuento.";
-      }
+      if (entidad.includes("grupo")) return "Desactivó un grupo.";
+      if (entidad.includes("clase")) return "Eliminó una clase.";
+      if (entidad.includes("descuento")) return "Desactivó un descuento.";
 
       return "Eliminó o desactivó un registro.";
     }
 
-    if (
-      accion.includes("estado") &&
-      entidad.includes("clase")
-    ) {
+    if (accion.includes("estado") && entidad.includes("clase")) {
       return "Cambió el estado de una clase.";
     }
 
@@ -222,17 +203,11 @@ export default function AdminAuditoriaPage() {
       return "Marcó un beneficio o premio como entregado.";
     }
 
-    return texto || "Registró una acción administrativa.";
+    return limpiarTextoTecnico(auditoria.accion) || "Registró una acción administrativa.";
   };
 
   const obtenerDetalleAccion = (auditoria: Auditoria) => {
-    const texto = limpiarTextoTecnico(auditoria.accion);
-
-    if (!texto) {
-      return "";
-    }
-
-    return texto;
+    return limpiarTextoTecnico(auditoria.accion);
   };
 
   const resumen = useMemo(() => {
@@ -277,7 +252,7 @@ export default function AdminAuditoriaPage() {
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 mb-8">
           <h2 className="text-xl font-bold mb-5">Filtros</h2>
 
-          <div className="grid md:grid-cols-[1fr_1fr_auto_auto] gap-4 items-end">
+          <div className="grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
             <div>
               <label className="block text-sm text-gray-400 mb-2">
                 Módulo
@@ -285,7 +260,7 @@ export default function AdminAuditoriaPage() {
 
               <select
                 value={entidad}
-                onChange={(e) => setEntidad(e.target.value)}
+                onChange={(e) => cambiarEntidad(e.target.value)}
                 className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
               >
                 {entidades.map((item) => (
@@ -303,7 +278,7 @@ export default function AdminAuditoriaPage() {
 
               <select
                 value={cantidad}
-                onChange={(e) => setCantidad(Number(e.target.value))}
+                onChange={(e) => cambiarCantidad(Number(e.target.value))}
                 disabled={!!entidad}
                 className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8] disabled:opacity-60"
               >
@@ -314,25 +289,12 @@ export default function AdminAuditoriaPage() {
             </div>
 
             <button
-              onClick={cargarAuditorias}
-              className="px-8 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90"
-            >
-              Aplicar
-            </button>
-
-            <button
               onClick={limpiarFiltros}
               className="px-8 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
             >
               Limpiar
             </button>
           </div>
-
-          {entidad && (
-            <p className="text-sm text-gray-500 mt-4">
-              Al filtrar por módulo se muestran los registros disponibles de esa entidad.
-            </p>
-          )}
         </div>
 
         {auditoriasOrdenadas.length === 0 ? (
@@ -373,32 +335,33 @@ export default function AdminAuditoriaPage() {
                     </h3>
 
                     <p className="text-gray-400 mt-2">
-  {obtenerDetalleAccion(item)}
-</p>
+                      {obtenerDetalleAccion(item)}
+                    </p>
 
-<div className="mt-4 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
-  <p className="text-sm text-gray-400">Sobre</p>
+                    <div className="mt-4 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
+                      <p className="text-sm text-gray-400">Sobre</p>
 
-  <p className="font-bold mt-1">
-    {item.entidadNombre ?? `${item.entidad} #${item.entidadId}`}
-  </p>
-</div>
+                      <p className="font-bold mt-1">
+                        {item.entidadNombre ??
+                          `${item.entidad} #${item.entidadId}`}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 min-w-[180px]">
+                  <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 min-w-[220px]">
                     <p className="text-sm text-gray-400">Responsable</p>
 
                     <p className="font-bold mt-1">
-  {item.usuarioNombre ?? `Usuario #${item.usuarioId}`}
-</p>
+                      {item.usuarioNombre ?? `Usuario #${item.usuarioId}`}
+                    </p>
 
-{item.usuarioEmail && (
-  <p className="text-xs text-gray-500 mt-1">
-    {item.usuarioEmail}
-  </p>
-)}
+                    {item.usuarioEmail && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {item.usuarioEmail}
+                      </p>
+                    )}
 
-                    <p className="text-xs text-gray-500 mt-3">
+                    <p className="text-xs text-gray-600 mt-4">
                       Registro #{item.id}
                     </p>
                   </div>
@@ -423,9 +386,7 @@ function Resumen({
     <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
       <p className="text-sm text-gray-400">{titulo}</p>
 
-      <p className="text-3xl font-bold text-[#4adea8] mt-2">
-        {valor}
-      </p>
+      <p className="text-3xl font-bold text-[#4adea8] mt-2">{valor}</p>
     </div>
   );
 }
