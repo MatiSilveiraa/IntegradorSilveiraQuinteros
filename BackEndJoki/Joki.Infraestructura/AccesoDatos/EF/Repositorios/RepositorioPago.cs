@@ -60,6 +60,12 @@ namespace Joki.Infraestructura.AccesoDatos.Repositorios
             return resultado;
         }
 
+        public Pago? ObtenerPorId(int id)
+        {
+            return _contexto.Pagos
+                .FirstOrDefault(p => p.Id == id);
+        }
+
         public IEnumerable<Pago> ObtenerPorCuota(int cuotaId)
         {
             return _contexto.Pagos

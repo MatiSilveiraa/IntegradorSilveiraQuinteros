@@ -10,6 +10,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         Pago? ObtenerPorReferenciaExterna(string referenciaExterna);
 
+        Pago? ObtenerPorId(int id);
+
         void Modificar(Pago pago);
         decimal ObtenerIngresosDelMes(
     int mes,

@@ -8,11 +8,14 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Auditoria
         IObtenerAuditoriasPorUsuario
     {
         private readonly IRepositorioAuditoria _repositorioAuditoria;
+        private readonly IResolverAuditoriaResponse _resolverAuditoriaResponse;
 
         public ObtenerAuditoriasPorUsuario(
-            IRepositorioAuditoria repositorioAuditoria)
+            IRepositorioAuditoria repositorioAuditoria,
+            IResolverAuditoriaResponse resolverAuditoriaResponse)
         {
             _repositorioAuditoria = repositorioAuditoria;
+            _resolverAuditoriaResponse = resolverAuditoriaResponse;
         }
 
         public IEnumerable<AuditoriaResponse> Ejecutar(
@@ -24,21 +27,10 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Auditoria
                 cantidad = 50;
             }
 
-            var auditorias =
-                _repositorioAuditoria.ObtenerPorUsuario(
-                    usuarioId,
-                    cantidad);
-
-            return auditorias.Select(a =>
-                new AuditoriaResponse
-                {
-                    Id = a.Id,
-                    UsuarioId = a.UsuarioId,
-                    Entidad = a.Entidad,
-                    EntidadId = a.EntidadId,
-                    Accion = a.Accion,
-                    Fecha = a.Fecha
-                });
+            return _repositorioAuditoria
+                .ObtenerPorUsuario(usuarioId, cantidad)
+                .Select(a => _resolverAuditoriaResponse.Resolver(a))
+                .ToList();
         }
     }
 }
