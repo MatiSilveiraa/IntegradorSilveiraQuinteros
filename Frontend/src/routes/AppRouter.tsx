@@ -33,6 +33,7 @@ import AdminPremiosPage from "../pages/AdminPremiosPage";
 
 import SeguridadPage from "../pages/Shared/SeguridadPage";
 import TwoFactorLoginPage from "../pages/TwoFactorLoginPage";
+import AdminAuditoriaPage from "../pages/AdminAuditoriaPage";
 
 import AsistenciasPage from "../pages/Alumno/AsistenciasPage";
 import CompletarPerfilPage from "../pages/CompletarPerfilPage";
@@ -135,6 +136,15 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/auditoria"
+  element={
+    <ProtectedRoute rolPermitido="Admin">
+      <AdminAuditoriaPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
   path="/admin/grupos/:id"

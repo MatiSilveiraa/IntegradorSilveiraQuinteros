@@ -8,7 +8,7 @@ import AutorenewOutlinedIcon from "@mui/icons-material/AutorenewOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import SportsKabaddiOutlinedIcon from "@mui/icons-material/SportsKabaddiOutlined";
-
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import DashboardQuickAction from "./DashboardQuickAction";
 
 export default function DashboardQuickActions() {
@@ -75,6 +75,13 @@ export default function DashboardQuickActions() {
           icono={<AutorenewOutlinedIcon sx={{ fontSize: 34 }} />}
           onClick={() => navigate("/admin/reactivaciones")}
         />
+
+        <DashboardQuickAction
+  titulo="Auditoría"
+  descripcion="Ver historial de acciones administrativas."
+  icono={<HistoryOutlinedIcon sx={{ fontSize: 34 }} />}
+  onClick={() => navigate("/admin/auditoria")}
+/>
 
         <DashboardQuickAction
           titulo="Seguridad"

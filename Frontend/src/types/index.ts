@@ -88,6 +88,15 @@ export interface CambiarEstadoClaseRequest {
   motivo?: string;
 }
 
+export interface Auditoria {
+  id: number;
+  usuarioId: number;
+  entidad: string;
+  entidadId: number;
+  accion: string;
+  fecha: string;
+}
+
 export interface InscriptoClase {
   alumnoId: number;
   nombre: string;
