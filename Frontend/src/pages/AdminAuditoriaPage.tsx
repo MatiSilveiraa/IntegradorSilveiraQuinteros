@@ -373,16 +373,30 @@ export default function AdminAuditoriaPage() {
                     </h3>
 
                     <p className="text-gray-400 mt-2">
-                      {obtenerDetalleAccion(item)}
-                    </p>
+  {obtenerDetalleAccion(item)}
+</p>
+
+<div className="mt-4 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
+  <p className="text-sm text-gray-400">Sobre</p>
+
+  <p className="font-bold mt-1">
+    {item.entidadNombre ?? `${item.entidad} #${item.entidadId}`}
+  </p>
+</div>
                   </div>
 
                   <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 min-w-[180px]">
                     <p className="text-sm text-gray-400">Responsable</p>
 
                     <p className="font-bold mt-1">
-                      Usuario #{item.usuarioId}
-                    </p>
+  {item.usuarioNombre ?? `Usuario #${item.usuarioId}`}
+</p>
+
+{item.usuarioEmail && (
+  <p className="text-xs text-gray-500 mt-1">
+    {item.usuarioEmail}
+  </p>
+)}
 
                     <p className="text-xs text-gray-500 mt-3">
                       Registro #{item.id}

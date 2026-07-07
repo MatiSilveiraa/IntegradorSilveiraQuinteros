@@ -91,8 +91,11 @@ export interface CambiarEstadoClaseRequest {
 export interface Auditoria {
   id: number;
   usuarioId: number;
+  usuarioNombre?: string | null;
+  usuarioEmail?: string | null;
   entidad: string;
   entidadId: number;
+  entidadNombre?: string | null;
   accion: string;
   fecha: string;
 }
