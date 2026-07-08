@@ -52,13 +52,15 @@ namespace Joki.LogicaAplicacion.Mappers
                 : alumno.Cuotas.Count(c => c.Estado == EstadoCuota.VENCIDA);
 
             return new DtoAlumno(
-                alumno.UsuarioId,
-                alumno.Nombre.Valor,
-                alumno.Apellido.Valor,
-                alumno.Email.Valor,
-                alumno.Estado.ToString(),
-                cuotasPendientes
-            );
+      alumno.UsuarioId,
+      alumno.Nombre.Valor,
+      alumno.Apellido.Valor,
+      alumno.Email.Valor,
+      alumno.Estado.ToString(),
+      cuotasPendientes,
+      alumno.BloqueadoPorDeuda,
+      alumno.BloqueadoPorInasistencias
+  );
         }
 
         public static IEnumerable<DtoAlumno> ToDtoList(IEnumerable<Alumno> alumnos)
