@@ -129,86 +129,122 @@ export default function AdminAuditoriaPage() {
     return "bg-gray-500/10 text-gray-300 border-gray-500/30";
   };
 
-  const limpiarTextoTecnico = (texto: string) => {
-    return texto
-      .replaceAll("ALUMNOS_SELECCIONADOS", "alumnos seleccionados")
-      .replaceAll("DESCUENTO_CUOTA", "descuento sobre cuota")
-      .replaceAll("CUOTA_GRATIS", "cuota gratis")
-      .replaceAll("PRODUCTO_REGALO", "premio físico")
-      .replaceAll("True", "Sí")
-      .replaceAll("False", "No")
-      .replaceAll(" Id ", " ")
-      .replaceAll(" id ", " ")
-      .replaceAll("ID", "")
-      .replaceAll("  ", " ")
-      .trim();
-  };
+const limpiarTextoTecnico = (texto: string) => {
+  return texto
+    .replaceAll("ALUMNOS_SELECCIONADOS", "alumnos seleccionados")
+    .replaceAll("DESCUENTO_CUOTA", "descuento sobre cuota")
+    .replaceAll("CUOTA_GRATIS", "cuota gratis")
+    .replaceAll("PRODUCTO_REGALO", "premio físico")
+    .replaceAll("Medio: 0", "Medio: Efectivo")
+    .replaceAll("Medio: 1", "Medio: Mercado Pago")
+    .replaceAll("Medio: 2", "Medio: Transferencia")
+    .replaceAll("Medio: 3", "Medio: Otro")
+    .replaceAll(/Id \d+/gi, "")
+    .replaceAll(/grupo \d+/gi, "grupo")
+    .replaceAll("True", "Sí")
+    .replaceAll("False", "No")
+    .replaceAll("  ", " ")
+    .trim();
+};
 
   const resumirAccion = (auditoria: Auditoria) => {
-    const accion = auditoria.accion.toLowerCase();
-    const entidad = auditoria.entidad.toLowerCase();
+  const accion = auditoria.accion.toLowerCase();
+  const entidad = auditoria.entidad.toLowerCase();
 
-    if (accion.includes("creó") || accion.includes("creo")) {
-      if (entidad.includes("clase")) return "Creó una nueva clase.";
-      if (entidad.includes("grupo")) return "Creó un nuevo grupo.";
-      if (entidad.includes("desafio")) return "Creó un nuevo desafío.";
+  if (accion.includes("creó") || accion.includes("creo")) {
+    if (entidad.includes("clase")) return "Clase creada";
+    if (entidad.includes("grupo")) return "Grupo creado";
+    if (entidad.includes("desafio")) return "Desafío creado";
 
-      if (entidad.includes("descuento")) {
-        const porcentaje = auditoria.accion.match(/Porcentaje:\s?([\d.]+)/i);
+    if (entidad.includes("descuento")) {
+      const porcentaje = auditoria.accion.match(/Porcentaje:\s?([\d.]+)/i);
 
-        return porcentaje
-          ? `Creó un descuento del ${porcentaje[1]}%.`
-          : "Creó un nuevo descuento.";
-      }
-
-      if (entidad.includes("beneficio")) {
-        return "Creó un nuevo beneficio.";
-      }
-
-      return "Creó un nuevo registro.";
+      return porcentaje
+        ? `Descuento creado (${porcentaje[1]}%)`
+        : "Descuento creado";
     }
 
-    if (
-      accion.includes("actualizó") ||
-      accion.includes("actualizo") ||
-      accion.includes("editó") ||
-      accion.includes("edito")
-    ) {
-      if (entidad.includes("clase")) return "Actualizó una clase.";
-      if (entidad.includes("grupo")) return "Actualizó un grupo.";
-      if (entidad.includes("descuento")) return "Actualizó un descuento.";
-      if (entidad.includes("desafio")) return "Actualizó un desafío.";
-
-      return "Actualizó un registro.";
+    if (entidad.includes("beneficio")) {
+      return "Beneficio creado";
     }
 
-    if (
-      accion.includes("eliminó") ||
-      accion.includes("elimino") ||
-      accion.includes("desactivó") ||
-      accion.includes("desactivo")
-    ) {
-      if (entidad.includes("grupo")) return "Desactivó un grupo.";
-      if (entidad.includes("clase")) return "Eliminó una clase.";
-      if (entidad.includes("descuento")) return "Desactivó un descuento.";
-
-      return "Eliminó o desactivó un registro.";
+    if (entidad.includes("pago")) {
+      return "Pago registrado";
     }
 
-    if (accion.includes("estado") && entidad.includes("clase")) {
-      return "Cambió el estado de una clase.";
-    }
+    return "Registro creado";
+  }
 
-    if (accion.includes("entreg")) {
-      return "Marcó un beneficio o premio como entregado.";
-    }
+  if (
+    accion.includes("actualizó") ||
+    accion.includes("actualizo") ||
+    accion.includes("editó") ||
+    accion.includes("edito")
+  ) {
+    if (entidad.includes("clase")) return "Clase actualizada";
+    if (entidad.includes("grupo")) return "Grupo actualizado";
+    if (entidad.includes("descuento")) return "Descuento actualizado";
+    if (entidad.includes("desafio")) return "Desafío actualizado";
 
-    return limpiarTextoTecnico(auditoria.accion) || "Registró una acción administrativa.";
-  };
+    return "Registro actualizado";
+  }
+
+  if (
+    accion.includes("eliminó") ||
+    accion.includes("elimino") ||
+    accion.includes("desactivó") ||
+    accion.includes("desactivo")
+  ) {
+    if (entidad.includes("grupo")) return "Grupo desactivado";
+    if (entidad.includes("clase")) return "Clase eliminada";
+    if (entidad.includes("descuento")) return "Descuento desactivado";
+
+    return "Registro eliminado";
+  }
+
+  if (accion.includes("estado") && entidad.includes("clase")) {
+    return "Estado de la clase actualizado";
+  }
+
+  if (accion.includes("entreg")) {
+    return "Beneficio entregado";
+  }
+
+  if (accion.includes("pago")) {
+    return "Pago registrado";
+  }
+
+  return (
+    limpiarTextoTecnico(auditoria.accion) ||
+    "Acción administrativa registrada"
+  );
+};
 
   const obtenerDetalleAccion = (auditoria: Auditoria) => {
     return limpiarTextoTecnico(auditoria.accion);
   };
+
+  const obtenerDescripcionHumana = (auditoria: Auditoria) => {
+  const entidad = auditoria.entidad.toLowerCase();
+
+  if (entidad.includes("clase") && auditoria.entidadNombre) {
+    return "Se registró una acción sobre esta clase.";
+  }
+
+  if (entidad.includes("pago") && auditoria.entidadNombre) {
+    return "Se registró un pago manual asociado a esta cuota.";
+  }
+
+  if (entidad.includes("descuento")) {
+    return "Se registró una acción relacionada con descuentos.";
+  }
+
+  if (entidad.includes("grupo")) {
+    return "Se registró una acción sobre un grupo.";
+  }
+
+  return obtenerDetalleAccion(auditoria);
+};
 
   const resumen = useMemo(() => {
     return {
@@ -335,16 +371,15 @@ export default function AdminAuditoriaPage() {
                     </h3>
 
                     <p className="text-gray-400 mt-2">
-                      {obtenerDetalleAccion(item)}
-                    </p>
+  {obtenerDescripcionHumana(item)}
+</p>
 
                     <div className="mt-4 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
                       <p className="text-sm text-gray-400">Sobre</p>
 
                       <p className="font-bold mt-1">
-                        {item.entidadNombre ??
-                          `${item.entidad} #${item.entidadId}`}
-                      </p>
+  {item.entidadNombre ?? "Registro relacionado"}
+</p>
                     </div>
                   </div>
 
