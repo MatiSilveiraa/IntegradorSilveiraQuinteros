@@ -107,11 +107,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 fecha.Date.AddDays(-diasAtraso);
 
             return _contexto.Cuotas
-                .Where(c =>
-                    (c.Estado == EstadoCuota.PENDIENTE ||
-                     c.Estado == EstadoCuota.VENCIDA) &&
-                    c.FechaVencimiento.Date < fechaLimite)
-                .ToList();
+    .Where(c =>
+        c.MontoFinal > 0 &&
+        (c.Estado == EstadoCuota.PENDIENTE ||
+         c.Estado == EstadoCuota.VENCIDA) &&
+        c.FechaVencimiento.Date < fechaLimite)
+    .ToList();
         }
 
         public bool TieneCuotasVencidasPendientes(
@@ -123,11 +124,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 fecha.Date.AddDays(-diasAtraso);
 
             return _contexto.Cuotas
-                .Any(c =>
-                    c.AlumnoId == alumnoId &&
-                    (c.Estado == EstadoCuota.PENDIENTE ||
-                     c.Estado == EstadoCuota.VENCIDA) &&
-                    c.FechaVencimiento.Date < fechaLimite);
+     .Any(c =>
+         c.AlumnoId == alumnoId &&
+         c.MontoFinal > 0 &&
+         (c.Estado == EstadoCuota.PENDIENTE ||
+          c.Estado == EstadoCuota.VENCIDA) &&
+         c.FechaVencimiento.Date < fechaLimite);
         }
 
         public IEnumerable<Cuota> ObtenerTodasConAlumnoYPagos()

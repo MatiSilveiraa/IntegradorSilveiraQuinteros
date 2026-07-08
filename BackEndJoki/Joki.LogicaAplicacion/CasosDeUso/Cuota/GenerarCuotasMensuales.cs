@@ -96,7 +96,9 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Cuota
                             MontoBase = montoBase,
                             Descuento = montoDescuento,
                             MontoFinal = montoFinal,
-                            Estado = EstadoCuota.PENDIENTE
+                            Estado = montoFinal == 0m
+    ? EstadoCuota.PAGADA
+    : EstadoCuota.PENDIENTE
                         };
 
                     _repositorioCuota.Agregar(cuota);
