@@ -100,6 +100,39 @@ export interface Auditoria {
   fecha: string;
 }
 
+export interface CuotaAdmin {
+  cuotaId: number;
+  alumnoId: number;
+  alumnoNombre: string;
+  email: string;
+  mes: number;
+  anio: number;
+  montoBase: number;
+  descuento: number;
+  montoFinal: number;
+  estado: string;
+  fechaVencimiento?: string | null;
+  fechaPago?: string | null;
+  bloqueadoPorDeuda: boolean;
+  bonificada: boolean;
+  vencida: boolean;
+}
+
+export interface ResumenCuotasAdmin {
+  totalCuotas: number;
+  pendientes: number;
+  pagadas: number;
+  vencidas: number;
+  recaudado: number;
+  montoPendiente: number;
+}
+
+export interface PagoManualRequest {
+  cuotaId: number;
+  medioPago: number;
+  referenciaExterna: string;
+}
+
 export interface InscriptoClase {
   alumnoId: number;
   nombre: string;

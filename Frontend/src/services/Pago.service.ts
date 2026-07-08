@@ -1,19 +1,16 @@
 import axiosInstance from "../api/axios";
+import type { PagoManualRequest } from "../types";
 
-export const generarPagoMercadoPago = async (
-  cuotaId: number
-) => {
+export const generarPagoMercadoPago = async (cuotaId: number) => {
+  const response = await axiosInstance.post(
+    `/api/Pago/mercado-pago/${cuotaId}`
+  );
 
-  const response =
-    await axiosInstance.post(
-      `/api/Pago/mercadopago/${cuotaId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
+  return response.data;
+};
+
+export const registrarPagoManual = async (data: PagoManualRequest) => {
+  const response = await axiosInstance.post("/api/Pago", data);
 
   return response.data;
 };
