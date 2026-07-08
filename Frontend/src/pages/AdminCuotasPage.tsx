@@ -65,6 +65,8 @@ export default function AdminCuotasPage() {
   const [referenciaExterna, setReferenciaExterna] = useState("");
   const [medioPago, setMedioPago] = useState(0);
   const [guardandoPago, setGuardandoPago] = useState(false);
+  const [selectorCuotaPago, setSelectorCuotaPago] = useState(false);
+const [cuotasParaPago, setCuotasParaPago] = useState<CuotaAdmin[]>([]);
 
   const cargarDatos = async () => {
     try {
@@ -182,15 +184,36 @@ export default function AdminCuotasPage() {
     return "Pendiente";
   };
 
-  const puedeRegistrarPago = (cuota: CuotaAdmin) => {
-    return cuota.estado !== "PAGADA" && !cuota.bonificada && cuota.montoFinal > 0;
-  };
+const puedeRegistrarPago = (cuota: CuotaAdmin) => {
+  return (
+    cuota.estado !== "PAGADA" &&
+    !cuota.bonificada &&
+    cuota.montoFinal > 0
+  );
+};
 
-  const abrirPagoManual = (cuota: CuotaAdmin) => {
+const abrirPagoManual = async (cuota: CuotaAdmin) => {
+  try {
+    const cuotasAlumno = await obtenerCuotasAdmin({
+      alumnoId: cuota.alumnoId,
+    });
+
+    const cuotasPendientes = cuotasAlumno.filter(puedeRegistrarPago);
+
+    if (cuotasPendientes.length > 1) {
+      setCuotasParaPago(cuotasPendientes);
+      setSelectorCuotaPago(true);
+      return;
+    }
+
     setCuotaPago(cuota);
     setMedioPago(0);
     setReferenciaExterna("");
-  };
+  } catch (error) {
+    console.error(error);
+    toast.error("No fue posible cargar las cuotas del alumno");
+  }
+};
 
   const verCuotasDelAlumno = (cuota: CuotaAdmin) => {
     setAlumnoIdFiltro(cuota.alumnoId);
@@ -493,6 +516,65 @@ export default function AdminCuotasPage() {
           </div>
         )}
       </main>
+
+        {selectorCuotaPago && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
+    <div className="w-full max-w-2xl bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl">
+      <h2 className="text-2xl font-bold mb-2">
+        Seleccionar cuota a pagar
+      </h2>
+
+      <p className="text-gray-400 mb-6">
+        Este alumno tiene más de una cuota pendiente o vencida. Elegí cuál querés registrar.
+      </p>
+
+      <div className="space-y-3">
+        {cuotasParaPago.map((cuota) => (
+          <button
+            key={cuota.cuotaId}
+            type="button"
+            onClick={() => {
+              setSelectorCuotaPago(false);
+              setCuotaPago(cuota);
+              setMedioPago(0);
+              setReferenciaExterna("");
+            }}
+            className="w-full text-left bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] rounded-2xl p-5"
+          >
+            <p className="font-bold">
+              {nombreMes(cuota.mes)} {cuota.anio}
+            </p>
+
+            <p className="text-sm text-gray-400 mt-1">
+              Estado: {textoEstado(cuota)}
+            </p>
+
+            <p className="text-2xl font-bold text-[#4adea8] mt-3">
+              {formatearDinero(cuota.montoFinal)}
+            </p>
+
+            {cuota.vencida && cuota.estado !== "PAGADA" && (
+              <p className="text-sm text-red-400 mt-2">
+                Cuota vencida
+              </p>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <button
+          type="button"
+          onClick={() => setSelectorCuotaPago(false)}
+          className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8]"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {cuotaPago && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
