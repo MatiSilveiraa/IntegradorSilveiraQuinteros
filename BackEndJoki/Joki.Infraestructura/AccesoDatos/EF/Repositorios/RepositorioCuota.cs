@@ -1,6 +1,7 @@
 ﻿using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
@@ -127,6 +128,24 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     (c.Estado == EstadoCuota.PENDIENTE ||
                      c.Estado == EstadoCuota.VENCIDA) &&
                     c.FechaVencimiento.Date < fechaLimite);
+        }
+
+        public IEnumerable<Cuota> ObtenerTodasConAlumnoYPagos()
+        {
+            return _contexto.Cuotas
+                .Include(c => c.Alumno)
+                .Include(c => c.Pagos)
+                .OrderByDescending(c => c.Anio)
+                .ThenByDescending(c => c.Mes)
+                .ToList();
+        }
+
+        public Cuota? ObtenerPorIdConAlumnoYPagos(int id)
+        {
+            return _contexto.Cuotas
+                .Include(c => c.Alumno)
+                .Include(c => c.Pagos)
+                .FirstOrDefault(c => c.Id == id);
         }
     }
 }

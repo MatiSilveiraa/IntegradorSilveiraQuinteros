@@ -14,6 +14,10 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         IEnumerable<Cuota> ObtenerPorAlumno(
             int alumnoId);
 
+        IEnumerable<Cuota> ObtenerTodasConAlumnoYPagos();
+
+        Cuota? ObtenerPorIdConAlumnoYPagos(int id);
+
         IEnumerable<Cuota> ObtenerPendientes();
 
         int ContarPendientes();

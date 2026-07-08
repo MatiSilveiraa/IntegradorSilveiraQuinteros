@@ -16,13 +16,20 @@ namespace Joki.WebApi.Controllers
         private readonly IGenerarCuotasMensuales _generarCuotasMensuales;
         private readonly IMarcarCuotaComoPagada _marcarCuotaComoPagada;
         private readonly IBloquearAlumnosPorDeuda _bloquearAlumnosPorDeuda;
+        private readonly IObtenerCuotasAdmin _obtenerCuotasAdmin;
+        private readonly IObtenerResumenCuotasAdmin _obtenerResumenCuotasAdmin;
+        private readonly IObtenerDetalleCuotaAdmin _obtenerDetalleCuotaAdmin;
+
         public CuotaController(
             IObtenerCuotaActualAlumno obtenerCuotaActualAlumno,
             IObtenerMisCuotas obtenerMisCuotas,
             IActualizarCuotasVencidas actualizarCuotasVencidas,
             IGenerarCuotasMensuales generarCuotasMensuales,
             IMarcarCuotaComoPagada marcarCuotaComoPagada,
-            IBloquearAlumnosPorDeuda bloquearAlumnosPorDeuda)
+            IBloquearAlumnosPorDeuda bloquearAlumnosPorDeuda,
+            IObtenerCuotasAdmin obtenerCuotasAdmin,
+            IObtenerResumenCuotasAdmin obtenerResumenCuotasAdmin,
+            IObtenerDetalleCuotaAdmin obtenerDetalleCuotaAdmin)
         {
             _obtenerCuotaActualAlumno = obtenerCuotaActualAlumno;
             _obtenerMisCuotas = obtenerMisCuotas;
@@ -30,7 +37,93 @@ namespace Joki.WebApi.Controllers
             _generarCuotasMensuales = generarCuotasMensuales;
             _marcarCuotaComoPagada = marcarCuotaComoPagada;
             _bloquearAlumnosPorDeuda = bloquearAlumnosPorDeuda;
+            _obtenerCuotasAdmin = obtenerCuotasAdmin;
+            _obtenerResumenCuotasAdmin = obtenerResumenCuotasAdmin;
+            _obtenerDetalleCuotaAdmin = obtenerDetalleCuotaAdmin;
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin")]
+        public IActionResult ObtenerCuotasAdmin(
+    [FromQuery] string? estado,
+    [FromQuery] int? alumnoId,
+    [FromQuery] int? mes,
+    [FromQuery] int? anio,
+    [FromQuery] string? buscar)
+        {
+            try
+            {
+                var cuotas =
+                    _obtenerCuotasAdmin.Ejecutar(
+                        estado,
+                        alumnoId,
+                        mes,
+                        anio,
+                        buscar);
+
+                return Ok(cuotas);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/resumen")]
+        public IActionResult ObtenerResumenCuotasAdmin(
+            [FromQuery] int? mes,
+            [FromQuery] int? anio)
+        {
+            try
+            {
+                var resumen =
+                    _obtenerResumenCuotasAdmin.Ejecutar(
+                        mes,
+                        anio);
+
+                return Ok(resumen);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/{cuotaId}")]
+        public IActionResult ObtenerDetalleCuotaAdmin(int cuotaId)
+        {
+            try
+            {
+                var detalle =
+                    _obtenerDetalleCuotaAdmin.Ejecutar(cuotaId);
+
+                return Ok(detalle);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+
 
         [Authorize(Roles = "Alumno")]
         [HttpGet("mi-cuota")]
