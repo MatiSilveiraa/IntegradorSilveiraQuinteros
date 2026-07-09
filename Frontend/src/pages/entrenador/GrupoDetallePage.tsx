@@ -16,6 +16,7 @@ import GrupoAlumnos from "../../components/entrenador/grupos/GrupoAlumnos";
 import GrupoHeader from "../../components/entrenador/grupos/GrupoHeader";
 import GrupoClases from "../../components/entrenador/grupos/GrupoClases";
 
+
 export default function GrupoDetallePage() {
   const navigate = useNavigate();
 

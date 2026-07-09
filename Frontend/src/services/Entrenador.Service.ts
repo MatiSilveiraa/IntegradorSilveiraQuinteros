@@ -34,3 +34,22 @@ export const obtenerDetalleGrupo = async (
   return response.data;
 
 };
+
+export const obtenerDetalleClase = async (
+    id: number
+) => {
+
+    const response =
+        await axiosInstance.get(
+            `/api/Entrenador/clases/${id}`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
+        );
+
+    return response.data;
+
+};

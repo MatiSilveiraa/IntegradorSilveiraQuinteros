@@ -14,15 +14,18 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerEntrenadorDashboard _obtenerDashboard;
         private readonly IObtenerGruposEntrenador _obtenerGruposEntrenador;
         private readonly IObtenerDetalleGrupo _obtenerDetalleGrupo;
+        private readonly IObtenerDetalleClase _obtenerDetalleClase;
 
         public EntrenadorController(
             IObtenerEntrenadorDashboard obtenerDashboard,
             IObtenerGruposEntrenador obtenerGruposEntrenador,
-            IObtenerDetalleGrupo obtenerDetalleGrupo)
+            IObtenerDetalleGrupo obtenerDetalleGrupo,
+            IObtenerDetalleClase obtenerDetalleClase)
         {
             _obtenerDashboard = obtenerDashboard;
             _obtenerGruposEntrenador = obtenerGruposEntrenador;
             _obtenerDetalleGrupo = obtenerDetalleGrupo;
+            _obtenerDetalleClase = obtenerDetalleClase;
         }
 
         [HttpGet("dashboard")]
@@ -100,6 +103,37 @@ namespace Joki.WebApi.Controllers
                 }
 
                 return Ok(grupo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("clases/{id}")]
+        public IActionResult ObtenerDetalleClase(int id)
+        {
+            try
+            {
+                int entrenadorId = int.Parse(
+                    User.FindFirst(ClaimTypes.NameIdentifier)!
+                        .Value);
+
+                var clase = _obtenerDetalleClase
+                    .Ejecutar(id, entrenadorId);
+
+                if (clase == null)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "Clase no encontrada"
+                    });
+                }
+
+                return Ok(clase);
             }
             catch (Exception ex)
             {

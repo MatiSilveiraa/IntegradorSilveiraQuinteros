@@ -51,6 +51,8 @@ import EntrenadorGruposPage from "../pages/entrenador/EntrenadorGruposPage";
 import EntrenadorGrupoDetallePage from "../pages/entrenador/GrupoDetallePage";
 import AdminClaseDetallePage from "../pages/AdminClaseDetallePage";
 
+import ClaseDetallePage from "../pages/entrenador/ClaseDetallePage";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -378,6 +380,15 @@ export default function AppRouter() {
     </ProtectedRoute>
   }
 />
+<Route
+  path="/entrenador/clases/:id"
+  element={
+    <ProtectedRoute rolPermitido="Entrenador">
+      <ClaseDetallePage />
+    </ProtectedRoute>
+  }
+/>
+
       </Routes>
     </BrowserRouter>
   );

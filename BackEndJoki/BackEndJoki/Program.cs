@@ -239,6 +239,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerCuotasAdmin, ObtenerCuotasAdmin>();
     builder.Services.AddScoped<IObtenerResumenCuotasAdmin, ObtenerResumenCuotasAdmin>();
     builder.Services.AddScoped<IObtenerDetalleCuotaAdmin, ObtenerDetalleCuotaAdmin>();
+    builder.Services.AddScoped<IObtenerDetalleClase, ObtenerDetalleClase>();
+
 
 builder.Services.AddRateLimiter(options =>
 {
