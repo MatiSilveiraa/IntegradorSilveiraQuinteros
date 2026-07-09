@@ -12,7 +12,6 @@ type Props = {
   nombre?: string;
   children: ReactNode;
   contentClassName?: string;
-
   mostrarSidebar?: boolean;
   mostrarBottomNav?: boolean;
 };
@@ -40,10 +39,7 @@ export default function DashboardLayout({
         !perfil.celular ||
         !perfil.sociedadMedica;
 
-      if (
-        incompleto &&
-        location.pathname !== "/completar-perfil"
-      ) {
+      if (incompleto && location.pathname !== "/completar-perfil") {
         navigate("/completar-perfil");
       }
     } catch (error) {
@@ -54,8 +50,8 @@ export default function DashboardLayout({
   const clasesContenido = `
     pt-20
     px-4
-    lg:px-6
-    ${mostrarSidebar ? "lg:ml-64" : ""}
+    lg:px-8
+    ${mostrarSidebar ? "lg:ml-56" : ""}
     ${mostrarBottomNav ? "pb-24" : ""}
     ${contentClassName}
   `;
@@ -66,9 +62,7 @@ export default function DashboardLayout({
 
       {mostrarSidebar && <AlumnoSidebar />}
 
-      <div className={clasesContenido.trim()}>
-        {children}
-      </div>
+      <div className={clasesContenido.trim()}>{children}</div>
 
       {mostrarBottomNav && <AlumnoBottomNav />}
     </div>

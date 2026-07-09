@@ -1,84 +1,70 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 import logo from "../assets/logo.png";
 import { obtenerGeneros } from "../services/enums.service";
 import { register, login } from "../services/Auth.service";
 import type { Grupo } from "../types";
-import toast from "react-hot-toast";
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [preview, setPreview] = useState<string | null>(null);
-
   const navigate = useNavigate();
 
-  const [generos, setGeneros] = useState([]);
-
-  const [genero, setGenero] = useState("");
+  const [generos, setGeneros] = useState<Grupo[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [nombre, setNombre] = useState("");
-
   const [apellido, setApellido] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [celular, setCelular] = useState("");
-
+  const [genero, setGenero] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [sociedadMedica, setSociedadMedica] = useState("");
-
   const [estatura, setEstatura] = useState("");
-
   const [peso, setPeso] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [fechaNacimiento, setFechaNacimiento] = useState("");
-
   useEffect(() => {
+    const cargarGeneros = async () => {
+      try {
+        const data = await obtenerGeneros();
+        setGeneros(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     cargarGeneros();
   }, []);
 
-  const cargarGeneros = async () => {
-    try {
-      const data = await obtenerGeneros();
-
-      setGeneros(data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!nombre || !apellido || !email || !password || !confirmPassword) {
+      toast.error("Completá los campos obligatorios");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      toast.error("Correo inválido");
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error("La contraseña debe tener mínimo 8 caracteres");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+
     try {
-      if (!nombre || !apellido || !email || !password || !confirmPassword) {
-        toast.error("Completa los campos obligatorios");
-
-        return;
-      }
-
-      if (!email.includes("@")) {
-        toast.error("Correo inválido");
-
-        return;
-      }
-
-      if (password.length < 8) {
-        toast.error("La contraseña debe tener mínimo 8 caracteres");
-
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        toast.error("Las contraseñas no coinciden");
-
-        return;
-      }
+      setLoading(true);
 
       const usuario = {
         nombre,
@@ -89,347 +75,297 @@ export default function RegisterPage() {
         estatura: estatura ? Number(estatura) : 0,
         celular,
         fechaNacimiento: fechaNacimiento || undefined,
-        genero: Number(genero),
+        genero: genero ? Number(genero) : 0,
         sociedadMedica,
       };
 
       await register(usuario);
+
       toast.success("Cuenta creada correctamente");
+
       const loginResponse = await login(email, password);
 
       localStorage.setItem("token", loginResponse.token);
-
       localStorage.setItem("usuario", JSON.stringify(loginResponse.usuario));
 
       const rol = loginResponse.usuario.rol;
 
-      if (rol === "Admin") {
-        navigate("/admin");
-      } else if (rol === "Alumno") {
-        navigate("/alumno");
-      } else if (rol === "Entrenador") {
-        navigate("/entrenador");
-      } else {
-        navigate("/");
-      }
+      if (rol === "Admin") navigate("/admin");
+      else if (rol === "Alumno") navigate("/alumno");
+      else if (rol === "Entrenador") navigate("/entrenador");
+      else navigate("/");
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
 
-      if (error.response?.data?.mensaje) {
-        toast.error(error.response.data.mensaje);
-      } else {
-        toast.error("Ocurrió un error al registrar");
-      }
+      toast.error(error.response?.data?.mensaje ?? "Ocurrió un error al registrar");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0e1511] text-white">
-      <header className="bg-black/70 backdrop-blur-md border-b border-[#1f2a25] h-16 flex items-center px-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden border border-[#4adea8]/30">
-            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
-          </div>
+    <div className="min-h-screen bg-[#12201b] text-white flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-5xl bg-[#1a2b24] border border-[#2d463b] rounded-3xl shadow-2xl overflow-hidden">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+          <aside className="hidden lg:flex flex-col justify-between bg-[#0f1b16] border-r border-[#2d463b] p-10">
+            <div>
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#4adea8] shadow-lg shadow-[#4adea8]/20">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+              </div>
 
-          <h1 className="font-bold text-xl">Joki Training Team</h1>
-        </div>
-      </header>
+              <h1 className="text-4xl font-bold mt-8">
+                Sumate a Joki
+              </h1>
 
-      <main className="max-w-md mx-auto px-5 py-8">
-        <div className="mb-8">
-          <h2 className="text-4xl text-center font-extrabold leading-tight">
-            Únete al Team
-          </h2>
-
-          <p className="text-gray-400 text-center mt-3">
-            Completa tus datos para comenzar tu transformación con Joki Training
-            Team.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">👤</span>
-
-              <h3 className="text-[#6cfbc3] font-bold text-2xl">
-                Datos Personales
-              </h3>
+              <p className="text-gray-400 mt-4 leading-relaxed">
+                Creá tu cuenta para acceder a tus clases, asistencias, cuotas,
+                desafíos y beneficios.
+              </p>
             </div>
 
-            <div className="flex flex-col items-center mb-8">
-              <div className="relative">
-                <label htmlFor="profileImage" className="cursor-pointer">
-                  <div className="w-28 h-28 rounded-full border-2 border-dashed border-[#6cfbc3]/50 bg-[#2f3632] flex items-center justify-center overflow-hidden">
-                    {preview ? (
-                      <img
-                        src={preview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-4xl">📷</span>
-                    )}
+            <div className="mt-auto">
+  <div className="w-16 h-1 rounded-full bg-[#4adea8]/40 mb-6" />
+
+  <p className="text-gray-400 leading-relaxed">
+    Entrená, seguí tu progreso y disfrutá de una plataforma pensada para que
+    solo te preocupes por mejorar día a día.
+  </p>
+</div>
+          </aside>
+
+          <main className="p-6 md:p-10">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="mb-6 text-sm text-gray-400 hover:text-[#4adea8] transition-all"
+            >
+              ← Volver al inicio de sesión
+            </button>
+
+            <div className="lg:hidden flex flex-col items-center text-center mb-8">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#4adea8] shadow-lg shadow-[#4adea8]/20">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+              </div>
+
+              <h1 className="text-3xl font-bold mt-5">Crear cuenta</h1>
+
+              <p className="text-gray-400 mt-2">
+                Sumate a Joki Training Team.
+              </p>
+            </div>
+
+            <div className="hidden lg:block mb-8">
+              <span className="inline-flex px-4 py-2 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] text-sm font-bold">
+                Registro de alumno
+              </span>
+
+              <h2 className="text-3xl font-bold mt-5">Crear cuenta</h2>
+
+              <p className="text-gray-400 mt-2">
+                Completá tus datos para empezar a usar la plataforma.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <section>
+                <h3 className="text-lg font-bold text-[#4adea8] mb-4">
+                  Datos personales
+                </h3>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input label="Nombre *" value={nombre} onChange={setNombre} placeholder="Juan" />
+                  <Input label="Apellido *" value={apellido} onChange={setApellido} placeholder="Pérez" />
+
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Correo electrónico *"
+                      type="email"
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="juan@email.com"
+                    />
                   </div>
-                </label>
 
-                <input
-                  id="profileImage"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
+                  <Input label="Celular" value={celular} onChange={setCelular} placeholder="099 123 456" />
 
-                    if (file) {
-                      const imageUrl = URL.createObjectURL(file);
+                  <div>
+                    <label className="text-sm text-gray-300 block mb-2">
+                      Género
+                    </label>
 
-                      setPreview(imageUrl);
-                    }
-                  }}
-                />
+                    <select
+                      value={genero}
+                      onChange={(e) => setGenero(e.target.value)}
+                      className="w-full h-14 px-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
+                    >
+                      <option value="">Seleccionar</option>
 
-                <label
-                  htmlFor="profileImage"
-                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-[#6cfbc3] text-black font-bold flex items-center justify-center cursor-pointer"
-                >
-                  ✎
-                </label>
-              </div>
+                      {generos.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <span className="text-sm text-gray-400 mt-3">Foto de perfil</span>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 font-medium">Nombre *</label>
-
-                <input
-                  type="text"
-                  placeholder="Ej. Juan"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Apellido *</label>
-
-                <input
-                  type="text"
-                  placeholder="Ej. Pérez"
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
-                  className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">
-                  Correo electrónico *
-                </label>
-
-                <input
-                  type="email"
-                  placeholder="juan.perez@ejemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none focus:border-[#6cfbc3]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-2 font-medium">Género</label>
-
-                  <select
-                    value={genero}
-                    onChange={(e) => setGenero(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
-                  >
-                    <option value="">Seleccionar</option>
-
-                    {generos.map((g: Grupo) => (
-                      <option key={g.id} value={g.id}>
-                        {g.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block mb-2 font-medium">Nacimiento</label>
-
-                  <input
+                  <Input
+                    label="Fecha de nacimiento"
                     type="date"
                     value={fechaNacimiento}
-                    onChange={(e) => setFechaNacimiento(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
+                    onChange={setFechaNacimiento}
                   />
                 </div>
-              </div>
+              </section>
 
-              <div>
-                <label className="block mb-2 font-medium">Celular *</label>
+              <section>
+                <h3 className="text-lg font-bold text-[#4adea8] mb-4">
+                  Salud
+                </h3>
 
-                <div className="flex gap-3">
-                  <div className="w-24 h-14 rounded-2xl bg-[#2f3632] border border-[#3c4a42] flex items-center justify-center text-gray-300">
-                    +598
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="md:col-span-3">
+                    <Input
+                      label="Sociedad médica"
+                      value={sociedadMedica}
+                      onChange={setSociedadMedica}
+                      placeholder="Ej: Médica Uruguaya"
+                    />
                   </div>
 
-                  <input
-                    type="tel"
-                    placeholder="099 123 456"
-                    value={celular}
-                    onChange={(e) => setCelular(e.target.value)}
-                    className="flex-1 h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">🛡️</span>
-
-              <h3 className="text-[#6cfbc3] font-bold text-2xl">
-                Información de Salud
-              </h3>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 font-medium">
-                  Sociedad médica
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Ej. Médica Uruguaya"
-                  value={sociedadMedica}
-                  onChange={(e) => setSociedadMedica(e.target.value)}
-                  className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-2 font-medium">
-                    Estatura (cm)
-                  </label>
-
-                  <input
+                  <Input
+                    label="Estatura"
                     type="number"
-                    placeholder="175"
                     value={estatura}
-                    onChange={(e) => setEstatura(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
+                    onChange={setEstatura}
+                    placeholder="175"
                   />
-                </div>
 
-                <div>
-                  <label className="block mb-2 font-medium">Peso (kg)</label>
-
-                  <input
+                  <Input
+                    label="Peso"
                     type="number"
-                    placeholder="70"
                     value={peso}
-                    onChange={(e) => setPeso(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 text-white outline-none"
+                    onChange={setPeso}
+                    placeholder="70"
                   />
                 </div>
-              </div>
-            </div>
-          </section>
+              </section>
 
-          <section className="bg-[#1a211d] border border-[#2f3632] rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="text-[#6cfbc3] text-xl">🔒</span>
+              <section>
+                <h3 className="text-lg font-bold text-[#4adea8] mb-4">
+                  Seguridad
+                </h3>
 
-              <h3 className="text-[#6cfbc3] font-bold text-2xl">Seguridad</h3>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 font-medium">Contraseña *</label>
-
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                <div className="grid md:grid-cols-2 gap-4">
+                  <PasswordInput
+                    label="Contraseña *"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 pr-14 text-white outline-none"
+                    onChange={setPassword}
+                    visible={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-4"
-                  >
-                    👁️
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-400 mt-2">
-                  Mínimo 8 caracteres.
-                </p>
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">
-                  Confirmar contraseña *
-                </label>
-
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                  <PasswordInput
+                    label="Confirmar contraseña *"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full h-14 rounded-2xl bg-[#121916] border border-[#3c4a42] px-4 pr-14 text-white outline-none"
+                    onChange={setConfirmPassword}
+                    visible={showConfirmPassword}
+                    onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
                   />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-4"
-                  >
-                    👁️
-                  </button>
                 </div>
-              </div>
-            </div>
-          </section>
 
-          <div className="pt-4">
-            <button
-              type="submit"
-              className="w-full h-16 rounded-2xl bg-[#4adea8] text-[#003826] font-bold text-xl shadow-lg shadow-[#4adea8]/20 hover:scale-[1.02] active:scale-95 transition-all"
-            >
-              Crear cuenta
-            </button>
-          </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  La contraseña debe tener al menos 8 caracteres.
+                </p>
+              </section>
 
-          <div className="text-center">
-            <span className="text-gray-400">¿Ya tengo cuenta?</span>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 bg-[#4adea8] text-[#12201b] font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {loading ? "Creando cuenta..." : "Crear cuenta"}
+              </button>
 
-            <Link to="/" className="ml-2 text-[#6cfbc3] font-bold underline">
-              Inicia sesión
-            </Link>
-          </div>
-        </form>
-
-        <div className="flex flex-col items-center mt-16 opacity-40">
-          <div className="w-14 h-1 bg-gray-600 rounded-full mb-6"></div>
-
-          <p className="text-xs tracking-[0.3em] text-gray-500">
-            JOKI TRAINING TEAM © 2024
-          </p>
+              <p className="text-center text-sm text-gray-400">
+                ¿Ya tenés cuenta?{" "}
+                <Link to="/" className="text-[#4adea8] font-bold hover:underline">
+                  Iniciá sesión
+                </Link>
+              </p>
+            </form>
+          </main>
         </div>
-      </main>
+      </div>
+    </div>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="text-sm text-gray-300 block mb-2">
+        {label}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-14 px-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
+      />
+    </div>
+  );
+}
+
+function PasswordInput({
+  label,
+  value,
+  onChange,
+  visible,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  visible: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div>
+      <label className="text-sm text-gray-300 block mb-2">
+        {label}
+      </label>
+
+      <div className="relative">
+        <input
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="••••••••"
+          className="w-full h-14 px-4 pr-20 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
+        />
+
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-4 top-4 text-gray-400 hover:text-white text-sm"
+        >
+          {visible ? "Ocultar" : "Ver"}
+        </button>
+      </div>
     </div>
   );
 }

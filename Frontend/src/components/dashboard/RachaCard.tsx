@@ -4,24 +4,30 @@ type Props = {
   racha?: number;
 };
 
-export default function RachaCard({
-  racha,
-}: Props) {
+export default function RachaCard({ racha }: Props) {
+  const valor = racha ?? 0;
+
   return (
     <Card>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
+            Racha actual
+          </p>
 
-      <h3 className="text-[#4adea8] text-xs uppercase font-bold">
-        Racha actual
-      </h3>
+          <h3 className="text-5xl font-bold text-white mt-4">
+            {valor}
+          </h3>
 
-      <p className="text-3xl font-bold text-white mt-3">
-        {racha ?? 0}
-      </p>
+          <p className="text-gray-400 mt-2">
+            {valor === 1 ? "asistencia consecutiva" : "asistencias consecutivas"}
+          </p>
+        </div>
 
-      <p className="text-gray-400 text-sm">
-        días consecutivos
-      </p>
-
+        <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-2xl">
+          🔥
+        </div>
+      </div>
     </Card>
   );
 }

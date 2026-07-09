@@ -2,171 +2,109 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import { solicitarRecuperacion } from "../services/Auth.service";
-
 import logo from "../assets/logo.png";
+import { solicitarRecuperacion } from "../services/Auth.service";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!email.trim()) {
+      toast.error("Ingresá tu correo electrónico");
+      return;
+    }
+
     try {
-      await solicitarRecuperacion(
-        email
-      );
+      setLoading(true);
 
-      toast.success(
-        "Código de recuperación enviado correctamente"
-      );
+      await solicitarRecuperacion(email.trim());
 
-      navigate(
-        "/verify-code",
-        {
-          state: {
-            email,
-          },
-        }
-      );
+      toast.success("Código de recuperación enviado");
+
+      navigate("/verify-code", {
+        state: {
+          email: email.trim(),
+        },
+      });
     } catch (error: any) {
       console.error(error);
 
       toast.error(
-        error?.response?.data
-          ?.mensaje ||
+        error?.response?.data?.mensaje ||
           "No fue posible enviar el código de recuperación"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#12201b]">
-      <header className="h-16 flex items-center px-6">
+    <div className="min-h-screen bg-[#12201b] flex items-center justify-center px-4">
+      <div className="w-full max-w-lg bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 shadow-2xl">
         <button
-          onClick={() =>
-            navigate("/")
-          }
-          className="text-[#4adea8] text-3xl"
+          type="button"
+          onClick={() => navigate("/")}
+          className="mb-6 text-sm text-gray-400 hover:text-[#4adea8] transition-all"
         >
-          ←
+          ← Volver al inicio de sesión
         </button>
-      </header>
 
-      <div className="flex flex-col items-center px-6">
-        <div
-          className="
-            w-32
-            h-32
-            rounded-full
-            overflow-hidden
-            border-4
-            border-[#4adea8]
-            shadow-lg
-            shadow-[#4adea8]/20
-          "
-        >
-          <img
-            src={logo}
-            alt="logo"
-            className="w-full h-full object-cover"
-          />
+        <div className="flex flex-col items-center text-center">
+          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#4adea8] shadow-lg shadow-[#4adea8]/20">
+            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+          </div>
+
+          <span className="mt-6 inline-flex px-4 py-2 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] text-sm font-bold">
+            Recuperación de cuenta
+          </span>
+
+          <h1 className="text-white text-3xl font-bold mt-5">
+            Recuperar contraseña
+          </h1>
+
+          <p className="text-gray-400 mt-3 leading-relaxed">
+            Ingresá tu correo electrónico y te enviaremos un código para crear
+            una nueva contraseña.
+          </p>
         </div>
 
-        <h1
-          className="
-            text-white
-            text-4xl
-            font-bold
-            mt-6
-          "
-        >
-          Joki Training Team
-        </h1>
-
-        <div
-          className="
-            w-full
-            max-w-md
-            bg-[#1a2b24]
-            border
-            border-[#2d463b]
-            rounded-3xl
-            p-8
-            mt-10
-          "
-        >
-          <p
-            className="
-              text-center
-              text-gray-300
-              text-lg
-            "
-          >
-            Ingresa tu correo
-            electrónico para recibir
-            un enlace de recuperación
-            de contraseña.
-          </p>
-
-          <form
-            onSubmit={
-              handleSubmit
-            }
-            className="mt-8"
-          >
-            <label
-              className="
-                block
-                text-gray-300
-                mb-2
-              "
-            >
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div>
+            <label className="text-sm text-gray-300 block mb-2">
               Correo electrónico
             </label>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) =>
-                setEmail(
-                  e.target.value
-                )
-              }
-              placeholder="ejemplo@correo.com"
-              className="
-                w-full
-                h-14
-                px-4
-                rounded-xl
-                bg-[#12201b]
-                border
-                border-[#2d463b]
-                text-white
-              "
-              required
-            />
+            <div className="relative">
+              <span className="absolute left-4 top-4 text-gray-500">✉️</span>
 
-            <button
-              type="submit"
-              className="
-                w-full
-                h-14
-                bg-[#4adea8]
-                text-[#12201b]
-                font-bold
-                rounded-xl
-                mt-8
-              "
-            >
-              Enviar código de recuperación
-            </button>
-          </form>
-        </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="w-full h-14 pl-12 pr-4 rounded-xl bg-[#12201b] border border-[#2d463b] text-white outline-none focus:border-[#4adea8]"
+                autoComplete="email"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-14 bg-[#4adea8] text-[#12201b] font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {loading ? "Enviando código..." : "Enviar código"}
+          </button>
+
+          <p className="text-center text-sm text-gray-500">
+            El código llegará al correo asociado a tu cuenta.
+          </p>
+        </form>
       </div>
     </div>
   );
