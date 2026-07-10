@@ -1,10 +1,15 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
+using Joki.LogicaAplicacion.Helpers;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using AsistenciaEntidad = Joki.LogicaNegocio.Entidades.Asistencia;
-using ClaseEntidad = Joki.LogicaNegocio.Entidades.Clase;
+
+using AsistenciaEntidad =
+    Joki.LogicaNegocio.Entidades.Asistencia;
+
+using ClaseEntidad =
+    Joki.LogicaNegocio.Entidades.Clase;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
 {
@@ -67,13 +72,23 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                     "El alumno no está inscripto a esta clase");
             }
 
-            ValidarHorarioClase(clase);
+            // Se obtiene una única vez para que toda la operación
+            // utilice exactamente la misma fecha y hora.
+            DateTimeOffset ahoraUruguay =
+                HorarioUruguayHelper.ObtenerAhora();
+
+            ValidarHorarioClase(
+                clase,
+                ahoraUruguay);
+
+            DateTime fechaActualUruguay =
+                ahoraUruguay.Date;
 
             bool yaExiste =
                 _repoAsistencia.ExisteAsistencia(
                     alumnoId,
                     request.ClaseId,
-                    DateTime.Now.Date);
+                    fechaActualUruguay);
 
             if (yaExiste)
             {
@@ -88,7 +103,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                     request.Latitud,
                     request.Longitud);
 
-            if (distancia > clase.RadioGeolocalizacion)
+            if (distancia >
+                clase.RadioGeolocalizacion)
             {
                 throw new LogicaNegocioException(
                     "No estás dentro del radio permitido para marcar asistencia");
@@ -96,11 +112,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
 
             var asistencia =
                 new AsistenciaEntidad
-    {
+                {
                     AlumnoId = alumnoId,
                     ClaseId = request.ClaseId,
-                    Fecha = DateTime.Now.Date,
-                    FechaRegistro = DateTime.Now,
+
+                    // Fecha de negocio según Uruguay.
+                    Fecha = fechaActualUruguay,
+
+                    // Instante real almacenado en UTC.
+                    FechaRegistro = DateTime.UtcNow,
+
                     Presente = true,
                     RegistradoPorId = alumnoId,
                     Latitud = request.Latitud,
@@ -113,33 +134,38 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
         }
 
         private static void ValidarHorarioClase(
-     ClaseEntidad clase)
+            ClaseEntidad clase,
+            DateTimeOffset ahoraUruguay)
         {
-            var ahora =
-                DateTime.Now;
+            DayOfWeek diaActual =
+                ahoraUruguay.DayOfWeek;
 
-            if (ConvertirDia(clase.DiaSemana) != ahora.DayOfWeek)
+            DayOfWeek diaClase =
+                ConvertirDia(clase.DiaSemana);
+
+            if (diaClase != diaActual)
             {
                 throw new LogicaNegocioException(
                     "La clase no corresponde al día de hoy");
             }
 
             TimeSpan horaActual =
-                ahora.TimeOfDay;
+                ahoraUruguay.TimeOfDay;
 
             TimeSpan inicioPermitido =
-                clase.HoraInicio.Add(
-                    TimeSpan.FromMinutes(-15));
+                clase.HoraInicio.Subtract(
+                    TimeSpan.FromMinutes(5));
 
             TimeSpan finPermitido =
-                clase.HoraInicio.Add(
-                    TimeSpan.FromMinutes(30));
+                clase.HoraFin;
 
             if (horaActual < inicioPermitido ||
                 horaActual > finPermitido)
             {
                 throw new LogicaNegocioException(
-                    "La asistencia solo puede marcarse cerca del horario de inicio de la clase");
+                    $"Podés registrar asistencia entre " +
+                    $"{inicioPermitido:hh\\:mm} y " +
+                    $"{finPermitido:hh\\:mm}.");
             }
         }
 
@@ -148,14 +174,29 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
         {
             return dia switch
             {
-                DiaSemana.Lunes => DayOfWeek.Monday,
-                DiaSemana.Martes => DayOfWeek.Tuesday,
-                DiaSemana.Miercoles => DayOfWeek.Wednesday,
-                DiaSemana.Jueves => DayOfWeek.Thursday,
-                DiaSemana.Viernes => DayOfWeek.Friday,
-                DiaSemana.Sabado => DayOfWeek.Saturday,
-                DiaSemana.Domingo => DayOfWeek.Sunday,
-                _ => throw new Exception("Día inválido")
+                DiaSemana.Lunes =>
+                    DayOfWeek.Monday,
+
+                DiaSemana.Martes =>
+                    DayOfWeek.Tuesday,
+
+                DiaSemana.Miercoles =>
+                    DayOfWeek.Wednesday,
+
+                DiaSemana.Jueves =>
+                    DayOfWeek.Thursday,
+
+                DiaSemana.Viernes =>
+                    DayOfWeek.Friday,
+
+                DiaSemana.Sabado =>
+                    DayOfWeek.Saturday,
+
+                DiaSemana.Domingo =>
+                    DayOfWeek.Sunday,
+
+                _ => throw new LogicaNegocioException(
+                    "El día de la clase no es válido")
             };
         }
 
@@ -174,10 +215,12 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                 GradosARadianes((double)lat2);
 
             double diferenciaLatitud =
-                GradosARadianes((double)(lat2 - lat1));
+                GradosARadianes(
+                    (double)(lat2 - lat1));
 
             double diferenciaLongitud =
-                GradosARadianes((double)(lon2 - lon1));
+                GradosARadianes(
+                    (double)(lon2 - lon1));
 
             double a =
                 Math.Sin(diferenciaLatitud / 2) *
@@ -195,10 +238,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
             double distancia =
                 radioTierra * c;
 
-            return (decimal)Math.Round(distancia, 2);
+            return (decimal)Math.Round(
+                distancia,
+                2);
         }
 
-        private static double GradosARadianes(double grados)
+        private static double GradosARadianes(
+            double grados)
         {
             return grados * Math.PI / 180;
         }

@@ -1,12 +1,16 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Asistencia;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Asistencia;
+using Joki.LogicaAplicacion.Helpers;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using AsistenciaEntidad = Joki.LogicaNegocio.Entidades.Asistencia;
+
+using AsistenciaEntidad =
+    Joki.LogicaNegocio.Entidades.Asistencia;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
 {
-    public class RegistrarAsistencia : IRegistrarAsistencia
+    public class RegistrarAsistencia :
+        IRegistrarAsistencia
     {
         private readonly IRepositorioAsistencia _repoAsistencia;
         private readonly IRepositorioClase _repoClase;
@@ -25,51 +29,78 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
             _repoCuota = repoCuota;
         }
 
-        public void Ejecutar(RegistrarAsistenciaRequest request, int usuarioId)
+        public void Ejecutar(
+            RegistrarAsistenciaRequest request,
+            int usuarioId)
         {
             if (request == null)
             {
-                throw new LogicaNegocioException("Los datos de asistencia no pueden ser nulos");
+                throw new LogicaNegocioException(
+                    "Los datos de asistencia no pueden ser nulos");
             }
 
-            var alumno = _repoAlumno.ObtenerPorId(request.AlumnoId);
+            var alumno =
+                _repoAlumno.ObtenerPorId(
+                    request.AlumnoId);
 
             if (alumno == null)
             {
-                throw new LogicaNegocioException("Alumno no encontrado");
+                throw new LogicaNegocioException(
+                    "Alumno no encontrado");
             }
 
-            var clase = _repoClase.ObtenerPorId(request.ClaseId);
+            var clase =
+                _repoClase.ObtenerPorId(
+                    request.ClaseId);
 
             if (clase == null)
             {
-                throw new LogicaNegocioException("Clase no encontrada");
+                throw new LogicaNegocioException(
+                    "Clase no encontrada");
             }
 
-            bool yaExiste = _repoAsistencia.ExisteAsistencia(
-                request.AlumnoId,
-                request.ClaseId,
-                DateTime.Now.Date);
+            // Toda la operación utiliza la misma hora local.
+            DateTimeOffset ahoraUruguay =
+                HorarioUruguayHelper.ObtenerAhora();
+
+            DateTime fechaActualUruguay =
+                ahoraUruguay.Date;
+
+            int mesActual =
+                ahoraUruguay.Month;
+
+            int anioActual =
+                ahoraUruguay.Year;
+
+            bool yaExiste =
+                _repoAsistencia.ExisteAsistencia(
+                    request.AlumnoId,
+                    request.ClaseId,
+                    fechaActualUruguay);
 
             if (yaExiste)
             {
-                throw new LogicaNegocioException("La asistencia ya fue registrada");
+                throw new LogicaNegocioException(
+                    "La asistencia ya fue registrada");
             }
 
-            AsistenciaEntidad asistencia = new AsistenciaEntidad
-            {
-                AlumnoId = request.AlumnoId,
-                ClaseId = request.ClaseId,
-                Presente = request.Presente,
-                Fecha = DateTime.Now.Date,
-                FechaRegistro = DateTime.Now,
-                RegistradoPorId = usuarioId
-            };
+            var asistencia =
+                new AsistenciaEntidad
+                {
+                    AlumnoId = request.AlumnoId,
+                    ClaseId = request.ClaseId,
+                    Presente = request.Presente,
+
+                    // Día de negocio según Uruguay.
+                    Fecha = fechaActualUruguay,
+
+                    // Instante exacto almacenado en UTC.
+                    FechaRegistro = DateTime.UtcNow,
+
+                    RegistradoPorId = usuarioId
+                };
 
             _repoAsistencia.Agregar(asistencia);
-
-            int mesActual = DateTime.Now.Month;
-            int anioActual = DateTime.Now.Year;
 
             if (alumno.MesRachaAsistencia != mesActual ||
                 alumno.AnioRachaAsistencia != anioActual)
@@ -90,45 +121,58 @@ namespace Joki.LogicaAplicacion.CasosDeUso.GestionAsistencias
                     alumno.DescuentoRachaGenerado = true;
 
                     decimal montoBase = 1390m;
-                    decimal descuento = montoBase * 0.10m;
-                    decimal montoFinal = montoBase - descuento;
 
-                    var cuota = _repoCuota.ObtenerPorAlumnoMesYAnio(
-                        alumno.UsuarioId,
-                        mesActual,
-                        anioActual);
+                    decimal descuento =
+                        montoBase * 0.10m;
+
+                    decimal montoFinal =
+                        montoBase - descuento;
+
+                    var cuota =
+                        _repoCuota.ObtenerPorAlumnoMesYAnio(
+                            alumno.UsuarioId,
+                            mesActual,
+                            anioActual);
 
                     if (cuota != null)
                     {
-                        cuota.Descuento = descuento;
+                        cuota.Descuento =
+                            descuento;
 
-                        cuota.MontoFinal = montoFinal;
+                        cuota.MontoFinal =
+                            montoFinal;
 
-                        _repoCuota.Modificar(cuota);
+                        _repoCuota.Modificar(
+                            cuota);
                     }
                 }
 
-                _repoAlumno.Modificar(alumno);
-            }
-            else
-            {
-                alumno.RachaAsistenciaMensual = 0;
+                _repoAlumno.Modificar(
+                    alumno);
 
-                var ultimasAsistencias = _repoAsistencia.ObtenerUltimasAsistencias(
+                return;
+            }
+
+            alumno.RachaAsistenciaMensual = 0;
+
+            var ultimasAsistencias =
+                _repoAsistencia.ObtenerUltimasAsistencias(
                     request.AlumnoId,
                     5);
 
-                bool todasSonFaltas =
-                    ultimasAsistencias.Count == 5 &&
-                    ultimasAsistencias.All(a => !a.Presente);
+            bool todasSonFaltas =
+                ultimasAsistencias.Count == 5 &&
+                ultimasAsistencias.All(
+                    a => !a.Presente);
 
-                if (todasSonFaltas)
-                {
-                    alumno.BloqueadoPorInasistencias = true;
-                }
-
-                _repoAlumno.Modificar(alumno);
+            if (todasSonFaltas)
+            {
+                alumno.BloqueadoPorInasistencias =
+                    true;
             }
+
+            _repoAlumno.Modificar(
+                alumno);
         }
     }
 }
