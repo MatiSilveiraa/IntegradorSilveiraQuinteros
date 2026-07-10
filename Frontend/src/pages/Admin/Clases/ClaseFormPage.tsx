@@ -32,7 +32,7 @@ export default function ClaseFormPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
 
-const grupoIdDesdeUrl = searchParams.get("grupoId");
+  const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const esEdicion = Boolean(id);
 
@@ -50,14 +50,14 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const [diasConHorarios, setDiasConHorarios] = useState<DiaConHorarios[]>([
     {
-      diaSemana: 1,
+      diaSemana: 0,
       horarios: [{ horaInicio: "", horaFin: "" }],
     },
   ]);
 
   const [form, setForm] = useState<CrearClaseRequest>({
     grupoId: grupoIdDesdeUrl ? Number(grupoIdDesdeUrl) : 0,
-    diaSemana: 1,
+    diaSemana: 0,
     horaInicio: "",
     horaFin: "",
     latitud: -32.3667,
@@ -70,20 +70,25 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     cupoMaximo: 20,
   });
 
-  const grupoSeleccionadoDesdeUrl =
-  grupos.find((g) => g.id === Number(grupoIdDesdeUrl));
+  const grupoSeleccionadoDesdeUrl = grupos.find(
+    (g) => g.id === Number(grupoIdDesdeUrl),
+  );
 
   const inputClass =
     "w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]";
 
+  // IMPORTANTE:
+  // Estos valores siguen el enum DiaSemana del backend:
+  // Lunes = 0, Martes = 1, Miércoles = 2, Jueves = 3,
+  // Viernes = 4, Sábado = 5 y Domingo = 6.
   const diasSemana = [
-    { valor: 1, nombre: "Lunes" },
-    { valor: 2, nombre: "Martes" },
-    { valor: 3, nombre: "Miércoles" },
-    { valor: 4, nombre: "Jueves" },
-    { valor: 5, nombre: "Viernes" },
-    { valor: 6, nombre: "Sábado" },
-    { valor: 0, nombre: "Domingo" },
+    { valor: 0, nombre: "Lunes" },
+    { valor: 1, nombre: "Martes" },
+    { valor: 2, nombre: "Miércoles" },
+    { valor: 3, nombre: "Jueves" },
+    { valor: 4, nombre: "Viernes" },
+    { valor: 5, nombre: "Sábado" },
+    { valor: 6, nombre: "Domingo" },
   ];
 
   const nombreDia = (dia: number) =>
@@ -91,41 +96,36 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const convertirDiaANumero = (dia: string) => {
     const dias: Record<string, number> = {
-      Domingo: 0,
-      Lunes: 1,
-      Martes: 2,
-      Miércoles: 3,
-      Miercoles: 3,
-      Jueves: 4,
-      Viernes: 5,
-      Sábado: 6,
-      Sabado: 6,
+      Lunes: 0,
+      Martes: 1,
+      Miércoles: 2,
+      Miercoles: 2,
+      Jueves: 3,
+      Viernes: 4,
+      Sábado: 5,
+      Sabado: 5,
+      Domingo: 6,
     };
 
-    return dias[dia] ?? 1;
+    return dias[dia] ?? 0;
   };
 
+  // Calcula el día sin depender de la zona horaria y lo convierte
+  // al enum usado por el backend:
+  // JS: Domingo=0 ... Sábado=6
+  // Backend: Lunes=0 ... Domingo=6
   const obtenerDiaDesdeFecha = (fecha: string) => {
-    const date = new Date(`${fecha}T00:00:00`);
-    return date.getDay();
-  };
+    const [anio, mes, dia] = fecha.split("-").map(Number);
 
-  const obtenerProximaFechaValida = (
-    fecha: string,
-    diasValidos: number[]
-  ) => {
-    const date = new Date(`${fecha}T00:00:00`);
-
-    for (let i = 0; i <= 7; i++) {
-      const candidata = new Date(date);
-      candidata.setDate(date.getDate() + i);
-
-      if (diasValidos.includes(candidata.getDay())) {
-        return candidata.toISOString().substring(0, 10);
-      }
+    if (!anio || !mes || !dia) {
+      return -1;
     }
 
-    return fecha;
+    const diaJavaScript = new Date(
+      Date.UTC(anio, mes - 1, dia),
+    ).getUTCDay();
+
+    return (diaJavaScript + 6) % 7;
   };
 
   const formatearHora = (hora: string) => {
@@ -142,7 +142,9 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     horarios.some((h) => !h.horaInicio || !h.horaFin);
 
   const hayHorariosInvalidos = (horarios: HorarioClase[]) =>
-    horarios.some((h) => h.horaInicio && h.horaFin && h.horaInicio >= h.horaFin);
+    horarios.some(
+      (h) => h.horaInicio && h.horaFin && h.horaInicio >= h.horaFin,
+    );
 
   const hayHorariosDuplicados = (horarios: HorarioClase[]) => {
     const completos = horarios.filter((h) => h.horaInicio && h.horaFin);
@@ -191,7 +193,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const errorHorarioPuntual = useMemo(
     () => obtenerErrorHorarios([horarioPuntual]),
-    [horarioPuntual]
+    [horarioPuntual],
   );
 
   const erroresPorDia = useMemo(() => {
@@ -239,7 +241,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
           ]);
 
           setForm({
-            grupoId: grupoIdDesdeUrl ? Number(grupoIdDesdeUrl) : 0,
+            grupoId: grupoIdDesdeUrl ? Number(grupoIdDesdeUrl) : clase.grupoId,
             diaSemana: diaNumero,
             horaInicio: clase.horaInicio?.substring(0, 5) ?? "",
             horaFin: clase.horaFin?.substring(0, 5) ?? "",
@@ -265,7 +267,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
   }, [esEdicion, id]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
 
@@ -283,44 +285,11 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     }));
   };
 
-  const handleFechaInicioChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFechaInicioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fechaElegida = e.target.value;
 
-    if (!fechaElegida) {
-      setForm((prev) => ({
-        ...prev,
-        fechaInicio: "",
-      }));
-      return;
-    }
-
-    if (tipoClase === "recurrente") {
-      const diasValidos = diasConHorarios.map((d) => d.diaSemana);
-      const diaFecha = obtenerDiaDesdeFecha(fechaElegida);
-
-      if (!diasValidos.includes(diaFecha)) {
-        const fechaCorregida = obtenerProximaFechaValida(
-          fechaElegida,
-          diasValidos
-        );
-
-        toast(
-          `La fecha elegida no coincide con los días configurados. Se ajustó al próximo ${nombreDia(
-            obtenerDiaDesdeFecha(fechaCorregida)
-          )}.`
-        );
-
-        setForm((prev) => ({
-          ...prev,
-          fechaInicio: fechaCorregida,
-        }));
-
-        return;
-      }
-    }
-
+    // Nunca corregimos ni desplazamos automáticamente la fecha elegida.
+    // Si hay una incompatibilidad real, se informa al guardar.
     setForm((prev) => ({
       ...prev,
       fechaInicio: fechaElegida,
@@ -366,7 +335,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
   const cambiarDia = (index: number, diaSemana: number) => {
     const yaExiste = diasConHorarios.some(
-      (dia, i) => dia.diaSemana === diaSemana && i !== index
+      (dia, i) => dia.diaSemana === diaSemana && i !== index,
     );
 
     if (yaExiste) {
@@ -381,8 +350,8 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
               ...dia,
               diaSemana,
             }
-          : dia
-      )
+          : dia,
+      ),
     );
   };
 
@@ -392,20 +361,14 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
         i === diaIndex
           ? {
               ...dia,
-              horarios: [
-                ...dia.horarios,
-                { horaInicio: "", horaFin: "" },
-              ],
+              horarios: [...dia.horarios, { horaInicio: "", horaFin: "" }],
             }
-          : dia
-      )
+          : dia,
+      ),
     );
   };
 
-  const eliminarHorarioDeDia = (
-    diaIndex: number,
-    horarioIndex: number
-  ) => {
+  const eliminarHorarioDeDia = (diaIndex: number, horarioIndex: number) => {
     setDiasConHorarios((prev) =>
       prev.map((dia, i) => {
         if (i !== diaIndex) return dia;
@@ -419,7 +382,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
           ...dia,
           horarios: dia.horarios.filter((_, h) => h !== horarioIndex),
         };
-      })
+      }),
     );
   };
 
@@ -427,7 +390,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     diaIndex: number,
     horarioIndex: number,
     campo: keyof HorarioClase,
-    valor: string
+    valor: string,
   ) => {
     setDiasConHorarios((prev) =>
       prev.map((dia, i) =>
@@ -440,11 +403,11 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
                       ...horario,
                       [campo]: valor,
                     }
-                  : horario
+                  : horario,
               ),
             }
-          : dia
-      )
+          : dia,
+      ),
     );
   };
 
@@ -458,7 +421,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
       toast.error(
         tipoClase === "puntual"
           ? "Ingresá la fecha de la clase"
-          : "Ingresá la fecha de inicio"
+          : "Ingresá la fecha de inicio",
       );
       return false;
     }
@@ -474,17 +437,35 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     }
 
     if (tipoClase === "recurrente") {
-      const diasValidos = diasConHorarios.map((d) => d.diaSemana);
+      if (!esEdicion) {
+        const diasValidos = diasConHorarios.map((d) => d.diaSemana);
 
-      if (!diasValidos.includes(obtenerDiaDesdeFecha(form.fechaInicio))) {
-        toast.error(
-          "La fecha de inicio debe coincidir con uno de los días configurados"
-        );
-        return false;
+        const diaDeLaFecha = obtenerDiaDesdeFecha(form.fechaInicio);
+
+        if (diaDeLaFecha === -1) {
+          toast.error("La fecha de inicio no es válida");
+          return false;
+        }
+
+        if (!diasValidos.includes(diaDeLaFecha)) {
+          const diasConfigurados = diasValidos
+            .map(nombreDia)
+            .filter(Boolean)
+            .join(", ");
+
+          toast.error(
+            `La fecha seleccionada corresponde a ${nombreDia(
+              diaDeLaFecha,
+            )}, pero los días configurados son: ${diasConfigurados}. La fecha no fue modificada.`,
+          );
+          return false;
+        }
       }
 
       if (form.fechaFin && form.fechaFin < form.fechaInicio) {
-        toast.error("La fecha de fin no puede ser anterior a la fecha de inicio");
+        toast.error(
+          "La fecha de fin no puede ser anterior a la fecha de inicio",
+        );
         return false;
       }
     }
@@ -492,20 +473,23 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
     return true;
   };
 
+  const formatearFechaParaApi = (fecha: string) =>
+    fecha ? `${fecha}T00:00:00` : "";
+
   const armarRequest = (
     diaSemana: number,
     horaInicio: string,
-    horaFin: string
+    horaFin: string,
   ): CrearClaseRequest => ({
     ...form,
     diaSemana,
     esFija: tipoClase === "recurrente",
     horaInicio: formatearHora(horaInicio),
     horaFin: formatearHora(horaFin),
-    fechaInicio: `${form.fechaInicio}T00:00:00`,
+    fechaInicio: formatearFechaParaApi(form.fechaInicio),
     fechaFin:
       tipoClase === "recurrente" && form.fechaFin
-        ? `${form.fechaFin}T00:00:00`
+        ? formatearFechaParaApi(form.fechaFin)
         : null,
   });
 
@@ -530,7 +514,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
         await editarClase(
           Number(id),
-          armarRequest(dia, horario.horaInicio, horario.horaFin)
+          armarRequest(dia, horario.horaInicio, horario.horaFin),
         );
 
         toast.success("Clase actualizada correctamente");
@@ -538,7 +522,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
         const dia = obtenerDiaDesdeFecha(form.fechaInicio);
 
         await crearClase(
-          armarRequest(dia, horarioPuntual.horaInicio, horarioPuntual.horaFin)
+          armarRequest(dia, horarioPuntual.horaInicio, horarioPuntual.horaFin),
         );
 
         toast.success("Clase puntual creada correctamente");
@@ -546,13 +530,9 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
         const requests = diasConHorarios.flatMap((dia) =>
           dia.horarios.map((horario) =>
             crearClase(
-              armarRequest(
-                dia.diaSemana,
-                horario.horaInicio,
-                horario.horaFin
-              )
-            )
-          )
+              armarRequest(dia.diaSemana, horario.horaInicio, horario.horaFin),
+            ),
+          ),
         );
 
         await Promise.all(requests);
@@ -560,19 +540,19 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
         toast.success(
           requests.length === 1
             ? "Clase recurrente creada correctamente"
-            : `${requests.length} clases recurrentes creadas correctamente`
+            : `${requests.length} clases recurrentes creadas correctamente`,
         );
       }
 
       if (grupoIdDesdeUrl) {
-  navigate(`/admin/grupos/${grupoIdDesdeUrl}`);
-} else {
-  navigate("/admin/clases");
-}
+        navigate(`/admin/grupos/${grupoIdDesdeUrl}`);
+      } else {
+        navigate("/admin/clases");
+      }
     } catch (error: any) {
       console.error(error);
       toast.error(
-        error.response?.data?.mensaje ?? "No se pudo guardar la clase"
+        error.response?.data?.mensaje ?? "No se pudo guardar la clase",
       );
     } finally {
       setGuardando(false);
@@ -586,10 +566,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
   const cantidadClasesACrear =
     tipoClase === "puntual"
       ? 1
-      : diasConHorarios.reduce(
-          (total, dia) => total + dia.horarios.length,
-          0
-        );
+      : diasConHorarios.reduce((total, dia) => total + dia.horarios.length, 0);
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
@@ -605,118 +582,134 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
           </button>
 
           <h1 className="text-3xl font-bold">
-  {esEdicion
-    ? "Editar clase"
-    : grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl
-    ? `Nueva clase para ${grupoSeleccionadoDesdeUrl.nombre}`
-    : "Nueva clase"}
-</h1>
+            {esEdicion
+              ? "Editar clase"
+              : grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl
+                ? `Nueva clase para ${grupoSeleccionadoDesdeUrl.nombre}`
+                : "Nueva clase"}
+          </h1>
 
           <p className="text-gray-400 mt-2">
-  {grupoIdDesdeUrl
-    ? "La clase quedará asociada automáticamente al grupo seleccionado."
-    : "Configurá la información general de la clase."}
-</p>
+            {esEdicion
+              ? "Modificá únicamente los datos que necesites. El grupo y el tipo de clase se mantienen asociados."
+              : grupoIdDesdeUrl
+                ? "La clase quedará asociada automáticamente al grupo seleccionado."
+                : "Configurá la información general de la clase."}
+          </p>
         </div>
 
-<form
-  onSubmit={handleSubmit}
-  className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 space-y-6"
->
-  {grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl && (
-    <div className="bg-[#12201b] border border-[#4adea8]/30 rounded-2xl p-5">
-      <p className="text-xs uppercase tracking-wide text-[#4adea8] font-bold">
-        Grupo seleccionado
-      </p>
-
-      <h2 className="text-2xl font-bold mt-2">
-        {grupoSeleccionadoDesdeUrl.nombre}
-      </h2>
-
-      <p className="text-gray-400 mt-2">
-        Nivel{" "}
-        <span className="text-white font-semibold">
-          {grupoSeleccionadoDesdeUrl.nivel}
-        </span>
-      </p>
-
-      <p className="text-sm text-gray-500 mt-3">
-        La clase quedará asociada automáticamente a este grupo.
-      </p>
-    </div>
-  )}
-
-  <div>
-    <label className="block mb-3 text-sm text-gray-300">
-      Tipo de clase
-    </label>
-
-    <div className="grid md:grid-cols-2 gap-4">
-      <button
-        type="button"
-        onClick={() => cambiarTipoClase("puntual")}
-        className={`rounded-2xl border p-5 text-left transition-all ${
-          tipoClase === "puntual"
-            ? "border-[#4adea8] bg-[#4adea8]/10"
-            : "border-[#2d463b] bg-[#12201b]"
-        }`}
-      >
-        <h3 className="font-bold">Clase puntual</h3>
-
-        <p className="text-sm text-gray-400 mt-2">
-          Se dicta una sola vez en una fecha específica.
-        </p>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => cambiarTipoClase("recurrente")}
-        className={`rounded-2xl border p-5 text-left transition-all ${
-          tipoClase === "recurrente"
-            ? "border-[#4adea8] bg-[#4adea8]/10"
-            : "border-[#2d463b] bg-[#12201b]"
-        }`}
-      >
-        <h3 className="font-bold">Clase recurrente</h3>
-
-        <p className="text-sm text-gray-400 mt-2">
-          Se repite semanalmente uno o varios días.
-        </p>
-      </button>
-    </div>
-  </div>
-
-  <div>
-    <label className="block mb-2 text-sm text-gray-300">
-      Grupo
-    </label>
-
-  {grupoIdDesdeUrl ? (
-  <div className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] text-gray-400">
-    Grupo definido desde la pantalla anterior.
-  </div>
-) : (
-    <select
-      name="grupoId"
-      value={form.grupoId}
-      onChange={handleChange}
-      className={inputClass}
-    >
-      <option value={0}>
-        Seleccionar grupo
-      </option>
-
-      {grupos.map((grupo) => (
-        <option
-          key={grupo.id}
-          value={grupo.id}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 space-y-6"
         >
-          {grupo.nombre}
-        </option>
-      ))}
-    </select>
-  )}
-</div>
+          {esEdicion && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5">
+              <h2 className="text-blue-300 font-bold">Modo edición</h2>
+              <p className="text-sm text-gray-300 mt-2">
+                Podés cambiar la ubicación, el cupo, el radio, las fechas o el
+                horario sin volver a configurar el grupo.
+              </p>
+            </div>
+          )}
+          {!esEdicion && grupoIdDesdeUrl && grupoSeleccionadoDesdeUrl && (
+            <div className="bg-[#12201b] border border-[#4adea8]/30 rounded-2xl p-5">
+              <p className="text-xs uppercase tracking-wide text-[#4adea8] font-bold">
+                Grupo seleccionado
+              </p>
+
+              <h2 className="text-2xl font-bold mt-2">
+                {grupoSeleccionadoDesdeUrl.nombre}
+              </h2>
+
+              <p className="text-gray-400 mt-2">
+                Nivel{" "}
+                <span className="text-white font-semibold">
+                  {grupoSeleccionadoDesdeUrl.nivel}
+                </span>
+              </p>
+
+              <p className="text-sm text-gray-500 mt-3">
+                La clase quedará asociada automáticamente a este grupo.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="block mb-3 text-sm text-gray-300">
+              Tipo de clase
+            </label>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => !esEdicion && cambiarTipoClase("puntual")}
+                disabled={esEdicion}
+                className={`rounded-2xl border p-5 text-left transition-all ${
+                  esEdicion ? "cursor-not-allowed opacity-75 " : ""
+                }${
+                  tipoClase === "puntual"
+                    ? "border-[#4adea8] bg-[#4adea8]/10"
+                    : "border-[#2d463b] bg-[#12201b]"
+                }`}
+              >
+                <h3 className="font-bold">Clase puntual</h3>
+
+                <p className="text-sm text-gray-400 mt-2">
+                  Se dicta una sola vez en una fecha específica.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => !esEdicion && cambiarTipoClase("recurrente")}
+                disabled={esEdicion}
+                className={`rounded-2xl border p-5 text-left transition-all ${
+                  esEdicion ? "cursor-not-allowed opacity-75 " : ""
+                }${
+                  tipoClase === "recurrente"
+                    ? "border-[#4adea8] bg-[#4adea8]/10"
+                    : "border-[#2d463b] bg-[#12201b]"
+                }`}
+              >
+                <h3 className="font-bold">Clase recurrente</h3>
+
+                <p className="text-sm text-gray-400 mt-2">
+                  Se repite semanalmente uno o varios días.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">Grupo</label>
+
+            {esEdicion || grupoIdDesdeUrl ? (
+              <div className="w-full p-4 rounded-xl bg-[#12201b] border border-[#2d463b]">
+                <p className="font-semibold text-white">
+                  {obtenerNombreGrupo()}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  El grupo ya está asociado a esta clase y no necesita volver a
+                  seleccionarse.
+                </p>
+              </div>
+            ) : (
+              <select
+                name="grupoId"
+                value={form.grupoId}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value={0}>Seleccionar grupo</option>
+
+                {grupos.map((grupo) => (
+                  <option key={grupo.id} value={grupo.id}>
+                    {grupo.nombre}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
           {tipoClase === "puntual" ? (
             <div>
@@ -836,7 +829,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
                               diaIndex,
                               horarioIndex,
                               "horaInicio",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className={inputClass}
@@ -850,7 +843,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
                               diaIndex,
                               horarioIndex,
                               "horaFin",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className={inputClass}
@@ -872,7 +865,8 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
 
                     {erroresPorDia[diaIndex] && (
                       <p className="text-sm text-red-400">
-                        ⚠ {erroresPorDia[diaIndex]} en {nombreDia(dia.diaSemana)}
+                        ⚠ {erroresPorDia[diaIndex]} en{" "}
+                        {nombreDia(dia.diaSemana)}
                       </p>
                     )}
 
@@ -906,6 +900,13 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
                 onChange={handleFechaInicioChange}
                 className={inputClass}
               />
+
+              {!esEdicion && form.fechaInicio && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Día detectado: {nombreDia(obtenerDiaDesdeFecha(form.fechaInicio))}.
+                  La fecha elegida no se modificará automáticamente.
+                </p>
+              )}
             </div>
 
             {tipoClase === "recurrente" && (
@@ -995,15 +996,14 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
             </div>
 
             <p className="text-xs text-gray-500 mt-3">
-              Los alumnos deberán estar dentro del círculo verde para registrar asistencia.
+              Los alumnos deberán estar dentro del círculo verde para registrar
+              asistencia.
             </p>
           </div>
 
           {!esEdicion && (
             <div className="rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-5">
-              <h3 className="font-bold text-[#4adea8] mb-3">
-                Vista previa
-              </h3>
+              <h3 className="font-bold text-[#4adea8] mb-3">Vista previa</h3>
 
               <p className="text-sm text-gray-300 mb-2">
                 Grupo: {obtenerNombreGrupo()}
@@ -1032,7 +1032,7 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
                         {horario.horaInicio || "--:--"} a{" "}
                         {horario.horaFin || "--:--"}
                       </p>
-                    ))
+                    )),
                   )
                 )}
               </div>
@@ -1046,12 +1046,12 @@ const grupoIdDesdeUrl = searchParams.get("grupoId");
             {guardando
               ? "Guardando..."
               : hayErroresEnHorarios
-              ? "Corregí los horarios para continuar"
-              : esEdicion
-              ? "Guardar cambios"
-              : cantidadClasesACrear > 1
-              ? `Crear ${cantidadClasesACrear} clases`
-              : "Crear clase"}
+                ? "Corregí los horarios para continuar"
+                : esEdicion
+                  ? "Guardar cambios"
+                  : cantidadClasesACrear > 1
+                    ? `Crear ${cantidadClasesACrear} clases`
+                    : "Crear clase"}
           </button>
         </form>
       </main>
