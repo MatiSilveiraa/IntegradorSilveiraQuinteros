@@ -49,6 +49,15 @@ namespace Joki.LogicaAplicacion.Mappers
 
                 GrupoId = clase.GrupoId,
                 GrupoNombre = clase.Grupo?.Nombre,
+                UbicacionNombre =
+    string.IsNullOrWhiteSpace(clase.Ubicacion.Direccion)
+        ? clase.Ubicacion.CodigoPostal
+        : clase.Ubicacion.Direccion,
+
+                EntrenadorNombre =
+    clase.Grupo?.Entrenador == null
+        ? null
+        : $"{clase.Grupo.Entrenador.Nombre.Valor} {clase.Grupo.Entrenador.Apellido.Valor}",
 
                 DiaSemana = clase.DiaSemana.ToString(),
 

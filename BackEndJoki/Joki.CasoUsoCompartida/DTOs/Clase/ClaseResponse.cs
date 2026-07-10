@@ -6,6 +6,10 @@
 
         public int GrupoId { get; set; }
         public string? GrupoNombre { get; set; }
+
+        public string? UbicacionNombre { get; set; }
+
+        public string? EntrenadorNombre { get; set; }
         public string DiaSemana { get; set; }
 
         public TimeSpan HoraInicio { get; set; }
