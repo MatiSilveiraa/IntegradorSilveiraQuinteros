@@ -1,4 +1,5 @@
 import ShoppingCartCheckoutOutlinedIcon from "@mui/icons-material/ShoppingCartCheckoutOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 
 type Props = {
   onPagar: () => void;
@@ -7,51 +8,57 @@ type Props = {
 
 export default function PagoFooter({
   onPagar,
-  disabled,
+  disabled = false,
 }: Props) {
-
   return (
     <div
       className="
         sticky
         bottom-0
-        p-4
+        py-5
         bg-gradient-to-t
         from-[#12201b]
         via-[#12201b]
         to-transparent
       "
     >
-
       <button
+        type="button"
         onClick={onPagar}
         disabled={disabled}
-        className="
+        className={`
           w-full
-          bg-[#4adea8]
-          hover:bg-[#4adea8]/90
-          text-[#12201b]
+          h-14
+          rounded-2xl
           font-bold
-          py-4
-          rounded-xl
           flex
           items-center
           justify-center
-          gap-2
+          gap-3
           transition-all
-          active:scale-95
           shadow-lg
-          shadow-[#4adea8]/20
-          disabled:opacity-50
-        "
+
+          ${
+            disabled
+              ? "bg-[#1a2b24] border border-[#2d463b] text-gray-400 cursor-not-allowed"
+              : "bg-[#4adea8] text-[#12201b] hover:brightness-110 active:scale-95 shadow-[#4adea8]/20"
+          }
+        `}
       >
+        {disabled ? (
+          <>
+            <CheckCircleOutlineOutlinedIcon />
 
-        <ShoppingCartCheckoutOutlinedIcon />
+            Sin pagos pendientes
+          </>
+        ) : (
+          <>
+            <ShoppingCartCheckoutOutlinedIcon />
 
-        Ir a pagar
-
+            Pagar con Mercado Pago
+          </>
+        )}
       </button>
-
     </div>
   );
 }

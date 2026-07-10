@@ -11,49 +11,65 @@ export default function PerfilInformacionMedica({
   editando,
   setForm,
 }: Props) {
-  return (
-    <div
-      className="
-        bg-[#1a211d]
+  const inputClass = `
+    mt-2
+    w-full
+    rounded-xl
+    px-4
+    py-3
+    outline-none
+    transition-all
+  `;
+
+  const estadoClass = editando
+    ? `
+        bg-[#12201b]
         border
-        border-[#2d463b]
-        rounded-2xl
-        p-6
-        mb-8
-      "
-    >
-      <h2 className="text-xl font-bold mb-6">
-        Información Médica
-      </h2>
+        border-[#4adea8]/50
+        text-white
+        focus:border-[#4adea8]
+        focus:ring-2
+        focus:ring-[#4adea8]/20
+      `
+    : `
+        bg-[#1f2d27]
+        border
+        border-transparent
+        text-gray-300
+        cursor-default
+      `;
 
-      <label className="text-sm text-gray-400">
-        Sociedad Médica
-      </label>
+  return (
+    <section className="bg-[#1a211d] border border-[#2d463b] rounded-3xl p-6 mb-8">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold">
+          Información médica
+        </h2>
 
-      <input
-        disabled={!editando}
-        value={form.sociedadMedica ?? ""}
-        onChange={(e) =>
-          setForm({
-            ...form,
-            sociedadMedica: e.target.value,
-          })
-        }
-        className="
-          mt-2
-          w-full
-          rounded-xl
-          bg-[#2d463b]
-          border
-          border-transparent
-          focus:border-[#4adea8]
-          focus:ring-2
-          focus:ring-[#4adea8]/30
-          transition-all
-          px-4
-          py-3
-        "
-      />
-    </div>
+        <p className="text-sm text-gray-400 mt-1">
+          Datos de contacto médico utilizados ante una eventual emergencia.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-sm text-gray-400">
+          Sociedad médica
+        </label>
+
+        <input
+          type="text"
+          disabled={!editando}
+          value={form.sociedadMedica ?? ""}
+          onChange={(e) =>
+            setForm((actual) => ({
+              ...actual,
+              sociedadMedica: e.target.value,
+            }))
+          }
+          placeholder={editando ? "Ej: ASSE, CAMCEL, Médica Uruguaya" : ""}
+          className={`${inputClass} ${estadoClass}`}
+        />
+      </div>
+    </section>
   );
 }

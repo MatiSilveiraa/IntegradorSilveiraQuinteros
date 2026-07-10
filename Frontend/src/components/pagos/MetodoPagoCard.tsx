@@ -1,5 +1,6 @@
-import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 type Props = {
   metodo?: string;
@@ -8,73 +9,78 @@ type Props = {
 
 export default function MetodoPagoCard({
   metodo = "Mercado Pago",
-  descripcion = "Tarjetas de crédito o débito",
+  descripcion = "Tarjetas de crédito, débito y medios habilitados.",
 }: Props) {
   return (
-    <div>
+    <section className="h-full">
+      <div className="mb-4">
+        <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
+          Método de pago
+        </p>
 
-      <h2 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">
-        Método de pago
-      </h2>
+        <h2 className="text-2xl font-bold text-white mt-2">
+          Pago online
+        </h2>
 
-      <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-1">
-
-        <button
-          className="
-            w-full
-            flex
-            items-center
-            gap-4
-            p-4
-            rounded-lg
-            hover:bg-slate-700/30
-            transition-colors
-            group
-          "
-        >
-
-          <div
-            className="
-              size-12
-              rounded-lg
-              bg-sky-500
-              flex
-              items-center
-              justify-center
-              shrink-0
-              shadow-lg
-              shadow-sky-500/20
-            "
-          >
-            <PaymentsOutlinedIcon
-              className="text-white"
-            />
-          </div>
-
-          <div className="flex-1 text-left">
-
-            <p className="font-semibold text-slate-100">
-              {metodo}
-            </p>
-
-            <p className="text-xs text-slate-400">
-              {descripcion}
-            </p>
-
-          </div>
-
-          <ChevronRightOutlinedIcon
-            className="
-              text-[#4adea8]
-              group-hover:translate-x-1
-              transition-transform
-            "
-          />
-
-        </button>
-
+        <p className="text-sm text-gray-400 mt-2">
+          El pago se procesa de forma automática.
+        </p>
       </div>
 
-    </div>
+      <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 h-full">
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 shrink-0 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center">
+            <PaymentsOutlinedIcon className="text-sky-300" />
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="text-lg font-bold text-white">
+              {metodo}
+            </h3>
+
+            <p className="text-sm text-gray-400 mt-1">
+              {descripcion}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <div className="flex items-start gap-3 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
+            <LockOutlinedIcon
+              className="text-[#4adea8] mt-0.5"
+              fontSize="small"
+            />
+
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Pago seguro
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                La operación se completa en la plataforma de Mercado Pago.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
+            <InfoOutlinedIcon
+              className="text-gray-400 mt-0.5"
+              fontSize="small"
+            />
+
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Pagos manuales
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Los pagos en efectivo o transferencia los registra el
+                administrador.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

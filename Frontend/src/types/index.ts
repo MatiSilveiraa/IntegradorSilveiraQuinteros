@@ -65,20 +65,34 @@ export interface CrearDescuentoRequest {
 export interface Clase {
   id: number;
   grupoId: number;
+
+  grupoNombre?: string;
+
   diaSemana: string;
   horaInicio: string;
   horaFin: string;
+
   latitud: number;
   longitud: number;
+
+  ubicacionNombre?: string;
+
+  entrenadorNombre?: string;
+
   codigoPostal: string;
+
   radioGeolocalizacion: number;
+
   esFija: boolean;
+
   fechaInicio: string;
   fechaFin?: string | null;
+
   cupoMaximo: number;
+
   estado: string;
+
   cantidadInscriptos: number;
-  grupoNombre?: string;
 }
 
 export type EstadoClaseValor = 0 | 1 | 2 | 3;
