@@ -41,3 +41,10 @@ export interface ClaseDetalle {
     alumnos: AlumnoClase[];
 
 }
+
+export interface AlumnoClase {
+  id: number;
+  nombre: string;
+  apellido: string;
+  presente: boolean;
+}

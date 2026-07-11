@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
+
 
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
@@ -12,13 +12,11 @@ import { obtenerMiPerfil } from "../../services/Perfil.service";
 
 import type { Perfil } from "../../types";
 import type { GrupoDetalle } from "../../types/grupoDetalle";
-import GrupoAlumnos from "../../components/entrenador/grupos/GrupoAlumnos";
 import GrupoHeader from "../../components/entrenador/grupos/GrupoHeader";
 import GrupoClases from "../../components/entrenador/grupos/GrupoClases";
 
 
 export default function GrupoDetallePage() {
-  const navigate = useNavigate();
 
   const { id } = useParams();
 
@@ -74,22 +72,7 @@ export default function GrupoDetallePage() {
         pb-10
       "
       >
-        {/* Volver */}
 
-        <button
-          onClick={() => navigate(-1)}
-          className="
-          flex
-          items-center
-          gap-2
-          text-[#4adea8]
-          mb-8
-          hover:underline
-        "
-        >
-          <ArrowBackOutlinedIcon />
-          Volver
-        </button>
 
         {/* Header */}
 
@@ -98,12 +81,6 @@ export default function GrupoDetallePage() {
           nivel={grupo.nivel}
           estado={grupo.estado}
         />
-
-        {/* Alumnos */}
-
-        <section className="mt-10">
-          <GrupoAlumnos alumnos={grupo.alumnos} />
-        </section>
 
         {/* Clases */}
 

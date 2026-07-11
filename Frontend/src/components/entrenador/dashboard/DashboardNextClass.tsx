@@ -74,7 +74,7 @@ export default function DashboardNextClass({ clase }: Props) {
 
             <button
               onClick={() =>
-                navigate(`/entrenador/asistencia/${clase.claseId}`)
+                navigate(`/entrenador/clases/${clase.claseId}/asistencia`)
               }
               className="
                 flex-1
