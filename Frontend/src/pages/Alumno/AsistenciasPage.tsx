@@ -28,6 +28,14 @@ import type { Clase, Historial } from "../../types";
 
 configurarLeaflet();
 
+type ClaseAsistencia = Clase & {
+  ubicacionNombre?: string;
+  entrenadorNombre?: string;
+  asistenciaRegistradaHoy?: boolean;
+  fechaRegistroAsistencia?: string | null;
+  tipoRegistroAsistencia?: "GEOLOCALIZACION" | "MANUAL" | string | null;
+};
+
 type EstadoPantalla =
   | "cargando"
   | "sin-clases"
@@ -55,24 +63,20 @@ type AsistenciaHistorial = {
 
 export default function AsistenciasPage() {
   const [loading, setLoading] = useState(true);
-  const [misClases, setMisClases] = useState<Clase[]>([]);
+  const [misClases, setMisClases] = useState<ClaseAsistencia[]>([]);
   const [historial, setHistorial] = useState<Historial | null>(null);
 
   const [ubicacion, setUbicacion] = useState<Coordenadas | null>(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState("");
-
   const [estadoPantalla, setEstadoPantalla] =
     useState<EstadoPantalla>("cargando");
-
-  const [tabActiva, setTabActiva] =
-    useState<TabActiva>("registrar");
-
+  const [tabActiva, setTabActiva] = useState<TabActiva>("registrar");
   const [mensajeResultado, setMensajeResultado] = useState("");
-  const [horaRegistro, setHoraRegistro] = useState("");
+  const [horaRegistroLocal, setHoraRegistroLocal] = useState("");
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
 
   useEffect(() => {
-    cargarPantalla();
+    void cargarPantalla();
   }, []);
 
   const cargarPantalla = async () => {
@@ -85,7 +89,7 @@ export default function AsistenciasPage() {
         obtenerMiHistorial(),
       ]);
 
-      const clases = clasesData ?? [];
+      const clases = (clasesData ?? []) as ClaseAsistencia[];
 
       setMisClases(clases);
       setHistorial(historialData);
@@ -96,11 +100,9 @@ export default function AsistenciasPage() {
       }
 
       const diaActual = obtenerDiaActual();
-
       const hayClaseHoy = clases.some(
-        (clase: Clase) =>
-          normalizarTexto(clase.diaSemana) ===
-          normalizarTexto(diaActual)
+        (clase) =>
+          normalizarTexto(clase.diaSemana) === normalizarTexto(diaActual),
       );
 
       if (!hayClaseHoy) {
@@ -109,11 +111,9 @@ export default function AsistenciasPage() {
       }
 
       setEstadoPantalla("ubicacion-pendiente");
-
-      await solicitarUbicacion();
+      await solicitarUbicacion(false);
     } catch (error) {
       console.error(error);
-
       toast.error("No fue posible cargar las asistencias");
       setEstadoPantalla("sin-clases");
     } finally {
@@ -127,31 +127,24 @@ export default function AsistenciasPage() {
     return misClases
       .filter(
         (clase) =>
-          normalizarTexto(clase.diaSemana) ===
-          normalizarTexto(diaActual)
+          normalizarTexto(clase.diaSemana) === normalizarTexto(diaActual),
       )
       .sort((a, b) =>
         formatearHora(a.horaInicio).localeCompare(
-          formatearHora(b.horaInicio)
-        )
+          formatearHora(b.horaInicio),
+        ),
       );
   }, [misClases]);
 
   const claseActual = useMemo(() => {
-    if (!clasesDeHoy.length) {
-      return undefined;
-    }
+    if (!clasesDeHoy.length) return undefined;
 
     const ahora = new Date();
-    const minutosActuales =
-      ahora.getHours() * 60 + ahora.getMinutes();
+    const minutosActuales = ahora.getHours() * 60 + ahora.getMinutes();
 
     const claseEnCurso = clasesDeHoy.find((clase) => {
-      const inicioPermitido =
-        horaAMinutos(clase.horaInicio) - 5;
-
-      const finPermitido =
-        horaAMinutos(clase.horaFin);
+      const inicioPermitido = horaAMinutos(clase.horaInicio) - 5;
+      const finPermitido = horaAMinutos(clase.horaFin);
 
       return (
         minutosActuales >= inicioPermitido &&
@@ -159,54 +152,53 @@ export default function AsistenciasPage() {
       );
     });
 
-    if (claseEnCurso) {
-      return claseEnCurso;
-    }
+    if (claseEnCurso) return claseEnCurso;
 
     const proximaClase = clasesDeHoy.find(
-      (clase) =>
-        horaAMinutos(clase.horaInicio) >
-        minutosActuales
+      (clase) => horaAMinutos(clase.horaInicio) > minutosActuales,
     );
 
-    return (
-      proximaClase ??
-      clasesDeHoy[clasesDeHoy.length - 1]
-    );
+    return proximaClase ?? clasesDeHoy[clasesDeHoy.length - 1];
   }, [clasesDeHoy]);
 
   const asistenciasHistorial =
     (historial?.asistencias ?? []) as AsistenciaHistorial[];
 
-  const asistenciaRegistradaHoy = useMemo(() => {
-    if (!claseActual) {
-      return undefined;
+  const asistenciaYaRegistrada =
+    claseActual?.asistenciaRegistradaHoy === true ||
+    estadoPantalla === "registrada";
+
+  const horaAsistenciaRegistrada = useMemo(() => {
+    if (claseActual?.fechaRegistroAsistencia) {
+      return formatearHoraUruguay(
+        claseActual.fechaRegistroAsistencia,
+      );
     }
 
-    const fechaHoy = obtenerFechaLocalISO();
+    return horaRegistroLocal;
+  }, [claseActual?.fechaRegistroAsistencia, horaRegistroLocal]);
 
-    return asistenciasHistorial.find(
-      (asistencia) =>
-        asistencia.claseId === claseActual.id &&
-        obtenerFechaISO(asistencia.fecha) === fechaHoy &&
-        asistencia.presente
-    );
-  }, [asistenciasHistorial, claseActual]);
+  const tipoRegistroTexto = useMemo(() => {
+    const tipo =
+      claseActual?.tipoRegistroAsistencia?.toUpperCase();
+
+    if (tipo === "GEOLOCALIZACION") return "Geolocalización";
+    if (tipo === "MANUAL") return "Registro manual";
+
+    return "";
+  }, [claseActual?.tipoRegistroAsistencia]);
 
   useEffect(() => {
-    if (!asistenciaRegistradaHoy) {
-      return;
+    if (
+      claseActual?.asistenciaRegistradaHoy &&
+      estadoPantalla !== "registrando"
+    ) {
+      setEstadoPantalla("registrada");
+      setMensajeResultado(
+        "La asistencia ya fue registrada para esta clase.",
+      );
     }
-
-    setEstadoPantalla("registrada");
-    setMensajeResultado("La asistencia ya fue registrada para esta clase.");
-
-    setHoraRegistro(
-      asistenciaRegistradaHoy.fecha.includes("T")
-        ? formatearHoraDesdeFecha(asistenciaRegistradaHoy.fecha)
-        : ""
-    );
-  }, [asistenciaRegistradaHoy]);
+  }, [claseActual?.asistenciaRegistradaHoy, estadoPantalla]);
 
   const distancia = useMemo(() => {
     if (
@@ -222,7 +214,7 @@ export default function AsistenciasPage() {
       ubicacion.latitud,
       ubicacion.longitud,
       claseActual.latitud,
-      claseActual.longitud
+      claseActual.longitud,
     );
   }, [claseActual, ubicacion]);
 
@@ -232,19 +224,12 @@ export default function AsistenciasPage() {
     distancia <= claseActual.radioGeolocalizacion;
 
   const horarioDisponible = useMemo(() => {
-    if (!claseActual) {
-      return false;
-    }
+    if (!claseActual) return false;
 
     const ahora = new Date();
-    const minutosActuales =
-      ahora.getHours() * 60 + ahora.getMinutes();
-
-    const inicioPermitido =
-      horaAMinutos(claseActual.horaInicio) - 5;
-
-    const finPermitido =
-      horaAMinutos(claseActual.horaFin);
+    const minutosActuales = ahora.getHours() * 60 + ahora.getMinutes();
+    const inicioPermitido = horaAMinutos(claseActual.horaInicio) - 5;
+    const finPermitido = horaAMinutos(claseActual.horaFin);
 
     return (
       minutosActuales >= inicioPermitido &&
@@ -252,26 +237,22 @@ export default function AsistenciasPage() {
     );
   }, [claseActual]);
 
-  const asistenciaYaRegistrada =
-    Boolean(asistenciaRegistradaHoy) ||
-    estadoPantalla === "registrada";
-
   const puedeConfirmar =
     Boolean(claseActual) &&
     Boolean(ubicacion) &&
     dentroDelRadio &&
     horarioDisponible &&
     !asistenciaYaRegistrada &&
-    estadoPantalla !== "registrando";
+    estadoPantalla !== "registrando" &&
+    !obteniendoUbicacion;
 
-  const solicitarUbicacion = async () => {
+
+  const solicitarUbicacion = async (
+    mostrarToastExito = true,
+  ) => {
     if (!navigator.geolocation) {
       setEstadoPantalla("error-ubicacion");
-
-      toast.error(
-        "Tu navegador no permite obtener la ubicación."
-      );
-
+      toast.error("Tu navegador no permite obtener la ubicación.");
       return;
     }
 
@@ -293,14 +274,16 @@ export default function AsistenciasPage() {
         new Date().toLocaleTimeString("es-UY", {
           hour: "2-digit",
           minute: "2-digit",
-        })
+        }),
       );
 
       if (!asistenciaYaRegistrada) {
         setEstadoPantalla("listo");
       }
 
-      toast.success("Ubicación actualizada");
+      if (mostrarToastExito) {
+        toast.success("Ubicación actualizada");
+      }
     } catch (error: any) {
       console.error(error);
 
@@ -310,20 +293,14 @@ export default function AsistenciasPage() {
 
       if (error?.code === 1) {
         toast.error(
-          "El permiso de ubicación está bloqueado. Habilitalo desde la configuración del sitio."
+          "El permiso de ubicación está bloqueado. Habilitalo desde la configuración del sitio.",
         );
       } else if (error?.code === 2) {
-        toast.error(
-          "No fue posible determinar tu ubicación actual."
-        );
+        toast.error("No fue posible determinar tu ubicación actual.");
       } else if (error?.code === 3) {
-        toast.error(
-          "La ubicación demoró demasiado. Intentá nuevamente."
-        );
+        toast.error("La ubicación demoró demasiado. Intentá nuevamente.");
       } else {
-        toast.error(
-          "No fue posible obtener tu ubicación."
-        );
+        toast.error("No fue posible obtener tu ubicación.");
       }
     } finally {
       setObteniendoUbicacion(false);
@@ -337,30 +314,22 @@ export default function AsistenciasPage() {
     }
 
     if (!claseActual) {
-      toast.error(
-        "No hay una clase disponible para registrar"
-      );
+      toast.error("No hay una clase disponible para registrar");
       return;
     }
 
     if (!ubicacion) {
-      toast.error(
-        "Primero debemos obtener tu ubicación"
-      );
+      toast.error("Primero debemos obtener tu ubicación");
       return;
     }
 
     if (!dentroDelRadio) {
-      toast.error(
-        "Todavía estás fuera del área permitida"
-      );
+      toast.error("Todavía estás fuera del área permitida");
       return;
     }
 
     if (!horarioDisponible) {
-      toast.error(
-        "La clase está fuera del horario permitido"
-      );
+      toast.error("La clase está fuera del horario permitido");
       return;
     }
 
@@ -371,52 +340,37 @@ export default function AsistenciasPage() {
         await registrarAsistenciaGeolocalizacion(
           claseActual.id,
           ubicacion.latitud,
-          ubicacion.longitud
+          ubicacion.longitud,
         );
 
-      const ahora = new Date();
-
-      const horaActual = ahora.toLocaleTimeString(
-        "es-UY",
-        {
+      setHoraRegistroLocal(
+        new Date().toLocaleTimeString("es-UY", {
           hour: "2-digit",
           minute: "2-digit",
-        }
+        }),
       );
-
-      setHoraRegistro(horaActual);
 
       setMensajeResultado(
-        resultado?.mensaje ??
-          "Asistencia registrada correctamente"
+        resultado?.mensaje ?? "Asistencia registrada correctamente",
       );
 
-      setHistorial((actual) => ({
-        ...(actual ?? {}),
-        asistencias: [
-          {
-            id: Date.now(),
-            claseId: claseActual.id,
-            fecha: ahora.toISOString(),
-            presente: true,
-            estado: "Registrada",
-          },
-          ...((actual?.asistencias ?? []) as AsistenciaHistorial[]),
-        ],
-      }));
+      const [clasesActualizadas, historialActualizado] =
+        await Promise.all([
+          obtenerMisClases(),
+          obtenerMiHistorial(),
+        ]);
 
+      setMisClases(
+        (clasesActualizadas ?? []) as ClaseAsistencia[],
+      );
+      setHistorial(historialActualizado);
       setEstadoPantalla("registrada");
 
       toast.success(
-        resultado?.mensaje ??
-          "Asistencia registrada correctamente"
+        resultado?.mensaje ?? "Asistencia registrada correctamente",
       );
     } catch (error: any) {
       console.error(error);
-      console.log(
-        "ERROR BACKEND:",
-        error?.response?.data
-      );
 
       const mensaje =
         error?.response?.data?.mensaje ??
@@ -424,7 +378,6 @@ export default function AsistenciasPage() {
 
       setMensajeResultado(mensaje);
       setEstadoPantalla("listo");
-
       toast.error(mensaje);
     }
   };
@@ -464,15 +417,8 @@ export default function AsistenciasPage() {
               type="button"
               onClick={() => setTabActiva("registrar")}
               className={`
-                flex
-                items-center
-                justify-center
-                gap-3
-                px-5
-                py-4
-                rounded-2xl
-                font-bold
-                transition-all
+                flex items-center justify-center gap-3
+                px-5 py-4 rounded-2xl font-bold transition-all
                 ${
                   tabActiva === "registrar"
                     ? "bg-[#4adea8] text-[#12201b]"
@@ -488,15 +434,8 @@ export default function AsistenciasPage() {
               type="button"
               onClick={() => setTabActiva("historial")}
               className={`
-                flex
-                items-center
-                justify-center
-                gap-3
-                px-5
-                py-4
-                rounded-2xl
-                font-bold
-                transition-all
+                flex items-center justify-center gap-3
+                px-5 py-4 rounded-2xl font-bold transition-all
                 ${
                   tabActiva === "historial"
                     ? "bg-[#4adea8] text-[#12201b]"
@@ -514,11 +453,7 @@ export default function AsistenciasPage() {
           <>
             <section
               className={`
-                rounded-3xl
-                border
-                p-6
-                md:p-8
-                mb-8
+                rounded-3xl border p-6 md:p-8 mb-8
                 ${
                   asistenciaYaRegistrada
                     ? "bg-[#4adea8]/10 border-[#4adea8]/40"
@@ -542,7 +477,7 @@ export default function AsistenciasPage() {
                     </p>
 
                     <h2 className="text-2xl md:text-3xl font-bold mt-2">
-                      Asistencia ya registrada
+                      Asistencia registrada
                     </h2>
 
                     <p className="text-gray-300 mt-2">
@@ -551,22 +486,29 @@ export default function AsistenciasPage() {
                     </p>
 
                     {claseActual && (
-                      <p className="text-gray-400 mt-2">
-                        {claseActual.grupoNombre ??
-                          "Clase programada"}
-                        {" · "}
-                        {formatearHora(
-                          claseActual.horaInicio
-                        )}
-                        {" a "}
-                        {formatearHora(
-                          claseActual.horaFin
-                        )}
+                      <>
+                        <p className="text-gray-400 mt-2">
+                          {claseActual.grupoNombre ?? "Clase programada"}
+                          {" · "}
+                          {formatearHora(claseActual.horaInicio)}
+                          {" a "}
+                          {formatearHora(claseActual.horaFin)}
+                        </p>
 
-                        {horaRegistro
-                          ? ` · Registrada a las ${horaRegistro}`
-                          : ""}
-                      </p>
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          {horaAsistenciaRegistrada && (
+                            <span className="px-3 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] text-sm text-gray-300">
+                              Registrada a las {horaAsistenciaRegistrada}
+                            </span>
+                          )}
+
+                          {tipoRegistroTexto && (
+                            <span className="px-3 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] text-sm text-gray-300">
+                              {tipoRegistroTexto}
+                            </span>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -622,7 +564,7 @@ export default function AsistenciasPage() {
 
                         <button
                           type="button"
-                          onClick={solicitarUbicacion}
+                          onClick={() => void solicitarUbicacion(true)}
                           disabled={obteniendoUbicacion}
                           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] text-sm font-semibold hover:border-[#4adea8] disabled:opacity-50 transition-all"
                         >
@@ -669,10 +611,7 @@ export default function AsistenciasPage() {
                       ) : (
                         <div className="min-h-64 rounded-2xl bg-[#12201b] border border-dashed border-[#2d463b] flex flex-col items-center justify-center text-center p-6">
                           <LocationOnOutlinedIcon
-                            sx={{
-                              fontSize: 42,
-                              color: "#4adea8",
-                            }}
+                            sx={{ fontSize: 42, color: "#4adea8" }}
                           />
 
                           <h3 className="text-lg font-bold mt-4">
@@ -686,7 +625,7 @@ export default function AsistenciasPage() {
 
                           <button
                             type="button"
-                            onClick={solicitarUbicacion}
+                            onClick={() => void solicitarUbicacion(true)}
                             disabled={obteniendoUbicacion}
                             className="mt-5 px-5 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold disabled:opacity-50"
                           >
@@ -716,13 +655,8 @@ export default function AsistenciasPage() {
                           </h3>
 
                           <p className="text-lg text-gray-300 mt-2">
-                            {formatearHora(
-                              claseActual.horaInicio
-                            )}{" "}
-                            -{" "}
-                            {formatearHora(
-                              claseActual.horaFin
-                            )}
+                            {formatearHora(claseActual.horaInicio)} -{" "}
+                            {formatearHora(claseActual.horaFin)}
                           </p>
 
                           {claseActual.entrenadorNombre && (
@@ -735,7 +669,7 @@ export default function AsistenciasPage() {
                           )}
 
                           {esUbicacionLegible(
-                            claseActual.ubicacionNombre
+                            claseActual.ubicacionNombre,
                           ) && (
                             <p className="text-gray-400 mt-2">
                               Ubicación:{" "}
@@ -750,9 +684,7 @@ export default function AsistenciasPage() {
                               titulo="Distancia actual"
                               valor={
                                 distancia !== null
-                                  ? `${Math.round(
-                                      distancia
-                                    )} metros`
+                                  ? `${Math.round(distancia)} metros`
                                   : "Sin calcular"
                               }
                               correcto={dentroDelRadio}
@@ -838,48 +770,40 @@ export default function AsistenciasPage() {
                         )}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={confirmarAsistencia}
-                        disabled={!puedeConfirmar}
-                        className={`
-                          w-full
-                          lg:w-auto
-                          min-w-64
-                          h-14
-                          rounded-2xl
-                          font-bold
-                          flex
-                          items-center
-                          justify-center
-                          gap-3
-                          transition-all
-                          ${
-                            puedeConfirmar
-                              ? "bg-[#4adea8] text-[#12201b] hover:brightness-110 active:scale-95"
-                              : asistenciaYaRegistrada
-                              ? "bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] cursor-not-allowed"
-                              : "bg-[#12201b] border border-[#2d463b] text-gray-500 cursor-not-allowed"
-                          }
-                        `}
-                      >
-                        {estadoPantalla === "registrando" ? (
-                          <>
-                            <span className="w-5 h-5 rounded-full border-2 border-[#12201b]/30 border-t-[#12201b] animate-spin" />
-                            Registrando...
-                          </>
-                        ) : asistenciaYaRegistrada ? (
-                          <>
-                            <CheckCircleOutlineOutlinedIcon />
-                            Asistencia confirmada
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircleOutlineOutlinedIcon />
-                            Confirmar asistencia
-                          </>
-                        )}
-                      </button>
+                      {asistenciaYaRegistrada ? (
+                        <div className="w-full lg:w-auto min-w-64 h-14 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] font-bold flex items-center justify-center gap-3 px-6">
+                          <CheckCircleOutlineOutlinedIcon />
+                          Asistencia registrada
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={confirmarAsistencia}
+                          disabled={!puedeConfirmar}
+                          className={`
+                            w-full lg:w-auto min-w-64 h-14 rounded-2xl
+                            font-bold flex items-center justify-center gap-3
+                            transition-all
+                            ${
+                              puedeConfirmar
+                                ? "bg-[#4adea8] text-[#12201b] hover:brightness-110 active:scale-95"
+                                : "bg-[#12201b] border border-[#2d463b] text-gray-500 cursor-not-allowed"
+                            }
+                          `}
+                        >
+                          {estadoPantalla === "registrando" ? (
+                            <>
+                              <span className="w-5 h-5 rounded-full border-2 border-[#12201b]/30 border-t-[#12201b] animate-spin" />
+                              Registrando...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircleOutlineOutlinedIcon />
+                              Confirmar asistencia
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </section>
                 </>
@@ -905,21 +829,21 @@ function HistorialAsistencias({
   clases,
 }: {
   asistencias: AsistenciaHistorial[];
-  clases: Clase[];
+  clases: ClaseAsistencia[];
 }) {
   const asistenciasOrdenadas = [...asistencias].sort(
     (a, b) =>
       new Date(b.fecha).getTime() -
-      new Date(a.fecha).getTime()
+      new Date(a.fecha).getTime(),
   );
 
   const totalPresentes = asistencias.filter(
-    (asistencia) => asistencia.presente
+    (asistencia) => asistencia.presente,
   ).length;
 
   const asistenciasEsteMes = asistencias.filter(
     (asistencia) => {
-      const fecha = new Date(asistencia.fecha);
+      const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
       const ahora = new Date();
 
       return (
@@ -927,7 +851,7 @@ function HistorialAsistencias({
         fecha.getFullYear() === ahora.getFullYear() &&
         asistencia.presente
       );
-    }
+    },
   ).length;
 
   return (
@@ -982,7 +906,7 @@ function HistorialAsistencias({
           <div className="space-y-4">
             {asistenciasOrdenadas.map((asistencia) => {
               const clase = clases.find(
-                (item) => item.id === asistencia.claseId
+                (item) => item.id === asistencia.claseId,
               );
 
               return (
@@ -994,13 +918,8 @@ function HistorialAsistencias({
                     <div className="flex items-start gap-4">
                       <div
                         className={`
-                          w-12
-                          h-12
-                          shrink-0
-                          rounded-2xl
-                          flex
-                          items-center
-                          justify-center
+                          w-12 h-12 shrink-0 rounded-2xl
+                          flex items-center justify-center
                           ${
                             asistencia.presente
                               ? "bg-[#4adea8]/10 text-[#4adea8]"
@@ -1018,7 +937,7 @@ function HistorialAsistencias({
                       <div>
                         <p className="text-sm text-gray-400 capitalize">
                           {formatearFechaCompleta(
-                            asistencia.fecha
+                            asistencia.fecha,
                           )}
                         </p>
 
@@ -1031,11 +950,11 @@ function HistorialAsistencias({
                           <p className="text-gray-400 mt-2">
                             {clase.diaSemana} ·{" "}
                             {formatearHora(
-                              clase.horaInicio
+                              clase.horaInicio,
                             )}{" "}
                             -{" "}
                             {formatearHora(
-                              clase.horaFin
+                              clase.horaFin,
                             )}
                           </p>
                         )}
@@ -1044,17 +963,8 @@ function HistorialAsistencias({
 
                     <span
                       className={`
-                        self-start
-                        sm:self-auto
-                        inline-flex
-                        items-center
-                        gap-2
-                        px-4
-                        py-2
-                        rounded-full
-                        border
-                        text-sm
-                        font-bold
+                        self-start sm:self-auto inline-flex items-center gap-2
+                        px-4 py-2 rounded-full border text-sm font-bold
                         ${
                           asistencia.presente
                             ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
@@ -1097,14 +1007,10 @@ function ResumenHistorial({
 }) {
   return (
     <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-      <p className="text-sm text-gray-400">
-        {titulo}
-      </p>
-
+      <p className="text-sm text-gray-400">{titulo}</p>
       <p className="text-4xl font-bold text-[#4adea8] mt-3">
         {valor}
       </p>
-
       <p className="text-xs text-gray-500 mt-2">
         {descripcion}
       </p>
@@ -1115,15 +1021,12 @@ function ResumenHistorial({
 function MisClases({
   clases,
 }: {
-  clases: Clase[];
+  clases: ClaseAsistencia[];
 }) {
   return (
     <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">
-          Mis clases
-        </h2>
-
+        <h2 className="text-2xl font-bold">Mis clases</h2>
         <p className="text-gray-400 mt-1">
           Horarios en los que estás inscripto.
         </p>
@@ -1142,25 +1045,31 @@ function MisClases({
             >
               <div>
                 <p className="font-bold text-lg">
-                  {clase.grupoNombre ??
-                    clase.diaSemana}
+                  {clase.grupoNombre ?? clase.diaSemana}
                 </p>
 
                 <p className="text-gray-400 mt-1">
                   {clase.diaSemana} ·{" "}
-                  {formatearHora(
-                    clase.horaInicio
-                  )}{" "}
-                  -{" "}
-                  {formatearHora(
-                    clase.horaFin
-                  )}
+                  {formatearHora(clase.horaInicio)} -{" "}
+                  {formatearHora(clase.horaFin)}
                 </p>
               </div>
 
-              <span className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/20 text-[#4adea8] text-sm font-semibold">
+              <span
+                className={`
+                  self-start sm:self-auto flex items-center gap-2
+                  px-4 py-2 rounded-full border text-sm font-semibold
+                  ${
+                    clase.asistenciaRegistradaHoy
+                      ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
+                      : "bg-[#12201b] border-[#2d463b] text-gray-300"
+                  }
+                `}
+              >
                 <CheckCircleOutlineOutlinedIcon fontSize="small" />
-                Activa
+                {clase.asistenciaRegistradaHoy
+                  ? "Asistencia registrada"
+                  : "Activa"}
               </span>
             </div>
           ))}
@@ -1169,6 +1078,7 @@ function MisClases({
     </section>
   );
 }
+
 
 function EstadoBadge({
   dentroDelRadio,
@@ -1221,15 +1131,11 @@ function InfoEstado({
 }) {
   return (
     <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-4">
-      <p className="text-xs text-gray-500">
-        {titulo}
-      </p>
+      <p className="text-xs text-gray-500">{titulo}</p>
 
       <p
         className={`font-bold mt-2 ${
-          correcto
-            ? "text-[#4adea8]"
-            : "text-amber-300"
+          correcto ? "text-[#4adea8]" : "text-amber-300"
         }`}
       >
         {valor}
@@ -1256,9 +1162,7 @@ function EstadoVacio({
         />
       </div>
 
-      <h2 className="text-2xl font-bold mt-5">
-        {titulo}
-      </h2>
+      <h2 className="text-2xl font-bold mt-5">{titulo}</h2>
 
       <p className="text-gray-400 mt-2 max-w-xl mx-auto">
         {descripcion}
@@ -1275,7 +1179,7 @@ function obtenerTextoEstado({
   asistenciaYaRegistrada,
 }: {
   estadoPantalla: EstadoPantalla;
-  claseActual?: Clase;
+  claseActual?: ClaseAsistencia;
   dentroDelRadio: boolean;
   horarioDisponible: boolean;
   asistenciaYaRegistrada: boolean;
@@ -1344,23 +1248,18 @@ function obtenerPosicionActual(): Promise<GeolocationPosition> {
         enableHighAccuracy: true,
         timeout: 15000,
         maximumAge: 0,
-      }
+      },
     );
   });
 }
 
 function formatearHora(hora?: string) {
-  if (!hora) {
-    return "--:--";
-  }
-
+  if (!hora) return "--:--";
   return hora.substring(0, 5);
 }
 
 function horaAMinutos(hora?: string) {
-  if (!hora) {
-    return 0;
-  }
+  if (!hora) return 0;
 
   const [horas, minutos] = hora
     .substring(0, 5)
@@ -1378,59 +1277,40 @@ function normalizarTexto(texto?: string) {
 }
 
 function esUbicacionLegible(ubicacion?: string) {
-  if (!ubicacion?.trim()) {
-    return false;
-  }
+  if (!ubicacion?.trim()) return false;
+  return !/^\d+$/.test(ubicacion.trim());
+}
 
-  return !/^\d+$/.test(
-    ubicacion.trim()
+function formatearHoraUruguay(
+  fecha?: string | null,
+) {
+  if (!fecha) return "";
+
+  return new Date(fecha).toLocaleTimeString(
+    "es-UY",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Montevideo",
+    },
   );
 }
 
-function obtenerFechaLocalISO() {
-  const ahora = new Date();
-
-  const anio = ahora.getFullYear();
-  const mes = String(
-    ahora.getMonth() + 1
-  ).padStart(2, "0");
-
-  const dia = String(
-    ahora.getDate()
-  ).padStart(2, "0");
-
-  return `${anio}-${mes}-${dia}`;
-}
-
-function obtenerFechaISO(fecha: string) {
-  return fecha.substring(0, 10);
-}
-
-function formatearFechaCompleta(fecha: string) {
-  const fechaSinHora =
-    obtenerFechaISO(fecha);
-
+function crearFechaLocalDesdeISO(fecha: string) {
+  const fechaSinHora = fecha.substring(0, 10);
   const [anio, mes, dia] =
     fechaSinHora.split("-").map(Number);
 
-  return new Date(
-    anio,
-    mes - 1,
-    dia
+  return new Date(anio, mes - 1, dia);
+}
+
+function formatearFechaCompleta(fecha: string) {
+  return crearFechaLocalDesdeISO(
+    fecha,
   ).toLocaleDateString("es-UY", {
     weekday: "long",
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
-}
-
-function formatearHoraDesdeFecha(fecha: string) {
-  const hora = fecha.split("T")[1];
-
-  if (!hora) {
-    return "";
-  }
-
-  return hora.substring(0, 5);
 }
