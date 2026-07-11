@@ -22,6 +22,12 @@
 
         public string CodigoPostal { get; set; }
 
+        public bool AsistenciaRegistradaHoy { get; set; }
+
+        public DateTime? FechaRegistroAsistencia { get; set; }
+
+        public string? TipoRegistroAsistencia { get; set; }
+
         public decimal RadioGeolocalizacion { get; set; }
 
         public bool EsFija { get; set; }

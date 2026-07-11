@@ -16,21 +16,33 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
     public class RegistrarAsistenciaGeolocalizacion :
         IRegistrarAsistenciaGeolocalizacion
     {
-        private readonly IRepositorioAsistencia _repoAsistencia;
-        private readonly IRepositorioClase _repoClase;
-        private readonly IRepositorioAlumno _repoAlumno;
-        private readonly IRepositorioInscripcion _repoInscripcion;
+        private readonly IRepositorioAsistencia
+            _repoAsistencia;
+
+        private readonly IRepositorioClase
+            _repoClase;
+
+        private readonly IRepositorioAlumno
+            _repoAlumno;
+
+        private readonly IRepositorioInscripcion
+            _repoInscripcion;
+
+        private readonly IRepositorioCuota
+            _repoCuota;
 
         public RegistrarAsistenciaGeolocalizacion(
             IRepositorioAsistencia repoAsistencia,
             IRepositorioClase repoClase,
             IRepositorioAlumno repoAlumno,
-            IRepositorioInscripcion repoInscripcion)
+            IRepositorioInscripcion repoInscripcion,
+            IRepositorioCuota repoCuota)
         {
             _repoAsistencia = repoAsistencia;
             _repoClase = repoClase;
             _repoAlumno = repoAlumno;
             _repoInscripcion = repoInscripcion;
+            _repoCuota = repoCuota;
         }
 
         public void Ejecutar(
@@ -53,7 +65,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
             }
 
             var clase =
-                _repoClase.ObtenerPorId(request.ClaseId);
+                _repoClase.ObtenerPorId(
+                    request.ClaseId);
 
             if (clase == null)
             {
@@ -72,8 +85,6 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                     "El alumno no está inscripto a esta clase");
             }
 
-            // Se obtiene una única vez para que toda la operación
-            // utilice exactamente la misma fecha y hora.
             DateTimeOffset ahoraUruguay =
                 HorarioUruguayHelper.ObtenerAhora();
 
@@ -115,13 +126,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                 {
                     AlumnoId = alumnoId,
                     ClaseId = request.ClaseId,
-
-                    // Fecha de negocio según Uruguay.
                     Fecha = fechaActualUruguay,
-
-                    // Instante real almacenado en UTC.
                     FechaRegistro = DateTime.UtcNow,
-
                     Presente = true,
                     RegistradoPorId = alumnoId,
                     Latitud = request.Latitud,
@@ -130,20 +136,77 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
                     RegistradaPorGeolocalizacion = true
                 };
 
-            _repoAsistencia.Agregar(asistencia);
+            _repoAsistencia.Agregar(
+                asistencia);
+
+            ActualizarRachaAlumno(
+                alumno,
+                ahoraUruguay);
+        }
+
+        private void ActualizarRachaAlumno(
+            Joki.LogicaNegocio.Entidades.Alumno alumno,
+            DateTimeOffset ahoraUruguay)
+        {
+            int mesActual =
+                ahoraUruguay.Month;
+
+            int anioActual =
+                ahoraUruguay.Year;
+
+            if (alumno.MesRachaAsistencia != mesActual ||
+                alumno.AnioRachaAsistencia != anioActual)
+            {
+                alumno.RachaAsistenciaMensual = 0;
+                alumno.DescuentoRachaGenerado = false;
+                alumno.MesRachaAsistencia = mesActual;
+                alumno.AnioRachaAsistencia = anioActual;
+            }
+
+            alumno.RachaAsistenciaMensual++;
+
+            if (alumno.RachaAsistenciaMensual >= 10 &&
+                !alumno.DescuentoRachaGenerado)
+            {
+                alumno.DescuentoRachaGenerado = true;
+
+                decimal montoBase = 1390m;
+
+                decimal descuento =
+                    montoBase * 0.10m;
+
+                decimal montoFinal =
+                    montoBase - descuento;
+
+                var cuota =
+                    _repoCuota.ObtenerPorAlumnoMesYAnio(
+                        alumno.UsuarioId,
+                        mesActual,
+                        anioActual);
+
+                if (cuota != null)
+                {
+                    cuota.Descuento =
+                        descuento;
+
+                    cuota.MontoFinal =
+                        montoFinal;
+
+                    _repoCuota.Modificar(
+                        cuota);
+                }
+            }
+
+            _repoAlumno.Modificar(
+                alumno);
         }
 
         private static void ValidarHorarioClase(
             ClaseEntidad clase,
             DateTimeOffset ahoraUruguay)
         {
-            DayOfWeek diaActual =
-                ahoraUruguay.DayOfWeek;
-
-            DayOfWeek diaClase =
-                ConvertirDia(clase.DiaSemana);
-
-            if (diaClase != diaActual)
+            if (ConvertirDia(clase.DiaSemana) !=
+                ahoraUruguay.DayOfWeek)
             {
                 throw new LogicaNegocioException(
                     "La clase no corresponde al día de hoy");
@@ -206,13 +269,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
             decimal lat2,
             decimal lon2)
         {
-            const double radioTierra = 6371000;
+            const double radioTierra =
+                6371000;
 
             double latitud1 =
-                GradosARadianes((double)lat1);
+                GradosARadianes(
+                    (double)lat1);
 
             double latitud2 =
-                GradosARadianes((double)lat2);
+                GradosARadianes(
+                    (double)lat2);
 
             double diferenciaLatitud =
                 GradosARadianes(
@@ -246,7 +312,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Asistencia
         private static double GradosARadianes(
             double grados)
         {
-            return grados * Math.PI / 180;
+            return grados *
+                Math.PI / 180;
         }
     }
 }
