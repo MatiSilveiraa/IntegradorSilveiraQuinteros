@@ -2,6 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+
 import {
   obtenerDesafios,
   crearDesafio,
@@ -77,7 +85,10 @@ export default function AdminDesafiosPage() {
   };
 
   const formatearFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString("es-UY", {
+    const fechaSinHora = fecha.substring(0, 10);
+    const [anio, mes, dia] = fechaSinHora.split("-").map(Number);
+
+    return new Date(anio, mes - 1, dia).toLocaleDateString("es-UY", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -200,23 +211,50 @@ export default function AdminDesafiosPage() {
     <div className="min-h-screen bg-[#12201b] text-white">
       <TopBar />
 
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-10">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-4xl font-bold">Desafíos</h1>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10">
+        <button
+          type="button"
+          onClick={() => navigate("/admin")}
+          className="inline-flex items-center gap-2 mb-6 text-sm font-semibold text-gray-400 hover:text-[#4adea8] transition-colors"
+        >
+          <ArrowBackOutlinedIcon fontSize="small" />
+          Panel de administración
+        </button>
 
-            <p className="text-gray-400 mt-2">
-              Crear, editar y administrar desafíos, recompensas y ganadores.
-            </p>
+        <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/30 flex items-center justify-center">
+                  <EmojiEventsOutlinedIcon className="text-[#4adea8]" />
+                </div>
+
+                <div>
+                  <p className="text-[#4adea8] text-xs font-bold uppercase tracking-wide">
+                    Administración
+                  </p>
+
+                  <h1 className="text-3xl md:text-4xl font-bold mt-1">
+                    Desafíos
+                  </h1>
+                </div>
+              </div>
+
+              <p className="text-gray-300 mt-5 max-w-2xl">
+                Creá, editá y administrá desafíos, recompensas y ganadores.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={abrirCrear}
+              className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:brightness-110 active:scale-95 transition-all"
+            >
+              <AddOutlinedIcon fontSize="small" />
+              Nuevo desafío
+            </button>
           </div>
-
-          <button
-            onClick={abrirCrear}
-            className="px-6 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:opacity-90"
-          >
-            + Nuevo desafío
-          </button>
-        </div>
+        </section>
 
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <ResumenCard titulo="Total" valor={resumen.total} />
@@ -243,70 +281,95 @@ export default function AdminDesafiosPage() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {desafios.map((desafio) => {
               const estado = obtenerEstado(desafio);
 
               return (
-                <div
+                <article
                   key={desafio.id}
-                  className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 hover:border-[#4adea8]/40 transition-all"
+                  className="group bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 flex flex-col min-h-[360px] hover:border-[#4adea8]/50 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all"
                 >
-                  <div className="flex justify-between items-start gap-4 mb-4">
-                    <div>
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full border text-xs font-bold mb-3 ${obtenerEstadoClase(
-                          estado
-                        )}`}
-                      >
-                        {estado}
-                      </span>
+                  <div className="flex items-start justify-between gap-4">
+                    <span
+                      className={`inline-flex px-3 py-1 rounded-full border text-xs font-bold ${obtenerEstadoClase(
+                        estado
+                      )}`}
+                    >
+                      {estado}
+                    </span>
 
-                      <h2 className="text-xl font-bold">{desafio.titulo}</h2>
+                    <div className="w-11 h-11 rounded-2xl bg-[#12201b] border border-[#2d463b] flex items-center justify-center">
+                      <EmojiEventsOutlinedIcon
+                        className="text-[#4adea8]"
+                        fontSize="small"
+                      />
                     </div>
                   </div>
 
-                  <p className="text-gray-400 min-h-[48px]">
-                    {desafio.descripcion}
-                  </p>
+                  <div className="mt-5">
+                    <h2 className="text-2xl font-bold">
+                      {desafio.titulo}
+                    </h2>
 
-                  <div className="mt-5 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
-                    <p className="text-sm text-gray-400">Duración</p>
-
-                    <p className="font-bold mt-1">
-                      {formatearFecha(desafio.fechaInicio)} -{" "}
-                      {formatearFecha(desafio.fechaFin)}
+                    <p className="text-gray-400 mt-3 leading-relaxed line-clamp-3">
+                      {desafio.descripcion || "Sin descripción cargada."}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 mt-5">
+                  <div className="mt-6 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
+                    <div className="flex items-center gap-3">
+                      <CalendarMonthOutlinedIcon
+                        className="text-[#4adea8]"
+                        fontSize="small"
+                      />
+
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">
+                          Duración
+                        </p>
+
+                        <p className="font-bold mt-1">
+                          {formatearFecha(desafio.fechaInicio)} -{" "}
+                          {formatearFecha(desafio.fechaFin)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-6">
                     <button
                       type="button"
                       onClick={() =>
                         navigate(`/admin/desafios/${desafio.id}`)
                       }
-                      className="py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
+                      className="w-full py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all"
                     >
+                      <ManageAccountsOutlinedIcon fontSize="small" />
                       Gestionar desafío
                     </button>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 mt-3">
                       <button
+                        type="button"
                         onClick={() => abrirEditar(desafio)}
-                        className="py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 font-semibold hover:border-blue-400"
+                        className="py-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 font-semibold flex items-center justify-center gap-2 hover:border-blue-400 transition-all"
                       >
+                        <EditOutlinedIcon fontSize="small" />
                         Editar
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => setDesafioAEliminar(desafio)}
-                        className="py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold hover:border-red-400"
+                        className="py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-semibold flex items-center justify-center gap-2 hover:border-red-400 transition-all"
                       >
+                        <DeleteOutlineOutlinedIcon fontSize="small" />
                         Eliminar
                       </button>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
