@@ -3,87 +3,149 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using System.Net.Mail;
+using System.Security.Cryptography;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
     public class SolicitarLoginSinPassword :
         ISolicitarLoginSinPassword
     {
-        private readonly IRepositorioUsuario _repositorioUsuario;
-        private readonly IRepositorioCodigoLoginSinPassword _repositorioCodigo;
-        private readonly IServicioEmail _servicioEmail;
+        private readonly IRepositorioUsuario
+            _repositorioUsuario;
+
+        private readonly IRepositorioCodigoLoginSinPassword
+            _repositorioCodigo;
+
+        private readonly IServicioEmail
+            _servicioEmail;
 
         public SolicitarLoginSinPassword(
             IRepositorioUsuario repositorioUsuario,
             IRepositorioCodigoLoginSinPassword repositorioCodigo,
             IServicioEmail servicioEmail)
         {
-            _repositorioUsuario = repositorioUsuario;
-            _repositorioCodigo = repositorioCodigo;
-            _servicioEmail = servicioEmail;
+            _repositorioUsuario =
+                repositorioUsuario;
+
+            _repositorioCodigo =
+                repositorioCodigo;
+
+            _servicioEmail =
+                servicioEmail;
         }
 
         public void Ejecutar(
             LoginSinPasswordRequest request)
         {
             if (request == null ||
-                string.IsNullOrWhiteSpace(request.Email))
+                !EsEmailValido(request.Email))
             {
                 throw new LogicaNegocioException(
                     "Debe ingresar un email válido");
             }
 
+            string email =
+                request.Email.Trim();
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
-                    request.Email);
+                    email);
 
             if (usuario == null)
             {
-                throw new LogicaNegocioException(
-                    "No existe un usuario con ese email");
+                return;
             }
 
             var codigoAnterior =
                 _repositorioCodigo
                     .ObtenerUltimoPendientePorUsuario(
                         usuario.UsuarioId);
+            if (codigoAnterior != null &&
+                codigoAnterior.FechaCreacion >
+                    DateTime.UtcNow.AddMinutes(-1))
+            {
+                return;
+            }
 
             if (codigoAnterior != null)
             {
-                if (codigoAnterior.FechaCreacion >
-                    DateTime.UtcNow.AddMinutes(-1))
-                {
-                    throw new LogicaNegocioException(
-                        "Debes esperar un minuto antes de solicitar otro código");
-                }
-
-                codigoAnterior.Usado = true;
+                codigoAnterior.Usado =
+                    true;
 
                 _repositorioCodigo.Modificar(
                     codigoAnterior);
             }
 
             string codigo =
-                Random.Shared.Next(100000, 999999)
-                    .ToString();
+                GenerarCodigoSeguro();
 
             var loginCodigo =
                 new CodigoLoginSinPassword
                 {
-                    UsuarioId = usuario.UsuarioId,
-                    Codigo = codigo,
-                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioId =
+                        usuario.UsuarioId,
+
+                    Codigo =
+                        codigo,
+
+                    FechaCreacion =
+                        DateTime.UtcNow,
+
                     FechaExpiracion =
                         DateTime.UtcNow.AddMinutes(10),
-                    Usado = false
+
+                    Usado =
+                        false
                 };
 
             _repositorioCodigo.Agregar(
                 loginCodigo);
 
-            _servicioEmail.EnviarCodigoRecuperacion(
-                usuario.Email.Valor,
-                codigo);
+            try
+            {
+                _servicioEmail
+                    .EnviarCodigoRecuperacion(
+                        usuario.Email.Valor,
+                        codigo);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private static string GenerarCodigoSeguro()
+        {
+            int codigo =
+                RandomNumberGenerator.GetInt32(
+                    100000,
+                    1000000);
+
+            return codigo.ToString();
+        }
+
+        private static bool EsEmailValido(
+            string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return false;
+            }
+
+            try
+            {
+                var direccion =
+                    new MailAddress(email.Trim());
+
+                return direccion.Address.Equals(
+                    email.Trim(),
+                    StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

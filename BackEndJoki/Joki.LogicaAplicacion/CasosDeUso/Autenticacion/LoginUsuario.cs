@@ -1,7 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Autenticacion;
 using Joki.CasoUsoCompartida.DTOs.Usuario;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Microsoft.AspNetCore.Identity;
@@ -14,14 +13,20 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
     {
         private readonly IRepositorioUsuario _repositorioUsuario;
         private readonly PasswordHasher<object> _hasheador;
+        private readonly string _hashFicticio;
 
-        public LoginUsuario(IRepositorioUsuario repositorioUsuario)
+        public LoginUsuario(
+            IRepositorioUsuario repositorioUsuario)
         {
             _repositorioUsuario = repositorioUsuario;
             _hasheador = new PasswordHasher<object>();
+            _hashFicticio = _hasheador.HashPassword(
+                null!,
+                "Joki-Dummy-Password-For-Timing-Only");
         }
 
-        public DtoDatosUsuario? Ejecutar(LoginRequest request)
+        public DtoDatosUsuario? Ejecutar(
+            LoginRequest request)
         {
             if (request == null ||
                 string.IsNullOrWhiteSpace(request.Email) ||
@@ -30,42 +35,51 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 return null;
             }
 
-            // 🔍 Buscar usuario
-            Usuario? usuario = _repositorioUsuario.ObtenerPorEmail(request.Email);
+            Usuario? usuario =
+                _repositorioUsuario.ObtenerPorEmail(
+                    request.Email.Trim());
 
-            if (usuario == null)
+            string hashAValidar =
+                usuario != null &&
+                usuario.Contrasena != null &&
+                !string.IsNullOrWhiteSpace(
+                    usuario.Contrasena.Valor)
+                    ? usuario.Contrasena.Valor
+                    : _hashFicticio;
+
+            PasswordVerificationResult resultado;
+
+            try
+            {
+                resultado =
+                    _hasheador.VerifyHashedPassword(
+                        null!,
+                        hashAValidar,
+                        request.Password);
+            }
+            catch
+            {
+                resultado =
+                    PasswordVerificationResult.Failed;
+            }
+
+            if (usuario == null ||
+                usuario.Estado != EstadoUsuario.ACTIVO ||
+                resultado == PasswordVerificationResult.Failed)
             {
                 return null;
             }
 
-            // 🔴 Validar estado
-            if (usuario.Estado != EstadoUsuario.ACTIVO)
-            {
-                return null;
-            }
-
-            // 🔐 Validar contraseña
-            var resultado = _hasheador.VerifyHashedPassword(
-                null,
-                usuario.Contrasena.Valor,
-                request.Password
-            );
-
-            if (resultado != PasswordVerificationResult.Success)
-            {
-                return null;
-            }
-
-            // 🔥 MANEJO SEGURO DEL ROL
             string rol;
 
-            if (usuario.Rol != null && !string.IsNullOrWhiteSpace(usuario.Rol.Nombre))
+            if (usuario.Rol != null &&
+                !string.IsNullOrWhiteSpace(
+                    usuario.Rol.Nombre))
             {
                 rol = usuario.Rol.Nombre;
             }
             else
             {
-                // fallback para no romper tests
                 rol = usuario switch
                 {
                     entrenadorEntidad => "Entrenador",
@@ -74,14 +88,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 };
             }
 
-            // ✅ DTO FINAL
+            usuario.UltimoAcceso =
+                DateTime.UtcNow;
+
+            _repositorioUsuario.Modificar(
+                usuario);
+
             return new DtoDatosUsuario(
                 usuario.UsuarioId,
                 usuario.Nombre.Valor,
                 usuario.Apellido.Valor,
                 usuario.Email.Valor,
-                rol
-            );
+                rol);
         }
     }
 }

@@ -10,35 +10,51 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
     public class RestablecerContrasena :
         IRestablecerContrasena
     {
-        private readonly IRepositorioUsuario _repositorioUsuario;
-        private readonly IRepositorioRecuperacionContrasena _repositorioRecuperacion;
+        private readonly IRepositorioUsuario
+            _repositorioUsuario;
+
+        private readonly IRepositorioRecuperacionContrasena
+            _repositorioRecuperacion;
 
         public RestablecerContrasena(
             IRepositorioUsuario repositorioUsuario,
             IRepositorioRecuperacionContrasena repositorioRecuperacion)
         {
-            _repositorioUsuario = repositorioUsuario;
-            _repositorioRecuperacion = repositorioRecuperacion;
+            _repositorioUsuario =
+                repositorioUsuario;
+
+            _repositorioRecuperacion =
+                repositorioRecuperacion;
         }
 
         public void Ejecutar(
             RestablecerContrasenaRequest request)
         {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Codigo) ||
+                string.IsNullOrWhiteSpace(
+                    request.NuevaContrasena))
+            {
+                throw new LogicaNegocioException(
+                    "Debe completar todos los campos");
+            }
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
-                    request.Email);
+                    request.Email.Trim());
 
             if (usuario == null)
             {
                 throw new LogicaNegocioException(
-                    "No existe un usuario con ese email");
+                    "Código inválido o expirado");
             }
 
             var recuperacion =
                 _repositorioRecuperacion
                     .ObtenerActivaPorUsuarioYCodigo(
                         usuario.UsuarioId,
-                        request.Codigo);
+                        request.Codigo.Trim());
 
             if (recuperacion == null)
             {
@@ -57,12 +73,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
             usuario.Contrasena =
                 Contrasena.FromHash(hash);
 
-            _repositorioUsuario.Modificar(usuario);
+            usuario.ProveedorAutenticacion =
+                usuario.ProveedorAutenticacion == "GOOGLE"
+                    ? "GOOGLE_LOCAL"
+                    : "LOCAL";
 
-            recuperacion.Usado = true;
+            _repositorioUsuario.Modificar(
+                usuario);
 
-            _repositorioRecuperacion
-                .Modificar(recuperacion);
+            recuperacion.Usado =
+                true;
+
+            _repositorioRecuperacion.Modificar(
+                recuperacion);
         }
     }
 }

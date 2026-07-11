@@ -3,73 +3,89 @@ using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using System.Net.Mail;
+using System.Security.Cryptography;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
     public class SolicitarRecuperacionContrasena :
         ISolicitarRecuperacionContrasena
     {
-        private readonly IRepositorioUsuario _repositorioUsuario;
-        private readonly IRepositorioRecuperacionContrasena _repositorioRecuperacion;
-        private readonly IServicioEmail _servicioEmail;
+        private readonly IRepositorioUsuario
+            _repositorioUsuario;
+
+        private readonly IRepositorioRecuperacionContrasena
+            _repositorioRecuperacion;
+
+        private readonly IServicioEmail
+            _servicioEmail;
 
         public SolicitarRecuperacionContrasena(
             IRepositorioUsuario repositorioUsuario,
             IRepositorioRecuperacionContrasena repositorioRecuperacion,
             IServicioEmail servicioEmail)
         {
-            _repositorioUsuario = repositorioUsuario;
-            _repositorioRecuperacion = repositorioRecuperacion;
-            _servicioEmail = servicioEmail;
+            _repositorioUsuario =
+                repositorioUsuario;
+
+            _repositorioRecuperacion =
+                repositorioRecuperacion;
+
+            _servicioEmail =
+                servicioEmail;
         }
 
         public void Ejecutar(
             SolicitarRecuperacionRequest request)
         {
             if (request == null ||
-                string.IsNullOrWhiteSpace(request.Email))
+                !EsEmailValido(request.Email))
             {
                 throw new LogicaNegocioException(
                     "Debe ingresar un email válido");
             }
 
+            string email =
+                request.Email.Trim();
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
-                    request.Email);
-
+                    email);
             if (usuario == null)
             {
-                throw new LogicaNegocioException(
-                    "No existe un usuario con ese email");
+                return;
             }
 
             var recuperacionExistente =
-                _repositorioRecuperacion.ObtenerUltimaPorUsuario(
-                    usuario.UsuarioId);
+                _repositorioRecuperacion
+                    .ObtenerUltimaPorUsuario(
+                        usuario.UsuarioId);
 
             if (recuperacionExistente != null &&
-                !recuperacionExistente.Usado)
-            {
-                if (recuperacionExistente.FechaCreacion >
+                !recuperacionExistente.Usado &&
+                recuperacionExistente.FechaCreacion >
                     DateTime.UtcNow.AddMinutes(-1))
-                {
-                    throw new LogicaNegocioException(
-                        "Debes esperar un minuto antes de solicitar otro código");
-                }
+            {
+                return;
             }
 
             string codigo =
-                Random.Shared.Next(100000, 999999)
-                    .ToString();
+                GenerarCodigoSeguro();
 
             if (recuperacionExistente != null &&
                 !recuperacionExistente.Usado)
             {
-                recuperacionExistente.Codigo = codigo;
-                recuperacionExistente.FechaCreacion = DateTime.UtcNow;
+                recuperacionExistente.Codigo =
+                    codigo;
+
+                recuperacionExistente.FechaCreacion =
+                    DateTime.UtcNow;
+
                 recuperacionExistente.FechaExpiracion =
                     DateTime.UtcNow.AddMinutes(20);
-                recuperacionExistente.Usado = false;
+
+                recuperacionExistente.Usado =
+                    false;
 
                 _repositorioRecuperacion.Modificar(
                     recuperacionExistente);
@@ -79,21 +95,69 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 var recuperacion =
                     new RecuperacionContrasena
                     {
-                        UsuarioId = usuario.UsuarioId,
-                        Codigo = codigo,
-                        FechaCreacion = DateTime.UtcNow,
+                        UsuarioId =
+                            usuario.UsuarioId,
+
+                        Codigo =
+                            codigo,
+
+                        FechaCreacion =
+                            DateTime.UtcNow,
+
                         FechaExpiracion =
                             DateTime.UtcNow.AddMinutes(20),
-                        Usado = false
+
+                        Usado =
+                            false
                     };
 
                 _repositorioRecuperacion.Agregar(
                     recuperacion);
             }
 
-            _servicioEmail.EnviarCodigoRecuperacion(
-                usuario.Email.Valor,
-                codigo);
+            try
+            {
+                _servicioEmail
+                    .EnviarCodigoRecuperacion(
+                        usuario.Email.Valor,
+                        codigo);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string GenerarCodigoSeguro()
+        {
+            int codigo =
+                RandomNumberGenerator.GetInt32(
+                    100000,
+                    1000000);
+
+            return codigo.ToString();
+        }
+
+        private static bool EsEmailValido(
+            string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return false;
+            }
+
+            try
+            {
+                var direccion =
+                    new MailAddress(email.Trim());
+
+                return direccion.Address.Equals(
+                    email.Trim(),
+                    StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

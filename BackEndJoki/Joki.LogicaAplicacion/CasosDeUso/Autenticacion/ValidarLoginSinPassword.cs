@@ -1,56 +1,93 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Autenticacion;
 using Joki.CasoUsoCompartida.DTOs.Usuario;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
-using Joki.LogicaNegocio.Excepciones;
+using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using alumnoEntidad = Joki.LogicaNegocio.Entidades.Alumno;
+using entrenadorEntidad = Joki.LogicaNegocio.Entidades.Entrenador;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
     public class ValidarLoginSinPassword :
         IValidarLoginSinPassword
     {
-        private readonly IRepositorioUsuario _repositorioUsuario;
-        private readonly IRepositorioCodigoLoginSinPassword _repositorioCodigo;
+        private readonly IRepositorioUsuario
+            _repositorioUsuario;
+
+        private readonly IRepositorioCodigoLoginSinPassword
+            _repositorioCodigo;
 
         public ValidarLoginSinPassword(
             IRepositorioUsuario repositorioUsuario,
             IRepositorioCodigoLoginSinPassword repositorioCodigo)
         {
-            _repositorioUsuario = repositorioUsuario;
-            _repositorioCodigo = repositorioCodigo;
+            _repositorioUsuario =
+                repositorioUsuario;
+
+            _repositorioCodigo =
+                repositorioCodigo;
         }
 
         public DtoDatosUsuario? Ejecutar(
             ValidarLoginSinPasswordRequest request)
         {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Codigo))
+            {
+                return null;
+            }
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
-                    request.Email);
+                    request.Email.Trim());
 
-            if (usuario == null)
+            if (usuario == null ||
+                usuario.Estado != EstadoUsuario.ACTIVO)
             {
-                throw new LogicaNegocioException(
-                    "Usuario no encontrado");
+                return null;
             }
 
             var codigo =
                 _repositorioCodigo
                     .ObtenerActivoPorUsuarioYCodigo(
                         usuario.UsuarioId,
-                        request.Codigo);
+                        request.Codigo.Trim());
 
             if (codigo == null)
             {
-                throw new LogicaNegocioException(
-                    "Código inválido o expirado");
+                return null;
             }
 
-            codigo.Usado = true;
+            codigo.Usado =
+                true;
 
-            _repositorioCodigo.Modificar(codigo);
+            _repositorioCodigo.Modificar(
+                codigo);
 
-            string rol =
-                usuario.Rol?.Nombre ?? "Alumno";
+            usuario.UltimoAcceso =
+                DateTime.UtcNow;
+
+            _repositorioUsuario.Modificar(
+                usuario);
+
+            string rol;
+
+            if (usuario.Rol != null &&
+                !string.IsNullOrWhiteSpace(
+                    usuario.Rol.Nombre))
+            {
+                rol = usuario.Rol.Nombre;
+            }
+            else
+            {
+                rol = usuario switch
+                {
+                    entrenadorEntidad => "Entrenador",
+                    alumnoEntidad => "Alumno",
+                    _ => "Alumno"
+                };
+            }
 
             return new DtoDatosUsuario(
                 usuario.UsuarioId,
