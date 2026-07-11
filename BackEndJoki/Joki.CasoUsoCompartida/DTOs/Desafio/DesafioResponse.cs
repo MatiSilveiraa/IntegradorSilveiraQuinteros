@@ -11,5 +11,13 @@
         public DateTime FechaInicio { get; set; }
 
         public DateTime FechaFin { get; set; }
+
+        public string Estado { get; set; } = string.Empty;
+
+        public bool PuedeParticipar { get; set; }
+
+        public bool YaParticipa { get; set; }
+
+        public string? MotivoEstado { get; set; }
     }
 }

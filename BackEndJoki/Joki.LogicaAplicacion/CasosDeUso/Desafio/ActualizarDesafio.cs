@@ -2,22 +2,29 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
+using AuditoriaEntidad =
+    Joki.LogicaNegocio.Entidades.Auditoria;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
     public class ActualizarDesafio :
         IActualizarDesafio
     {
-        private readonly IRepositorioDesafio _repositorioDesafio;
-        private readonly IRepositorioAuditoria _repositorioAuditoria;
+        private readonly IRepositorioDesafio
+            _repositorioDesafio;
+
+        private readonly IRepositorioAuditoria
+            _repositorioAuditoria;
 
         public ActualizarDesafio(
             IRepositorioDesafio repositorioDesafio,
             IRepositorioAuditoria repositorioAuditoria)
         {
-            _repositorioDesafio = repositorioDesafio;
-            _repositorioAuditoria = repositorioAuditoria;
+            _repositorioDesafio =
+                repositorioDesafio;
+
+            _repositorioAuditoria =
+                repositorioAuditoria;
         }
 
         public void Ejecutar(
@@ -28,30 +35,53 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             var desafio =
                 _repositorioDesafio.ObtenerPorId(id);
 
-            if (desafio == null || !desafio.Activo)
+            if (desafio == null ||
+                !desafio.Activo)
             {
                 throw new LogicaNegocioException(
                     "No existe el desafío");
             }
 
-            if (string.IsNullOrWhiteSpace(request.Titulo))
+            if (request == null)
+            {
+                throw new LogicaNegocioException(
+                    "Debe enviar los datos del desafío");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                request.Titulo))
             {
                 throw new LogicaNegocioException(
                     "El título es obligatorio");
             }
 
-            if (request.FechaFin < request.FechaInicio)
+            DateTime fechaInicio =
+                request.FechaInicio.Date;
+
+            DateTime fechaFin =
+                request.FechaFin.Date;
+
+            if (fechaFin < fechaInicio)
             {
                 throw new LogicaNegocioException(
-                    "La fecha fin debe ser mayor a la fecha inicio");
+                    "La fecha fin no puede ser anterior a la fecha inicio");
             }
 
-            desafio.Titulo = request.Titulo;
-            desafio.Descripcion = request.Descripcion;
-            desafio.FechaInicio = request.FechaInicio;
-            desafio.FechaFin = request.FechaFin;
+            desafio.Titulo =
+                request.Titulo.Trim();
 
-            _repositorioDesafio.Modificar(desafio);
+            desafio.Descripcion =
+                request.Descripcion?.Trim() ??
+                string.Empty;
+
+            desafio.FechaInicio =
+                fechaInicio;
+
+            desafio.FechaFin =
+                fechaFin;
+
+            _repositorioDesafio.Modificar(
+                desafio);
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad
@@ -59,7 +89,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                     UsuarioId = usuarioId,
                     Entidad = "Desafio",
                     EntidadId = desafio.Id,
-                    Accion = $"Actualizó el desafío {desafio.Titulo}",
+                    Accion =
+                        $"Actualizó el desafío {desafio.Titulo}",
                     Fecha = DateTime.UtcNow
                 });
         }

@@ -9,26 +9,63 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
     {
         private readonly IRepositorioDesafio _repositorioDesafio;
 
+        private readonly IRepositorioParticipacionDesafio
+            _repositorioParticipacionDesafio;
+
         public ObtenerDesafios(
-            IRepositorioDesafio repositorioDesafio)
+            IRepositorioDesafio repositorioDesafio,
+            IRepositorioParticipacionDesafio
+                repositorioParticipacionDesafio)
         {
             _repositorioDesafio =
                 repositorioDesafio;
+
+            _repositorioParticipacionDesafio =
+                repositorioParticipacionDesafio;
         }
 
-        public IEnumerable<DesafioResponse>
-            Ejecutar()
+        public IEnumerable<DesafioResponse> Ejecutar(
+            int? alumnoId)
         {
-            return _repositorioDesafio
-                .ObtenerActivos()
-                .Select(d => new DesafioResponse
+            var desafios =
+                _repositorioDesafio
+                    .ObtenerActivos()
+                    .OrderBy(d => d.FechaInicio)
+                    .ToList();
+
+            return desafios.Select(desafio =>
+            {
+                bool esAlumno =
+                    alumnoId.HasValue;
+
+                bool yaParticipa =
+                    alumnoId.HasValue &&
+                    _repositorioParticipacionDesafio.Obtener(
+                        alumnoId.Value,
+                        desafio.Id) != null;
+
+                var disponibilidad =
+                    EvaluadorDisponibilidadDesafio.Evaluar(
+                        desafio,
+                        yaParticipa,
+                        esAlumno);
+
+                return new DesafioResponse
                 {
-                    Id = d.Id,
-                    Titulo = d.Titulo,
-                    Descripcion = d.Descripcion,
-                    FechaInicio = d.FechaInicio,
-                    FechaFin = d.FechaFin
-                });
+                    Id = desafio.Id,
+                    Titulo = desafio.Titulo,
+                    Descripcion = desafio.Descripcion,
+                    FechaInicio = desafio.FechaInicio.Date,
+                    FechaFin = desafio.FechaFin.Date,
+                    Estado = disponibilidad.Estado,
+                    PuedeParticipar =
+                        disponibilidad.PuedeParticipar,
+                    YaParticipa =
+                        disponibilidad.YaParticipa,
+                    MotivoEstado =
+                        disponibilidad.MotivoEstado
+                };
+            });
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
-using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -10,21 +9,37 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
     public class ParticiparDesafio :
         IParticiparDesafio
     {
-        private readonly IRepositorioDesafio _repositorioDesafio;
-        private readonly IRepositorioAlumno _repositorioAlumno;
-        private readonly IRepositorioParticipacionDesafio _repositorioParticipacionDesafio;
-        private readonly IRepositorioNotificacion _repositorioNotificacion;
+        private readonly IRepositorioDesafio
+            _repositorioDesafio;
+
+        private readonly IRepositorioAlumno
+            _repositorioAlumno;
+
+        private readonly IRepositorioParticipacionDesafio
+            _repositorioParticipacionDesafio;
+
+        private readonly IRepositorioNotificacion
+            _repositorioNotificacion;
 
         public ParticiparDesafio(
             IRepositorioDesafio repositorioDesafio,
             IRepositorioAlumno repositorioAlumno,
-            IRepositorioParticipacionDesafio repositorioParticipacionDesafio,
-            IRepositorioNotificacion repositorioNotificacion)
+            IRepositorioParticipacionDesafio
+                repositorioParticipacionDesafio,
+            IRepositorioNotificacion
+                repositorioNotificacion)
         {
-            _repositorioDesafio = repositorioDesafio;
-            _repositorioAlumno = repositorioAlumno;
-            _repositorioParticipacionDesafio = repositorioParticipacionDesafio;
-            _repositorioNotificacion = repositorioNotificacion;
+            _repositorioDesafio =
+                repositorioDesafio;
+
+            _repositorioAlumno =
+                repositorioAlumno;
+
+            _repositorioParticipacionDesafio =
+                repositorioParticipacionDesafio;
+
+            _repositorioNotificacion =
+                repositorioNotificacion;
         }
 
         public void Ejecutar(
@@ -32,23 +47,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
             int alumnoId)
         {
             var desafio =
-                _repositorioDesafio.ObtenerPorId(desafioId);
+                _repositorioDesafio.ObtenerPorId(
+                    desafioId);
 
-            if (desafio == null || !desafio.Activo)
+            if (desafio == null)
             {
                 throw new LogicaNegocioException(
                     "No existe el desafío");
             }
 
-            if (DateTime.Now < desafio.FechaInicio ||
-                DateTime.Now > desafio.FechaFin)
-            {
-                throw new LogicaNegocioException(
-                    "El desafío no está disponible para participar");
-            }
-
             var alumno =
-                _repositorioAlumno.ObtenerPorId(alumnoId);
+                _repositorioAlumno.ObtenerPorId(
+                    alumnoId);
 
             if (alumno == null)
             {
@@ -61,14 +71,24 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                     alumnoId,
                     desafioId);
 
-            if (participacionExistente != null)
+            bool yaParticipa =
+                participacionExistente != null;
+
+            var disponibilidad =
+                EvaluadorDisponibilidadDesafio.Evaluar(
+                    desafio,
+                    yaParticipa,
+                    esAlumno: true);
+
+            if (!disponibilidad.PuedeParticipar)
             {
                 throw new LogicaNegocioException(
-                    "El alumno ya participa en este desafío");
+                    disponibilidad.MotivoEstado ??
+                    "El desafío no está disponible para participar");
             }
 
             var participacion =
-                new ParticipacionDesafio
+                new Entidades.ParticipacionDesafio
                 {
                     AlumnoId = alumnoId,
                     DesafioId = desafioId,
@@ -80,16 +100,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                 participacion);
 
             _repositorioNotificacion.Agregar(
-    new Entidades.Notificacion
-    {
-        UsuarioId = alumnoId,
-        Titulo = "Participación registrada",
-        Mensaje = $"Te inscribiste correctamente al desafío {desafio.Titulo}.",
-        Tipo = TipoNotificacion.Desafio,
-        UrlDestino = $"/desafios/{desafio.Id}",
-        EntidadReferencia = "Desafio",
-        EntidadReferenciaId = desafio.Id
-    });
+                new Entidades.Notificacion
+                {
+                    UsuarioId = alumnoId,
+                    Titulo = "Participación registrada",
+                    Mensaje =
+                        $"Te inscribiste correctamente al desafío {desafio.Titulo}.",
+                    Tipo = TipoNotificacion.Desafio,
+                    UrlDestino =
+                        $"/desafios/{desafio.Id}",
+                    EntidadReferencia = "Desafio",
+                    EntidadReferenciaId = desafio.Id
+                });
         }
     }
 }

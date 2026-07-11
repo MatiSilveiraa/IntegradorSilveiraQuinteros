@@ -4,6 +4,7 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio
 {
     public interface IObtenerDesafios
     {
-        IEnumerable<DesafioResponse> Ejecutar();
+        IEnumerable<DesafioResponse> Ejecutar(
+            int? alumnoId);
     }
 }

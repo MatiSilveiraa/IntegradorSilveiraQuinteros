@@ -9,38 +9,77 @@ namespace Joki.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DesafioController : ControllerBase
+    public class DesafioController :
+        ControllerBase
     {
-        private readonly ICrearDesafio _crearDesafio;
-        private readonly IObtenerDesafios _obtenerDesafios;
-        private readonly IActualizarDesafio _actualizarDesafio;
-        private readonly IEliminarDesafio _eliminarDesafio;
-        private readonly IAsignarGanadoresDesafio _asignarGanadoresDesafio;
-        private readonly IObtenerGanadoresDesafio _obtenerGanadoresDesafio;
-        private readonly IParticiparDesafio _participarDesafio;
-        private readonly IObtenerParticipantesDesafio _obtenerParticipantesDesafio;
-        private readonly IObtenerMisDesafios _obtenerMisDesafios;
+        private readonly ICrearDesafio
+            _crearDesafio;
+
+        private readonly IObtenerDesafios
+            _obtenerDesafios;
+
+        private readonly IActualizarDesafio
+            _actualizarDesafio;
+
+        private readonly IEliminarDesafio
+            _eliminarDesafio;
+
+        private readonly IAsignarGanadoresDesafio
+            _asignarGanadoresDesafio;
+
+        private readonly IObtenerGanadoresDesafio
+            _obtenerGanadoresDesafio;
+
+        private readonly IParticiparDesafio
+            _participarDesafio;
+
+        private readonly IObtenerParticipantesDesafio
+            _obtenerParticipantesDesafio;
+
+        private readonly IObtenerMisDesafios
+            _obtenerMisDesafios;
 
         public DesafioController(
             ICrearDesafio crearDesafio,
             IObtenerDesafios obtenerDesafios,
             IActualizarDesafio actualizarDesafio,
             IEliminarDesafio eliminarDesafio,
-            IAsignarGanadoresDesafio asignarGanadoresDesafio,
-            IObtenerGanadoresDesafio obtenerGanadoresDesafio,
+            IAsignarGanadoresDesafio
+                asignarGanadoresDesafio,
+            IObtenerGanadoresDesafio
+                obtenerGanadoresDesafio,
             IParticiparDesafio participarDesafio,
-            IObtenerParticipantesDesafio obtenerParticipantesDesafio,
-            IObtenerMisDesafios obtenerMisDesafios)
+            IObtenerParticipantesDesafio
+                obtenerParticipantesDesafio,
+            IObtenerMisDesafios
+                obtenerMisDesafios)
         {
-            _crearDesafio = crearDesafio;
-            _obtenerDesafios = obtenerDesafios;
-            _actualizarDesafio = actualizarDesafio;
-            _eliminarDesafio = eliminarDesafio;
-            _asignarGanadoresDesafio = asignarGanadoresDesafio;
-            _obtenerGanadoresDesafio = obtenerGanadoresDesafio;
-            _participarDesafio = participarDesafio;
-            _obtenerParticipantesDesafio = obtenerParticipantesDesafio;
-            _obtenerMisDesafios = obtenerMisDesafios;
+            _crearDesafio =
+                crearDesafio;
+
+            _obtenerDesafios =
+                obtenerDesafios;
+
+            _actualizarDesafio =
+                actualizarDesafio;
+
+            _eliminarDesafio =
+                eliminarDesafio;
+
+            _asignarGanadoresDesafio =
+                asignarGanadoresDesafio;
+
+            _obtenerGanadoresDesafio =
+                obtenerGanadoresDesafio;
+
+            _participarDesafio =
+                participarDesafio;
+
+            _obtenerParticipantesDesafio =
+                obtenerParticipantesDesafio;
+
+            _obtenerMisDesafios =
+                obtenerMisDesafios;
         }
 
         [Authorize(Roles = "Admin")]
@@ -50,9 +89,8 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioId();
 
                 _crearDesafio.Ejecutar(
                     request,
@@ -60,7 +98,8 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Desafío creado correctamente"
+                    mensaje =
+                        "Desafío creado correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -74,7 +113,8 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
@@ -85,8 +125,17 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
+                int? alumnoId = null;
+
+                if (User.IsInRole("Alumno"))
+                {
+                    alumnoId =
+                        ObtenerUsuarioId();
+                }
+
                 var desafios =
-                    _obtenerDesafios.Ejecutar();
+                    _obtenerDesafios.Ejecutar(
+                        alumnoId);
 
                 return Ok(desafios);
             }
@@ -94,7 +143,8 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
@@ -107,9 +157,8 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioId();
 
                 _actualizarDesafio.Ejecutar(
                     id,
@@ -118,7 +167,8 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Desafío actualizado correctamente"
+                    mensaje =
+                        "Desafío actualizado correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -132,20 +182,21 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult Eliminar(int id)
+        public IActionResult Eliminar(
+            int id)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioId();
 
                 _eliminarDesafio.Ejecutar(
                     id,
@@ -153,7 +204,8 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Desafío eliminado correctamente"
+                    mensaje =
+                        "Desafío eliminado correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -167,7 +219,8 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
@@ -179,9 +232,8 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioId();
 
                 _asignarGanadoresDesafio.Ejecutar(
                     request,
@@ -189,7 +241,8 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Ganadores asignados correctamente"
+                    mensaje =
+                        "Ganadores asignados correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -203,19 +256,22 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
         [Authorize]
         [HttpGet("{id}/ganadores")]
-        public IActionResult ObtenerGanadores(int id)
+        public IActionResult ObtenerGanadores(
+            int id)
         {
             try
             {
                 var ganadores =
-                    _obtenerGanadoresDesafio.Ejecutar(id);
+                    _obtenerGanadoresDesafio.Ejecutar(
+                        id);
 
                 return Ok(ganadores);
             }
@@ -230,20 +286,21 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Alumno")]
         [HttpPost("{id}/participar")]
-        public IActionResult Participar(int id)
+        public IActionResult Participar(
+            int id)
         {
             try
             {
-                int alumnoId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int alumnoId =
+                    ObtenerUsuarioId();
 
                 _participarDesafio.Ejecutar(
                     id,
@@ -251,7 +308,8 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Participación registrada correctamente"
+                    mensaje =
+                        "Participación registrada correctamente"
                 });
             }
             catch (LogicaNegocioException e)
@@ -265,19 +323,22 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}/participantes")]
-        public IActionResult ObtenerParticipantes(int id)
+        public IActionResult ObtenerParticipantes(
+            int id)
         {
             try
             {
                 var participantes =
-                    _obtenerParticipantesDesafio.Ejecutar(id);
+                    _obtenerParticipantesDesafio.Ejecutar(
+                        id);
 
                 return Ok(participantes);
             }
@@ -292,23 +353,24 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
         }
 
-        [Authorize]
+        [Authorize(Roles = "Alumno")]
         [HttpGet("mis-desafios")]
         public IActionResult ObtenerMisDesafios()
         {
             try
             {
-                int alumnoId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int alumnoId =
+                    ObtenerUsuarioId();
 
                 var desafios =
-                    _obtenerMisDesafios.Ejecutar(alumnoId);
+                    _obtenerMisDesafios.Ejecutar(
+                        alumnoId);
 
                 return Ok(desafios);
             }
@@ -316,9 +378,26 @@ namespace Joki.WebApi.Controllers
             {
                 return StatusCode(500, new
                 {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
+                    mensaje =
+                        "Hubo un problema. Prueba nuevamente"
                 });
             }
+        }
+
+        private int ObtenerUsuarioId()
+        {
+            string? valor =
+                User.FindFirst(
+                    ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(valor) ||
+                !int.TryParse(valor, out int usuarioId))
+            {
+                throw new UnauthorizedAccessException(
+                    "El token no contiene un usuario válido");
+            }
+
+            return usuarioId;
         }
     }
 }

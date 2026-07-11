@@ -2,49 +2,79 @@
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Desafio;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
-using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
+using AuditoriaEntidad =
+    Joki.LogicaNegocio.Entidades.Auditoria;
+using DesafioEntidad =
+    Joki.LogicaNegocio.Entidades.Desafio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
 {
-    public class CrearDesafio : ICrearDesafio
+    public class CrearDesafio :
+        ICrearDesafio
     {
-        private readonly IRepositorioDesafio _repositorioDesafio;
-        private readonly IRepositorioAuditoria _repositorioAuditoria;
+        private readonly IRepositorioDesafio
+            _repositorioDesafio;
+
+        private readonly IRepositorioAuditoria
+            _repositorioAuditoria;
 
         public CrearDesafio(
             IRepositorioDesafio repositorioDesafio,
             IRepositorioAuditoria repositorioAuditoria)
         {
-            _repositorioDesafio = repositorioDesafio;
-            _repositorioAuditoria = repositorioAuditoria;
+            _repositorioDesafio =
+                repositorioDesafio;
+
+            _repositorioAuditoria =
+                repositorioAuditoria;
         }
 
         public void Ejecutar(
             CrearDesafioRequest request,
             int usuarioId)
         {
-            if (string.IsNullOrWhiteSpace(request.Titulo))
+            if (request == null)
+            {
+                throw new LogicaNegocioException(
+                    "Debe enviar los datos del desafío");
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                request.Titulo))
             {
                 throw new LogicaNegocioException(
                     "El título es obligatorio");
             }
 
-            if (request.FechaFin < request.FechaInicio)
+            DateTime fechaInicio =
+                request.FechaInicio.Date;
+
+            DateTime fechaFin =
+                request.FechaFin.Date;
+
+            if (fechaFin < fechaInicio)
             {
                 throw new LogicaNegocioException(
-                    "La fecha fin debe ser mayor a la fecha inicio");
+                    "La fecha fin no puede ser anterior a la fecha inicio");
             }
 
             var desafio =
-                new Joki.LogicaNegocio.Entidades.Desafio
+                new DesafioEntidad
                 {
-                    Titulo = request.Titulo,
-                    Descripcion = request.Descripcion,
-                    FechaInicio = request.FechaInicio,
-                    FechaFin = request.FechaFin
+                    Titulo =
+                        request.Titulo.Trim(),
+
+                    Descripcion =
+                        request.Descripcion?.Trim() ??
+                        string.Empty,
+
+                    FechaInicio = fechaInicio,
+                    FechaFin = fechaFin,
+                    Activo = true
                 };
 
-            _repositorioDesafio.Agregar(desafio);
+            _repositorioDesafio.Agregar(
+                desafio);
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad
@@ -52,7 +82,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Desafio
                     UsuarioId = usuarioId,
                     Entidad = "Desafio",
                     EntidadId = desafio.Id,
-                    Accion = $"Creó el desafío {desafio.Titulo}",
+                    Accion =
+                        $"Creó el desafío {desafio.Titulo}",
                     Fecha = DateTime.UtcNow
                 });
         }
