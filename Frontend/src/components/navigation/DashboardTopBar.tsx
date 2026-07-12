@@ -26,17 +26,34 @@ export default function DashboardTopBar({ nombre }: Props) {
   const esAlumno = usuario.rol === "Alumno";
   const esEntrenador = usuario.rol === "Entrenador";
 
-  const cargarCantidadNoLeidas = useCallback(async () => {
+  const cargarCantidadNoLeidas = useCallback(
+  async () => {
     try {
-      const data: Notificacion[] = await obtenerMisNotificaciones();
+      const data: Notificacion[] =
+        await obtenerMisNotificaciones();
 
-      const pendientes = data.filter((n) => !n.leida).length;
+      const pendientes = data.filter(
+        (notificacion) =>
+          !notificacion.leida,
+      ).length;
 
       setCantidadNoLeidas(pendientes);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      if (
+        !error?.response ||
+        error.response.status >= 500
+      ) {
+        console.error(
+          "[Cargar notificaciones no leídas]",
+          error,
+        );
+      }
+
+      setCantidadNoLeidas(0);
     }
-  }, []);
+  },
+  [],
+);
 
   useEffect(() => {
     cargarCantidadNoLeidas();

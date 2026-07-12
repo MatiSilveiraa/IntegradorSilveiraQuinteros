@@ -18,7 +18,7 @@ export const login = async (
   const response = await axiosInstance.post(
     "/api/auth/login",
     {
-      email,
+      email: email.trim().toLowerCase(),
       password,
     }
   );
@@ -33,7 +33,7 @@ export const solicitarRecuperacion = async (
   const response = await axiosInstance.post(
     "/api/Auth/solicitar-recuperacion",
     {
-      email,
+      email: email.trim().toLowerCase(),
     }
   );
   return response.data;
@@ -49,7 +49,7 @@ export const restablecerContrasena = async (
     await axiosInstance.post(
       "/api/Auth/restablecer-contrasena",
       {
-        email,
+        email: email.trim().toLowerCase(),
         codigo,
         nuevaContrasena,
       }
