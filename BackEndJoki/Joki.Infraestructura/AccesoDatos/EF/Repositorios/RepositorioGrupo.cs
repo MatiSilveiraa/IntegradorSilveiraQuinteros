@@ -10,15 +10,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
     {
         private readonly JokiContext _context;
 
-        public RepositorioGrupo(JokiContext context)
+        public RepositorioGrupo(
+            JokiContext context)
         {
             _context = context;
         }
 
-        public Grupo Agregar(Grupo grupo)
+        public Grupo Agregar(
+            Grupo grupo)
         {
             _context.Grupos.Add(grupo);
             _context.SaveChanges();
+
             return grupo;
         }
 
@@ -26,11 +29,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _context.Grupos
                 .Include(g => g.Clases)
-                .ThenInclude(c => c.Inscripciones)
+                    .ThenInclude(c => c.Inscripciones)
                 .ToList();
         }
 
-        public Grupo? ObtenerPorId(int id)
+        public Grupo? ObtenerPorId(
+            int id)
         {
             return _context.Grupos
                 .Include(g => g.Clases)
@@ -38,70 +42,83 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .FirstOrDefault(g => g.Id == id);
         }
 
-        public void Actualizar(Grupo grupo)
+        public void Actualizar(
+            Grupo grupo)
         {
             _context.Grupos.Update(grupo);
             _context.SaveChanges();
         }
 
-        public void Eliminar(int id)
+        public void Eliminar(
+            int id)
         {
-            var grupo = ObtenerPorId(id);
+            var grupo =
+                ObtenerPorId(id);
 
-            if (grupo != null)
+            if (grupo == null)
             {
-                _context.Grupos.Remove(grupo);
-                _context.SaveChanges();
+                return;
             }
+
+            _context.Grupos.Remove(grupo);
+            _context.SaveChanges();
         }
-        public int ContarPorEntrenador(int entrenadorId)
+
+        public int ContarPorEntrenador(
+            int entrenadorId)
         {
             return _context.Grupos
-                .Count(g => g.EntrenadorId == entrenadorId);
+                .Count(g =>
+                    g.EntrenadorId == entrenadorId);
         }
 
-        public int ContarAlumnosPorEntrenador(int entrenadorId)
+        public int ContarAlumnosPorEntrenador(
+            int entrenadorId)
         {
-            var inscripciones = _context.Inscripciones
-                .Include(i => i.Clase)
-                    .ThenInclude(c => c.Grupo)
-                .ToList();
-
-            return inscripciones
-                .Where(i => i.Clase.Grupo.EntrenadorId == entrenadorId)
+            return _context.Inscripciones
+                .AsNoTracking()
+                .Where(i =>
+                    i.Clase.Grupo.EntrenadorId ==
+                    entrenadorId)
                 .Select(i => i.AlumnoId)
                 .Distinct()
                 .Count();
         }
-        public List<AgendaClaseVO> ObtenerAgendaHoy(int entrenadorId)
+
+        public List<AgendaClaseVO> ObtenerAgendaHoy(
+            int entrenadorId)
         {
-            var hoy = DateTime.Today;
+            DateTime ahoraUruguay =
+                ObtenerFechaHoraUruguay();
 
-            var diaSemana = hoy.DayOfWeek switch
-            {
-                DayOfWeek.Monday => DiaSemana.Lunes,
-                DayOfWeek.Tuesday => DiaSemana.Martes,
-                DayOfWeek.Wednesday => DiaSemana.Miercoles,
-                DayOfWeek.Thursday => DiaSemana.Jueves,
-                DayOfWeek.Friday => DiaSemana.Viernes,
-                DayOfWeek.Saturday => DiaSemana.Sabado,
-                DayOfWeek.Sunday => DiaSemana.Domingo,
-                _ => throw new Exception()
-            };
+            DateTime hoy =
+                ahoraUruguay.Date;
 
-            return _context.Clases
-    .AsNoTracking()
-    .Include(c => c.Grupo)
-    .Include(c => c.Inscripciones)
-        .ThenInclude(i => i.Alumno)
+            DiaSemana diaSemana =
+                ConvertirDiaSemana(
+                    ahoraUruguay.DayOfWeek);
 
-               .Where(c =>
-                        c.Grupo.EntrenadorId == entrenadorId &&
-                        c.DiaSemana == diaSemana &&
-                        c.Estado == EstadoClase.Programada)
+            var clases =
+                _context.Clases
+                    .AsNoTracking()
+                    .Include(c => c.Grupo)
+                    .Include(c => c.Inscripciones)
+                        .ThenInclude(i => i.Alumno)
+                    .Where(c =>
+                        c.Grupo.EntrenadorId ==
+                            entrenadorId &&
+                        c.Grupo.Estado ==
+                            EstadoGrupo.ACTIVO &&
+                        c.Estado ==
+                            EstadoClase.Programada &&
+                        c.DiaSemana ==
+                            diaSemana)
+                    .ToList();
 
+            return clases
+                .Where(c =>
+                    ClaseVigenteEnFecha(c, hoy))
                 .OrderBy(c => c.HoraInicio)
-
                 .Select(c => new AgendaClaseVO
                 {
                     ClaseId = c.Id,
@@ -114,150 +131,164 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
                     HoraFin = c.HoraFin,
 
-                    CantidadAlumnos = c.Inscripciones.Count,
+                    CantidadAlumnos =
+                        c.Inscripciones.Count,
 
-                    CupoMaximo = c.CupoMaximo,
+                    CupoMaximo =
+                        c.CupoMaximo,
 
-                    CuposDisponibles = c.CupoMaximo - c.Inscripciones.Count,
+                    CuposDisponibles =
+                        Math.Max(
+                            0,
+                            c.CupoMaximo -
+                            c.Inscripciones.Count),
 
                     Alumnos = c.Inscripciones
-        .Select(i => new AlumnoAgendaVO
-        {
-            Id = i.Alumno.UsuarioId,
-            Nombre = i.Alumno.Nombre.Valor,
-            Apellido = i.Alumno.Apellido.Valor
-        })
-        .Take(5)
-        .ToList()
+                        .OrderBy(i =>
+                            i.Alumno.Nombre.Valor)
+                        .Select(i =>
+                            new AlumnoAgendaVO
+                            {
+                                Id =
+                                    i.Alumno.UsuarioId,
+
+                                Nombre =
+                                    i.Alumno.Nombre.Valor,
+
+                                Apellido =
+                                    i.Alumno.Apellido.Valor
+                            })
+                        .Take(5)
+                        .ToList()
                 })
                 .ToList();
         }
 
-        public ProximaClaseVO? ObtenerProximaClase(int entrenadorId)
+        public ProximaClaseVO? ObtenerProximaClase(
+            int entrenadorId)
         {
-            var hoy = DateTime.Today;
+            DateTime ahoraUruguay =
+                ObtenerFechaHoraUruguay();
 
-            var ahora = DateTime.Now.TimeOfDay;
+            var clases =
+                _context.Clases
+                    .AsNoTracking()
+                    .Include(c => c.Grupo)
+                    .Include(c => c.Inscripciones)
+                    .Where(c =>
+                        c.Grupo.EntrenadorId ==
+                            entrenadorId &&
+                        c.Grupo.Estado ==
+                            EstadoGrupo.ACTIVO &&
+                        c.Estado ==
+                            EstadoClase.Programada)
+                    .ToList();
 
-            var diaSemana = hoy.DayOfWeek switch
-            {
-                DayOfWeek.Monday => DiaSemana.Lunes,
-                DayOfWeek.Tuesday => DiaSemana.Martes,
-                DayOfWeek.Wednesday => DiaSemana.Miercoles,
-                DayOfWeek.Thursday => DiaSemana.Jueves,
-                DayOfWeek.Friday => DiaSemana.Viernes,
-                DayOfWeek.Saturday => DiaSemana.Sabado,
-                DayOfWeek.Sunday => DiaSemana.Domingo,
-                _ => throw new Exception()
-            };
-
-            return _context.Clases
-                .AsNoTracking()
-                .Include(c => c.Grupo)
-                .Include(c => c.Inscripciones)
-                .Where(c =>
-                    c.Grupo.EntrenadorId == entrenadorId &&
-                    c.Estado == EstadoClase.Programada &&
-                    c.DiaSemana == diaSemana &&
-                    c.HoraInicio >= ahora)
-                .OrderBy(c => c.HoraInicio)
-                .Select(c => new ProximaClaseVO
-                {
-                    ClaseId = c.Id,
-                    Grupo = c.Grupo.Nombre,
-                    HoraInicio = c.HoraInicio,
-                    HoraFin = c.HoraFin,
-                    CantidadAlumnos = c.Inscripciones.Count
-                })
-                .FirstOrDefault();
+            return CalcularProximaClase(
+                clases,
+                ahoraUruguay);
         }
 
-        public List<GrupoEntrenadorVO> ObtenerGruposPorEntrenador(int entrenadorId)
+        public List<GrupoEntrenadorVO>
+            ObtenerGruposPorEntrenador(
+                int entrenadorId)
         {
-            var hoy = DateTime.Today.DayOfWeek switch
-            {
-                DayOfWeek.Monday => DiaSemana.Lunes,
-                DayOfWeek.Tuesday => DiaSemana.Martes,
-                DayOfWeek.Wednesday => DiaSemana.Miercoles,
-                DayOfWeek.Thursday => DiaSemana.Jueves,
-                DayOfWeek.Friday => DiaSemana.Viernes,
-                DayOfWeek.Saturday => DiaSemana.Sabado,
-                DayOfWeek.Sunday => DiaSemana.Domingo,
-                _ => DiaSemana.Lunes
-            };
+            DateTime ahoraUruguay =
+                ObtenerFechaHoraUruguay();
 
-            var grupos = _context.Grupos
-                .AsNoTracking()
-                .Include(g => g.Clases)
-                    .ThenInclude(c => c.Inscripciones)
-                .Where(g => g.EntrenadorId == entrenadorId)
-                .ToList();
+            var grupos =
+                _context.Grupos
+                    .AsNoTracking()
+                    .Include(g => g.Clases)
+                        .ThenInclude(c =>
+                            c.Inscripciones)
+                    .Where(g =>
+                        g.EntrenadorId ==
+                        entrenadorId)
+                    .ToList();
 
-            var resultado = grupos
-                .Select(g =>
+            return grupos
+                .Select(grupo =>
                 {
-                    var proximaClase = g.Clases
-                        .Where(c => c.Estado == EstadoClase.Programada)
-                        .OrderBy(c => c.DiaSemana == hoy ? 0 : 1)
-                        .ThenBy(c => c.HoraInicio)
-                        .FirstOrDefault();
+                    ProximaClaseVO? proximaClase =
+                        CalcularProximaClase(
+                            grupo.Clases,
+                            ahoraUruguay);
+
+                    int cantidadAlumnos =
+                        grupo.Clases
+                            .SelectMany(c =>
+                                c.Inscripciones)
+                            .Select(i =>
+                                i.AlumnoId)
+                            .Distinct()
+                            .Count();
 
                     return new GrupoEntrenadorVO
                     {
-                        Id = g.Id,
+                        Id = grupo.Id,
 
-                        Nombre = g.Nombre,
+                        Nombre = grupo.Nombre,
 
-                        Nivel = g.Nivel,
+                        Nivel = grupo.Nivel,
 
-                        Estado = g.Estado.ToString(),
+                        Estado =
+                            grupo.Estado.ToString(),
 
-                        CantidadClases = g.Clases.Count,
+                        CantidadClases =
+                            grupo.Clases.Count,
 
-                        CantidadAlumnos = g.Clases
-                            .SelectMany(c => c.Inscripciones)
-                            .Select(i => i.AlumnoId)
-                            .Distinct()
-                            .Count(),
+                        CantidadAlumnos =
+                            cantidadAlumnos,
 
-                        ProximoDia = proximaClase?.DiaSemana.ToString(),
+                        ClaseId =
+                            proximaClase?.ClaseId,
 
-                        ProximaHoraInicio = proximaClase?.HoraInicio,
+                        ProximoDia =
+                            proximaClase?.DiaSemana,
 
-                        ProximaHoraFin = proximaClase?.HoraFin,
+                        ProximaHoraInicio =
+                            proximaClase?.HoraInicio,
 
-                        ClaseId = proximaClase?.Id ?? 0,
+                        ProximaHoraFin =
+                            proximaClase?.HoraFin,
 
-                        CupoMaximo = proximaClase?.CupoMaximo ?? 0,
+                        FechaProximaClase =
+                            proximaClase
+                                ?.FechaProximaClase,
 
-                        Inscriptos = proximaClase?.Inscripciones.Count ?? 0,
+                        CupoMaximo =
+                            proximaClase?.CupoMaximo,
 
-                        CuposDisponibles = proximaClase == null
-                            ? 0
-                            : proximaClase.CupoMaximo - proximaClase.Inscripciones.Count
+                        Inscriptos =
+                            proximaClase
+                                ?.CantidadAlumnos,
+
+                        CuposDisponibles =
+                            proximaClase
+                                ?.CuposDisponibles
                     };
                 })
                 .OrderBy(g => g.Nombre)
                 .ToList();
-
-            return resultado;
         }
 
         public GrupoDetalleVO? ObtenerDetalleGrupo(
-    int grupoId,
-    int entrenadorId)
+            int grupoId,
+            int entrenadorId)
         {
-            var grupo = _context.Grupos
-
-                .AsNoTracking()
-
-                .Include(g => g.Clases)
-                    .ThenInclude(c => c.Inscripciones)
-                        .ThenInclude(i => i.Alumno)
-
-                .FirstOrDefault(g =>
-                    g.Id == grupoId &&
-                    g.EntrenadorId == entrenadorId);
+            var grupo =
+                _context.Grupos
+                    .AsNoTracking()
+                    .Include(g => g.Clases)
+                        .ThenInclude(c =>
+                            c.Inscripciones)
+                            .ThenInclude(i =>
+                                i.Alumno)
+                    .FirstOrDefault(g =>
+                        g.Id == grupoId &&
+                        g.EntrenadorId ==
+                            entrenadorId);
 
             if (grupo == null)
             {
@@ -272,73 +303,351 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
                 Nivel = grupo.Nivel,
 
-                Estado = grupo.Estado.ToString(),
+                Estado =
+                    grupo.Estado.ToString(),
 
-                CantidadClases = grupo.Clases.Count,
+                CantidadClases =
+                    grupo.Clases.Count,
 
-                CantidadAlumnos = grupo.Clases
-                    .SelectMany(c => c.Inscripciones)
-                    .Select(i => i.AlumnoId)
-                    .Distinct()
-                    .Count(),
+                CantidadAlumnos =
+                    grupo.Clases
+                        .SelectMany(c =>
+                            c.Inscripciones)
+                        .Select(i =>
+                            i.AlumnoId)
+                        .Distinct()
+                        .Count(),
 
-                Alumnos = grupo.Clases
+                Alumnos =
+                    grupo.Clases
+                        .SelectMany(c =>
+                            c.Inscripciones)
+                        .GroupBy(i =>
+                            i.AlumnoId)
+                        .Select(g =>
+                            g.First())
+                        .OrderBy(i =>
+                            i.Alumno.Nombre.Valor)
+                        .Select(i =>
+                            new AlumnoGrupoVO
+                            {
+                                Id =
+                                    i.Alumno.UsuarioId,
 
-                    .SelectMany(c => c.Inscripciones)
+                                Nombre =
+                                    i.Alumno.Nombre.Valor,
 
-                    .GroupBy(i => i.AlumnoId)
+                                Apellido =
+                                    i.Alumno.Apellido.Valor,
 
-                    .Select(g => g.First())
+                                Peso =
+                                    i.Alumno.Peso,
 
-                    .OrderBy(i => i.Alumno.Nombre)
+                                Estatura =
+                                    i.Alumno.Estatura,
 
-                    .Select(i => new AlumnoGrupoVO
-                    {
-                        Id = i.Alumno.UsuarioId,
+                                IMC =
+                                    i.Alumno.IMC,
 
-                        Nombre = i.Alumno.Nombre.Valor,
+                                Bloqueado =
+                                    i.Alumno
+                                        .BloqueadoPorDeuda ||
+                                    i.Alumno
+                                        .BloqueadoPorInasistencias
+                            })
+                        .ToList(),
 
-                        Apellido = i.Alumno.Apellido.Valor,
+                Clases =
+                    grupo.Clases
+                        .OrderBy(c =>
+                            ObtenerOrdenDia(
+                                c.DiaSemana))
+                        .ThenBy(c =>
+                            c.HoraInicio)
+                        .Select(c =>
+                            new ClaseGrupoVO
+                            {
+                                Id = c.Id,
 
-                        Peso = i.Alumno.Peso,
+                                DiaSemana =
+                                    c.DiaSemana
+                                        .ToString(),
 
-                        Estatura = i.Alumno.Estatura,
+                                HoraInicio =
+                                    c.HoraInicio,
 
-                        IMC = i.Alumno.IMC,
+                                HoraFin =
+                                    c.HoraFin,
 
-                        Bloqueado =
-                            i.Alumno.BloqueadoPorDeuda ||
-                            i.Alumno.BloqueadoPorInasistencias
-                    })
+                                CupoMaximo =
+                                    c.CupoMaximo,
 
-                    .ToList(),
+                                Inscriptos =
+                                    c.Inscripciones
+                                        .Count,
 
-                Clases = grupo.Clases
-
-                    .OrderBy(c => c.DiaSemana)
-
-                    .ThenBy(c => c.HoraInicio)
-
-                    .Select(c => new ClaseGrupoVO
-                    {
-                        Id = c.Id,
-
-                        DiaSemana = c.DiaSemana.ToString(),
-
-                        HoraInicio = c.HoraInicio,
-
-                        HoraFin = c.HoraFin,
-
-                        CupoMaximo = c.CupoMaximo,
-
-                        Inscriptos = c.Inscripciones.Count,
-
-                        Activa = c.Estado == EstadoClase.Programada
-                    })
-
-                    .ToList()
+                                Activa =
+                                    c.Estado ==
+                                    EstadoClase.Programada
+                            })
+                        .ToList()
             };
         }
 
+        private static ProximaClaseVO?
+            CalcularProximaClase(
+                IEnumerable<Clase> clases,
+                DateTime ahoraUruguay)
+        {
+            return clases
+                .Where(c =>
+                    c.Estado ==
+                        EstadoClase.Programada &&
+                    c.Grupo != null &&
+                    c.Grupo.Estado ==
+                        EstadoGrupo.ACTIVO)
+                .Select(c => new
+                {
+                    Clase = c,
+
+                    FechaOcurrencia =
+                        CalcularProximaOcurrencia(
+                            c,
+                            ahoraUruguay)
+                })
+                .Where(x =>
+                    x.FechaOcurrencia.HasValue)
+                .OrderBy(x =>
+                    x.FechaOcurrencia!.Value)
+                .Select(x =>
+                    new ProximaClaseVO
+                    {
+                        ClaseId =
+                            x.Clase.Id,
+
+                        GrupoId =
+                            x.Clase.GrupoId,
+
+                        Grupo =
+                            x.Clase.Grupo.Nombre,
+
+                        DiaSemana =
+                            x.Clase.DiaSemana
+                                .ToString(),
+
+                        HoraInicio =
+                            x.Clase.HoraInicio,
+
+                        HoraFin =
+                            x.Clase.HoraFin,
+
+                        FechaProximaClase =
+                            x.FechaOcurrencia!.Value,
+
+                        CantidadAlumnos =
+                            x.Clase.Inscripciones
+                                .Count,
+
+                        CupoMaximo =
+                            x.Clase.CupoMaximo,
+
+                        CuposDisponibles =
+                            Math.Max(
+                                0,
+                                x.Clase.CupoMaximo -
+                                x.Clase.Inscripciones
+                                    .Count)
+                    })
+                .FirstOrDefault();
+        }
+
+        private static DateTime?
+            CalcularProximaOcurrencia(
+                Clase clase,
+                DateTime ahoraUruguay)
+        {
+            DateTime fechaMinima =
+                ahoraUruguay.Date;
+
+            if (clase.FechaInicio.Date >
+                fechaMinima)
+            {
+                fechaMinima =
+                    clase.FechaInicio.Date;
+            }
+
+            DayOfWeek diaObjetivo =
+                ConvertirADayOfWeek(
+                    clase.DiaSemana);
+
+            int diasHastaClase =
+                ((int)diaObjetivo -
+                 (int)fechaMinima.DayOfWeek + 7) % 7;
+
+            DateTime fechaCandidata =
+                fechaMinima.AddDays(
+                    diasHastaClase);
+
+            DateTime ocurrencia =
+                fechaCandidata.Add(
+                    clase.HoraInicio);
+
+            if (ocurrencia <= ahoraUruguay)
+            {
+                ocurrencia =
+                    ocurrencia.AddDays(7);
+            }
+
+            if (ocurrencia.Date <
+                clase.FechaInicio.Date)
+            {
+                int diasAFechaInicio =
+                    (int)Math.Ceiling(
+                        (clase.FechaInicio.Date -
+                         ocurrencia.Date)
+                        .TotalDays / 7);
+
+                ocurrencia =
+                    ocurrencia.AddDays(
+                        diasAFechaInicio * 7);
+            }
+
+            if (clase.FechaFin.HasValue &&
+                ocurrencia.Date >
+                    clase.FechaFin.Value.Date)
+            {
+                return null;
+            }
+
+            return DateTime.SpecifyKind(
+                ocurrencia,
+                DateTimeKind.Unspecified);
+        }
+
+        private static bool ClaseVigenteEnFecha(
+            Clase clase,
+            DateTime fecha)
+        {
+            if (fecha.Date <
+                clase.FechaInicio.Date)
+            {
+                return false;
+            }
+
+            if (clase.FechaFin.HasValue &&
+                fecha.Date >
+                    clase.FechaFin.Value.Date)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static DateTime
+            ObtenerFechaHoraUruguay()
+        {
+            TimeZoneInfo zonaUruguay;
+
+            try
+            {
+                zonaUruguay =
+                    TimeZoneInfo
+                        .FindSystemTimeZoneById(
+                            "Montevideo Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                zonaUruguay =
+                    TimeZoneInfo
+                        .FindSystemTimeZoneById(
+                            "America/Montevideo");
+            }
+
+            return TimeZoneInfo
+                .ConvertTimeFromUtc(
+                    DateTime.UtcNow,
+                    zonaUruguay);
+        }
+
+        private static DiaSemana
+            ConvertirDiaSemana(
+                DayOfWeek dia)
+        {
+            return dia switch
+            {
+                DayOfWeek.Monday =>
+                    DiaSemana.Lunes,
+
+                DayOfWeek.Tuesday =>
+                    DiaSemana.Martes,
+
+                DayOfWeek.Wednesday =>
+                    DiaSemana.Miercoles,
+
+                DayOfWeek.Thursday =>
+                    DiaSemana.Jueves,
+
+                DayOfWeek.Friday =>
+                    DiaSemana.Viernes,
+
+                DayOfWeek.Saturday =>
+                    DiaSemana.Sabado,
+
+                DayOfWeek.Sunday =>
+                    DiaSemana.Domingo,
+
+                _ => throw new InvalidOperationException(
+                    "Día de la semana inválido")
+            };
+        }
+
+        private static DayOfWeek
+            ConvertirADayOfWeek(
+                DiaSemana dia)
+        {
+            return dia switch
+            {
+                DiaSemana.Lunes =>
+                    DayOfWeek.Monday,
+
+                DiaSemana.Martes =>
+                    DayOfWeek.Tuesday,
+
+                DiaSemana.Miercoles =>
+                    DayOfWeek.Wednesday,
+
+                DiaSemana.Jueves =>
+                    DayOfWeek.Thursday,
+
+                DiaSemana.Viernes =>
+                    DayOfWeek.Friday,
+
+                DiaSemana.Sabado =>
+                    DayOfWeek.Saturday,
+
+                DiaSemana.Domingo =>
+                    DayOfWeek.Sunday,
+
+                _ => throw new InvalidOperationException(
+                    "Día de la semana inválido")
+            };
+        }
+
+        private static int ObtenerOrdenDia(
+            DiaSemana dia)
+        {
+            return dia switch
+            {
+                DiaSemana.Lunes => 1,
+                DiaSemana.Martes => 2,
+                DiaSemana.Miercoles => 3,
+                DiaSemana.Jueves => 4,
+                DiaSemana.Viernes => 5,
+                DiaSemana.Sabado => 6,
+                DiaSemana.Domingo => 7,
+                _ => 8
+            };
+        }
     }
 }

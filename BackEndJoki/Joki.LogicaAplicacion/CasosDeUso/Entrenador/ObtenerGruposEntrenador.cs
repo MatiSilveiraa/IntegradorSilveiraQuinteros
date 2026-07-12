@@ -7,48 +7,64 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
     public class ObtenerGruposEntrenador :
         IObtenerGruposEntrenador
     {
-        private readonly IRepositorioGrupo _repositorioGrupo;
+        private readonly IRepositorioGrupo
+            _repositorioGrupo;
 
         public ObtenerGruposEntrenador(
             IRepositorioGrupo repositorioGrupo)
         {
-            _repositorioGrupo = repositorioGrupo;
+            _repositorioGrupo =
+                repositorioGrupo;
         }
 
         public List<GrupoEntrenadorDTO> Ejecutar(
             int entrenadorId)
         {
             return _repositorioGrupo
-    .ObtenerGruposPorEntrenador(entrenadorId)
-    .Select(g => new GrupoEntrenadorDTO
-    {
-        Id = g.Id,
+                .ObtenerGruposPorEntrenador(
+                    entrenadorId)
+                .Select(g =>
+                    new GrupoEntrenadorDTO
+                    {
+                        Id = g.Id,
 
-        Nombre = g.Nombre,
+                        Nombre = g.Nombre,
 
-        Nivel = g.Nivel,
+                        Nivel = g.Nivel,
 
-        Estado = g.Estado,
+                        Estado = g.Estado,
 
-        CantidadAlumnos = g.CantidadAlumnos,
+                        CantidadAlumnos =
+                            g.CantidadAlumnos,
 
-        CantidadClases = g.CantidadClases,
+                        CantidadClases =
+                            g.CantidadClases,
 
-        ClaseId = g.ClaseId,
+                        ClaseId =
+                            g.ClaseId,
 
-        ProximoDia = g.ProximoDia,
+                        ProximoDia =
+                            g.ProximoDia,
 
-        ProximaHoraInicio = g.ProximaHoraInicio,
+                        ProximaHoraInicio =
+                            g.ProximaHoraInicio,
 
-        ProximaHoraFin = g.ProximaHoraFin,
+                        ProximaHoraFin =
+                            g.ProximaHoraFin,
 
-        CupoMaximo = g.CupoMaximo,
+                        FechaProximaClase =
+                            g.FechaProximaClase,
 
-        Inscriptos = g.Inscriptos,
+                        CupoMaximo =
+                            g.CupoMaximo,
 
-        CuposDisponibles = g.CuposDisponibles
-    })
-    .ToList();
+                        Inscriptos =
+                            g.Inscriptos,
+
+                        CuposDisponibles =
+                            g.CuposDisponibles
+                    })
+                .ToList();
         }
     }
 }

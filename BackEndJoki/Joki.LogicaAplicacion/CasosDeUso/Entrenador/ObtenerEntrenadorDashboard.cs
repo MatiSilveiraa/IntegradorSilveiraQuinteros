@@ -4,81 +4,149 @@ using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 {
-    public class ObtenerEntrenadorDashboard : IObtenerEntrenadorDashboard
+    public class ObtenerEntrenadorDashboard :
+        IObtenerEntrenadorDashboard
     {
-        private readonly IRepositorioGrupo _repositorioGrupo;
-        private readonly IRepositorioDesafio _repositorioDesafio;
-        private readonly IRepositorioNotificacion _repositorioNotificacion;
+        private readonly IRepositorioGrupo
+            _repositorioGrupo;
+
+        private readonly IRepositorioDesafio
+            _repositorioDesafio;
+
+        private readonly IRepositorioNotificacion
+            _repositorioNotificacion;
 
         public ObtenerEntrenadorDashboard(
             IRepositorioGrupo repositorioGrupo,
             IRepositorioDesafio repositorioDesafio,
             IRepositorioNotificacion repositorioNotificacion)
         {
-            _repositorioGrupo = repositorioGrupo;
-            _repositorioDesafio = repositorioDesafio;
-            _repositorioNotificacion = repositorioNotificacion;
+            _repositorioGrupo =
+                repositorioGrupo;
+
+            _repositorioDesafio =
+                repositorioDesafio;
+
+            _repositorioNotificacion =
+                repositorioNotificacion;
         }
 
-        public EntrenadorDashboardResponse Ejecutar(int entrenadorId)
+        public EntrenadorDashboardResponse Ejecutar(
+            int entrenadorId)
         {
             var agenda =
-      _repositorioGrupo.ObtenerAgendaHoy(entrenadorId);
+                _repositorioGrupo.ObtenerAgendaHoy(
+                    entrenadorId);
 
             var proxima =
-                _repositorioGrupo.ObtenerProximaClase(entrenadorId);
+                _repositorioGrupo.ObtenerProximaClase(
+                    entrenadorId);
 
             return new EntrenadorDashboardResponse
             {
-                Grupos = _repositorioGrupo.ContarPorEntrenador(entrenadorId),
+                Grupos =
+                    _repositorioGrupo
+                        .ContarPorEntrenador(
+                            entrenadorId),
 
-                Alumnos = _repositorioGrupo.ContarAlumnosPorEntrenador(entrenadorId),
+                Alumnos =
+                    _repositorioGrupo
+                        .ContarAlumnosPorEntrenador(
+                            entrenadorId),
 
-                ClasesHoy = agenda.Count,
+                ClasesHoy =
+                    agenda.Count,
 
-                DesafiosActivos = _repositorioDesafio.ContarActivos(),
+                DesafiosActivos =
+                    _repositorioDesafio
+                        .ContarActivos(),
 
                 NotificacionesNoLeidas =
-    _repositorioNotificacion
-        .ContarNoLeidasPorUsuario(entrenadorId),
+                    _repositorioNotificacion
+                        .ContarNoLeidasPorUsuario(
+                            entrenadorId),
 
-                ProximaClase = proxima == null
-                    ? null
-                    : new ProximaClaseDTO
-                    {
-                        ClaseId = proxima.ClaseId,
-                        Grupo = proxima.Grupo,
-                        HoraInicio = proxima.HoraInicio,
-                        HoraFin = proxima.HoraFin
-                    },
+                ProximaClase =
+                    proxima == null
+                        ? null
+                        : new ProximaClaseDTO
+                        {
+                            ClaseId =
+                                proxima.ClaseId,
 
-                AgendaHoy = agenda
-                    .Select(c => new AgendaClaseDTO
-                    {
-                        ClaseId = c.ClaseId,
+                            GrupoId =
+                                proxima.GrupoId,
 
-                        Grupo = c.Grupo,
+                            Grupo =
+                                proxima.Grupo,
 
-                        HoraInicio = c.HoraInicio,
+                            DiaSemana =
+                                proxima.DiaSemana,
 
-                        HoraFin = c.HoraFin,
+                            HoraInicio =
+                                proxima.HoraInicio,
 
-                        CantidadAlumnos = c.CantidadAlumnos,
+                            HoraFin =
+                                proxima.HoraFin,
 
-                        CupoMaximo = c.CupoMaximo,
+                            FechaProximaClase =
+                                proxima
+                                    .FechaProximaClase,
 
-                        CuposDisponibles = c.CuposDisponibles,
+                            CantidadAlumnos =
+                                proxima
+                                    .CantidadAlumnos,
 
-                        Alumnos = c.Alumnos
-                            .Select(a => new AlumnoAgendaDTO
+                            CupoMaximo =
+                                proxima.CupoMaximo,
+
+                            CuposDisponibles =
+                                proxima
+                                    .CuposDisponibles
+                        },
+
+                AgendaHoy =
+                    agenda
+                        .Select(c =>
+                            new AgendaClaseDTO
                             {
-                                Id = a.Id,
-                                Nombre = a.Nombre,
-                                Apellido = a.Apellido
+                                ClaseId =
+                                    c.ClaseId,
+
+                                Grupo =
+                                    c.Grupo,
+
+                                HoraInicio =
+                                    c.HoraInicio,
+
+                                HoraFin =
+                                    c.HoraFin,
+
+                                CantidadAlumnos =
+                                    c.CantidadAlumnos,
+
+                                CupoMaximo =
+                                    c.CupoMaximo,
+
+                                CuposDisponibles =
+                                    c.CuposDisponibles,
+
+                                Alumnos =
+                                    c.Alumnos
+                                        .Select(a =>
+                                            new AlumnoAgendaDTO
+                                            {
+                                                Id = a.Id,
+
+                                                Nombre =
+                                                    a.Nombre,
+
+                                                Apellido =
+                                                    a.Apellido
+                                            })
+                                        .ToList()
                             })
-                            .ToList()
-                    })
-                    .ToList()
+                        .ToList()
             };
         }
     }
