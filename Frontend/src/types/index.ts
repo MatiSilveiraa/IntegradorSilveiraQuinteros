@@ -362,19 +362,8 @@ export interface ProximaClase{
     horaFin:string;
 }
 
-export interface DashboardEntrenador{
-
-    grupos:number;
-
-    alumnos:number;
-
-    clasesHoy:number;
-
-    desafiosActivos:number;
-
-    notificacionesNoLeidas:number;
-
-    proximaClase?:ProximaClase;
-
-    agendaHoy:AgendaClase[];
-}
+export type {
+  DashboardEntrenador,
+  ProximaClaseEntrenador,
+  AgendaClaseEntrenador,
+} from "./entrenadorDashboard";

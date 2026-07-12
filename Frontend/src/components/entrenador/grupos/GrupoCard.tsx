@@ -14,21 +14,21 @@ type Props = {
 };
 
 export default function GrupoCard({ grupo }: Props) {
+  const tieneProximaClase =
+    grupo.claseId !== null &&
+    grupo.fechaProximaClase !== null;
+
+  const inscriptos = grupo.inscriptos ?? 0;
+  const cupoMaximo = grupo.cupoMaximo ?? 0;
+  const cuposDisponibles = grupo.cuposDisponibles ?? 0;
+
   const porcentajeOcupacion =
-    grupo.cupoMaximo > 0
+    cupoMaximo > 0
       ? Math.min(
           100,
-          Math.round(
-            (grupo.inscriptos * 100) /
-              grupo.cupoMaximo,
-          ),
+          Math.round((inscriptos * 100) / cupoMaximo),
         )
       : 0;
-
-  const tieneProximaClase =
-    grupo.claseId > 0 &&
-    Boolean(grupo.proximoDia) &&
-    Boolean(grupo.proximaHoraInicio);
 
   const estadoActivo =
     grupo.estado.toUpperCase() === "ACTIVO";
@@ -39,10 +39,7 @@ export default function GrupoCard({ grupo }: Props) {
         <div className="flex items-start gap-4 min-w-0">
           <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/20 flex items-center justify-center">
             <FitnessCenterOutlinedIcon
-              sx={{
-                fontSize: 26,
-                color: "#4adea8",
-              }}
+              sx={{ fontSize: 26, color: "#4adea8" }}
             />
           </div>
 
@@ -73,9 +70,7 @@ export default function GrupoCard({ grupo }: Props) {
           icono={<GroupsOutlinedIcon />}
           titulo="Alumnos"
           valor={`${grupo.cantidadAlumnos} ${
-            grupo.cantidadAlumnos === 1
-              ? "alumno"
-              : "alumnos"
+            grupo.cantidadAlumnos === 1 ? "alumno" : "alumnos"
           }`}
         />
 
@@ -83,9 +78,7 @@ export default function GrupoCard({ grupo }: Props) {
           icono={<CalendarMonthOutlinedIcon />}
           titulo="Frecuencia"
           valor={`${grupo.cantidadClases} ${
-            grupo.cantidadClases === 1
-              ? "clase"
-              : "clases"
+            grupo.cantidadClases === 1 ? "clase" : "clases"
           }`}
         />
       </div>
@@ -101,8 +94,10 @@ export default function GrupoCard({ grupo }: Props) {
 
         {tieneProximaClase ? (
           <>
-            <p className="font-bold mt-3">
-              {grupo.proximoDia}
+            <p className="font-bold mt-3 capitalize">
+              {formatearFechaProximaClase(
+                grupo.fechaProximaClase as string,
+              )}
             </p>
 
             <div className="flex items-center gap-2 text-sm text-gray-300 mt-1">
@@ -121,22 +116,20 @@ export default function GrupoCard({ grupo }: Props) {
                 </span>
 
                 <span className="font-semibold">
-                  {grupo.inscriptos}/{grupo.cupoMaximo}
+                  {inscriptos}/{cupoMaximo}
                 </span>
               </div>
 
               <div className="h-2 mt-2 rounded-full bg-[#1a2b24] overflow-hidden">
                 <div
                   className="h-full rounded-full bg-[#4adea8]"
-                  style={{
-                    width: `${porcentajeOcupacion}%`,
-                  }}
+                  style={{ width: `${porcentajeOcupacion}%` }}
                 />
               </div>
 
               <p className="text-xs text-gray-500 mt-2">
-                {grupo.cuposDisponibles}{" "}
-                {grupo.cuposDisponibles === 1
+                {cuposDisponibles}{" "}
+                {cuposDisponibles === 1
                   ? "lugar disponible"
                   : "lugares disponibles"}
               </p>
@@ -144,12 +137,18 @@ export default function GrupoCard({ grupo }: Props) {
           </>
         ) : (
           <p className="text-sm text-gray-400 mt-3">
-            No hay una próxima clase programada.
+            Este grupo no tiene una próxima clase programada.
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto pt-5">
+      <div
+        className={`grid gap-3 mt-auto pt-5 ${
+          tieneProximaClase
+            ? "grid-cols-1 sm:grid-cols-2"
+            : "grid-cols-1"
+        }`}
+      >
         <Link
           to={`/entrenador/grupos/${grupo.id}`}
           className="h-12 rounded-xl bg-[#4adea8] text-[#12201b] font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all"
@@ -158,7 +157,7 @@ export default function GrupoCard({ grupo }: Props) {
           <ArrowForwardOutlinedIcon fontSize="small" />
         </Link>
 
-        {tieneProximaClase && (
+        {tieneProximaClase && grupo.claseId !== null && (
           <Link
             to={`/entrenador/clases/${grupo.claseId}`}
             className="h-12 rounded-xl bg-[#12201b] border border-[#2d463b] text-white font-semibold flex items-center justify-center gap-2 hover:border-[#4adea8] transition-all"
@@ -183,18 +182,21 @@ function InfoMini({
   return (
     <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-4">
       <div className="text-[#4adea8]">{icono}</div>
-
-      <p className="text-xs text-gray-500 mt-3">
-        {titulo}
-      </p>
-
-      <p className="font-semibold mt-1">
-        {valor}
-      </p>
+      <p className="text-xs text-gray-500 mt-3">{titulo}</p>
+      <p className="font-semibold mt-1">{valor}</p>
     </div>
   );
 }
 
-function formatearHora(hora?: string) {
+function formatearHora(hora?: string | null) {
   return hora?.substring(0, 5) ?? "--:--";
+}
+
+function formatearFechaProximaClase(fecha: string) {
+  return new Date(fecha).toLocaleDateString("es-UY", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    timeZone: "America/Montevideo",
+  });
 }

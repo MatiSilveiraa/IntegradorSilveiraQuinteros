@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -5,11 +6,13 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
 
-import type { ProximaClase } from "../../../types";
+import type { ProximaClaseEntrenador } from "../../../types";
 
 type Props = {
-  clase?: ProximaClase;
+  clase: ProximaClaseEntrenador | null;
 };
 
 export default function DashboardNextClass({
@@ -18,28 +21,28 @@ export default function DashboardNextClass({
   const navigate = useNavigate();
 
   return (
-    <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 sm:p-7 min-h-[310px]">
+    <section className="min-h-[330px] rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-6 sm:p-7">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[#4adea8] text-xs font-bold uppercase tracking-wide">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
             Prioridad
           </p>
 
-          <h2 className="text-2xl font-bold mt-1">
+          <h2 className="mt-1 text-2xl font-bold">
             Próxima clase
           </h2>
         </div>
 
-        <div className="w-12 h-12 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/30 flex items-center justify-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#4adea8]/30 bg-[#4adea8]/10">
           <CalendarMonthOutlinedIcon
             sx={{ color: "#4adea8" }}
           />
         </div>
       </div>
 
-      {!clase ? (
-        <div className="h-[210px] flex flex-col items-center justify-center text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#12201b] border border-[#2d463b] flex items-center justify-center">
+      {clase === null ? (
+        <div className="flex h-[230px] flex-col items-center justify-center text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#2d463b] bg-[#12201b]">
             <EventBusyOutlinedIcon
               sx={{
                 color: "#6b7280",
@@ -48,42 +51,69 @@ export default function DashboardNextClass({
             />
           </div>
 
-          <h3 className="text-xl font-bold mt-4">
+          <h3 className="mt-4 text-xl font-bold">
             No hay una próxima clase
           </h3>
 
-          <p className="text-gray-400 mt-2">
-            Cuando tengas una clase programada aparecerá acá.
+          <p className="mt-2 max-w-sm text-gray-400">
+            No tenés clases futuras programadas en tus grupos
+            asignados.
           </p>
         </div>
       ) : (
         <div className="mt-6">
-          <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-5">
+          <div className="rounded-2xl border border-[#2d463b] bg-[#12201b] p-5">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/20 flex items-center justify-center">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#4adea8]/20 bg-[#4adea8]/10">
                 <GroupsOutlinedIcon
                   sx={{ color: "#4adea8" }}
                 />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-gray-400">
                   Grupo
                 </p>
 
-                <h3 className="text-2xl font-bold mt-1">
+                <h3 className="mt-1 break-words text-2xl font-bold">
                   {clase.grupo}
                 </h3>
 
-                <p className="text-[#4adea8] font-semibold mt-3">
-                  {formatearHora(clase.horaInicio)} -{" "}
-                  {formatearHora(clase.horaFin)}
+                <p className="mt-3 font-semibold capitalize text-[#4adea8]">
+                  {formatearFecha(
+                    clase.fechaProximaClase,
+                  )}
                 </p>
               </div>
             </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <InfoClase
+                icono={<AccessTimeOutlinedIcon />}
+                titulo="Horario"
+                valor={`${formatearHora(
+                  clase.horaInicio,
+                )} - ${formatearHora(
+                  clase.horaFin,
+                )}`}
+              />
+
+              <InfoClase
+                icono={<PeopleOutlineOutlinedIcon />}
+                titulo="Ocupación"
+                valor={`${clase.cantidadAlumnos}/${clase.cupoMaximo}`}
+              />
+            </div>
+
+            <p className="mt-4 text-xs text-gray-500">
+              {clase.cuposDisponibles}{" "}
+              {clase.cuposDisponibles === 1
+                ? "lugar disponible"
+                : "lugares disponibles"}
+            </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3 mt-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() =>
@@ -91,7 +121,7 @@ export default function DashboardNextClass({
                   `/entrenador/clases/${clase.claseId}`,
                 )
               }
-              className="h-12 rounded-xl bg-[#12201b] border border-[#2d463b] font-semibold flex items-center justify-center gap-2 hover:border-[#4adea8] transition-all"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-[#2d463b] bg-[#12201b] font-semibold transition-all hover:border-[#4adea8]"
             >
               <VisibilityOutlinedIcon fontSize="small" />
               Ver clase
@@ -104,7 +134,7 @@ export default function DashboardNextClass({
                   `/entrenador/clases/${clase.claseId}/asistencia`,
                 )
               }
-              className="h-12 rounded-xl bg-[#4adea8] text-[#12201b] font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4adea8] font-bold text-[#12201b] transition-all hover:brightness-110"
             >
               <FactCheckOutlinedIcon fontSize="small" />
               Tomar asistencia
@@ -116,6 +146,45 @@ export default function DashboardNextClass({
   );
 }
 
-function formatearHora(hora?: string) {
-  return hora?.substring(0, 5) ?? "--:--";
+function InfoClase({
+  icono,
+  titulo,
+  valor,
+}: {
+  icono: ReactNode;
+  titulo: string;
+  valor: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#2d463b] bg-[#1a2b24] p-4">
+      <div className="text-[#4adea8]">
+        {icono}
+      </div>
+
+      <p className="mt-3 text-xs text-gray-500">
+        {titulo}
+      </p>
+
+      <p className="mt-1 font-semibold">
+        {valor}
+      </p>
+    </div>
+  );
+}
+
+function formatearHora(hora: string) {
+  return hora.substring(0, 5);
+}
+
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleDateString(
+    "es-UY",
+    {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "America/Montevideo",
+    },
+  );
 }
