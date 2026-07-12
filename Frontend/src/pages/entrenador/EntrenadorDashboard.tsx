@@ -13,23 +13,21 @@ import DashboardQuickActions from "../../components/entrenador/dashboard/Dashboa
 import { obtenerDashboardEntrenador } from "../../services/Entrenador.Service";
 import { obtenerMiPerfil } from "../../services/Perfil.service";
 
-import type { Perfil } from "../../types";
+import type {
+  DashboardEntrenador,
+  Perfil,
+} from "../../types";
 
 export default function EntrenadorDashboard() {
-
   const [loading, setLoading] = useState(true);
-
-  const [perfil, setPerfil] =
-    useState<Perfil | null>(null);
-
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [dashboard, setDashboard] =
-    useState<any>(null);
+    useState<DashboardEntrenador | null>(null);
 
   useEffect(() => {
-
     const cargar = async () => {
-
       try {
+        setLoading(true);
 
         const [perfilData, dashboardData] =
           await Promise.all([
@@ -38,68 +36,47 @@ export default function EntrenadorDashboard() {
           ]);
 
         setPerfil(perfilData);
-
         setDashboard(dashboardData);
-
-      } catch (error) {
-
-        console.error(error);
+      } catch (error: any) {
+        if (
+          !error?.response ||
+          error.response.status >= 500
+        ) {
+          console.error(
+            "[Dashboard entrenador]",
+            error,
+          );
+        }
 
         toast.error(
-          "No fue posible cargar el dashboard"
+          error?.response?.data?.mensaje ??
+            "No fue posible cargar el dashboard",
         );
-
       } finally {
-
         setLoading(false);
-
       }
-
     };
 
-    cargar();
-
+    void cargar();
   }, []);
 
   if (loading) {
-
     return <FullScreenLoading />;
-
   }
 
   return (
-
     <div className="min-h-screen bg-[#12201b] text-white">
-
       <TopBar nombre={perfil?.nombre} />
 
-      <main
-        className="
-          max-w-7xl
-          mx-auto
-          px-6
-          pt-24
-          pb-10
-        "
-      >
-
+      <main className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         <DashboardHero
           nombre={perfil?.nombre}
+          clasesHoy={dashboard?.clasesHoy ?? 0}
         />
 
-        <DashboardStats
-          dashboard={dashboard}
-        />
+        <DashboardStats dashboard={dashboard} />
 
-        <div
-          className="
-            grid
-            xl:grid-cols-[1fr_1.4fr]
-            gap-6
-            mb-10
-          "
-        >
-
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)] mb-10">
           <DashboardNextClass
             clase={dashboard?.proximaClase}
           />
@@ -107,15 +84,14 @@ export default function EntrenadorDashboard() {
           <DashboardAgendaHoy
             agenda={dashboard?.agendaHoy ?? []}
           />
-
         </div>
 
-        <DashboardQuickActions />
-
+        <DashboardQuickActions
+          proximaClaseId={
+            dashboard?.proximaClase?.claseId
+          }
+        />
       </main>
-
     </div>
-
   );
-
 }
