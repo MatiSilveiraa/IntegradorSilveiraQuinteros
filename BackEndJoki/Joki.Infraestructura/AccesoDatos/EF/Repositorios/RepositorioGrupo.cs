@@ -165,7 +165,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public ProximaClaseVO? ObtenerProximaClase(
-            int entrenadorId)
+        int entrenadorId)
         {
             DateTime ahoraUruguay =
                 ObtenerFechaHoraUruguay();
@@ -176,13 +176,33 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(c => c.Grupo)
                     .Include(c => c.Inscripciones)
                     .Where(c =>
-                        c.Grupo.EntrenadorId ==
-                            entrenadorId &&
-                        c.Grupo.Estado ==
-                            EstadoGrupo.ACTIVO &&
-                        c.Estado ==
-                            EstadoClase.Programada)
+                        c.Grupo.EntrenadorId == entrenadorId &&
+                        c.Grupo.Estado == EstadoGrupo.ACTIVO &&
+                        c.Estado == EstadoClase.Programada)
                     .ToList();
+
+            Console.WriteLine(
+                $"[PROXIMA_CLASE] Entrenador={entrenadorId} " +
+                $"AhoraUruguay={ahoraUruguay:yyyy-MM-dd HH:mm:ss} " +
+                $"ClasesFiltradas={clases.Count}");
+
+            foreach (var clase in clases)
+            {
+                DateTime? ocurrencia =
+                    CalcularProximaOcurrencia(
+                        clase,
+                        ahoraUruguay);
+
+                Console.WriteLine(
+                    $"[PROXIMA_CLASE] " +
+                    $"ClaseId={clase.Id}, " +
+                    $"GrupoId={clase.GrupoId}, " +
+                    $"Dia={clase.DiaSemana}, " +
+                    $"Hora={clase.HoraInicio}, " +
+                    $"Inicio={clase.FechaInicio:yyyy-MM-dd HH:mm:ss}, " +
+                    $"Fin={(clase.FechaFin.HasValue ? clase.FechaFin.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL")}, " +
+                    $"Ocurrencia={(ocurrencia.HasValue ? ocurrencia.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL")}");
+            }
 
             return CalcularProximaClase(
                 clases,
