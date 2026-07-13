@@ -84,13 +84,18 @@ export interface Clase {
 
   grupoNombre?: string;
   ubicacionNombre?: string;
-  entrenadorNombre?: string;
+
+  // Compatibilidad con pantallas anteriores.
+  entrenadorNombre?: string | null;
+
+  entrenadores?: string[];
+  entrenadoresIds?: number[];
+  entrenadorPrincipal?: string | null;
+  entrenadorPrincipalId?: number | null;
 
   asistenciaRegistradaHoy?: boolean;
   fechaRegistroAsistencia?: string | null;
   tipoRegistroAsistencia?: "GEOLOCALIZACION" | "MANUAL" | string | null;
-  entrenadores: string[];
-entrenadoresIds: number[];
 }
 
 export type EstadoClaseValor = 0 | 1 | 2 | 3;
@@ -330,6 +335,24 @@ export interface CrearClaseRequest {
   cupoMaximo: number;
 
   entrenadoresIds: number[];
+  entrenadorPrincipalId: number;
+  forzarAsignacion?: boolean;
+}
+
+export interface ConflictoEntrenadorClase {
+  entrenadorId: number;
+  entrenador: string;
+  claseId: number;
+  grupo: string;
+  diaSemana: string;
+  horaInicio: string;
+  horaFin: string;
+}
+
+export interface ConflictoAsignacionClaseResponse {
+  requiereConfirmacion: true;
+  mensaje: string;
+  conflictos: ConflictoEntrenadorClase[];
 }
 
 export interface AlumnoAgenda {

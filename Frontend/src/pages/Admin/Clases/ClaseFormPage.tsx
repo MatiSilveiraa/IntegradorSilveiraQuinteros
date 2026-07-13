@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import TopBar from "../../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../../components/FullScreenSpinner";
 import ClassLocationMap from "../../../components/maps/ClassLocationMap";
+import ConflictoEntrenadoresModal from "../../../components/ui/ConflictoEntrenadoresModal";
 
 import { obtenerGrupos } from "../../../services/Grupo.Service";
 import {
@@ -13,7 +14,11 @@ import {
   obtenerClasePorId,
 } from "../../../services/Clase.Service";
 
-import type { CrearClaseRequest, Grupo } from "../../../types";
+import type {
+  ConflictoAsignacionClaseResponse,
+  CrearClaseRequest,
+  Grupo,
+} from "../../../types";
 import {
   obtenerEntrenadores,
   type EntrenadorSelector,
@@ -33,6 +38,17 @@ type DiaConHorarios = {
 
 type TipoClase = "puntual" | "recurrente";
 
+type OperacionGuardado = {
+  id?: number;
+  request: CrearClaseRequest;
+};
+
+type ConflictoPendiente = {
+  operacion: OperacionGuardado;
+  restantes: OperacionGuardado[];
+  respuesta: ConflictoAsignacionClaseResponse;
+};
+
 export default function ClaseFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -46,6 +62,10 @@ export default function ClaseFormPage() {
   const [entrenadores, setEntrenadores] = useState<EntrenadorSelector[]>([]);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [confirmandoConflicto, setConfirmandoConflicto] =
+    useState(false);
+  const [conflictoPendiente, setConflictoPendiente] =
+    useState<ConflictoPendiente | null>(null);
 
   const [tipoClase, setTipoClase] = useState<TipoClase>("recurrente");
   const [direccionSeleccionada, setDireccionSeleccionada] = useState("");
@@ -76,6 +96,8 @@ export default function ClaseFormPage() {
     fechaFin: null,
     cupoMaximo: 20,
     entrenadoresIds: [],
+    entrenadorPrincipalId: 0,
+    forzarAsignacion: false,
   });
 
   const grupoSeleccionadoDesdeUrl = grupos.find(
@@ -262,8 +284,16 @@ export default function ClaseFormPage() {
             fechaFin: clase.fechaFin ? clase.fechaFin.substring(0, 10) : null,
             cupoMaximo: clase.cupoMaximo,
 
-            // NUEVO
-            entrenadoresIds: [],
+            entrenadoresIds:
+              clase.entrenadoresIds ??
+              (clase.entrenadorPrincipalId
+                ? [clase.entrenadorPrincipalId]
+                : []),
+            entrenadorPrincipalId:
+              clase.entrenadorPrincipalId ??
+              clase.entrenadoresIds?.[0] ??
+              0,
+            forzarAsignacion: false,
           });
         }
       } catch (error) {
@@ -447,6 +477,18 @@ export default function ClaseFormPage() {
       return false;
     }
 
+    if (
+      !form.entrenadorPrincipalId ||
+      !form.entrenadoresIds.includes(
+        form.entrenadorPrincipalId,
+      )
+    ) {
+      toast.error(
+        "Seleccioná un entrenador principal entre los entrenadores asignados",
+      );
+      return false;
+    }
+
     if (hayErroresEnHorarios) {
       toast.error("Corregí los errores de horarios antes de guardar");
       return false;
@@ -507,71 +549,213 @@ export default function ClaseFormPage() {
       tipoClase === "recurrente" && form.fechaFin
         ? formatearFechaParaApi(form.fechaFin)
         : null,
+    forzarAsignacion: false,
   });
+
+  const esConflictoConfirmable = (
+    error: any,
+  ): error is {
+    response: {
+      status: number;
+      data: ConflictoAsignacionClaseResponse;
+    };
+  } =>
+    error?.response?.status === 409 &&
+    error?.response?.data?.requiereConfirmacion === true;
+
+  const ejecutarOperacion = async (
+    operacion: OperacionGuardado,
+    forzarAsignacion = false,
+  ) => {
+    const request: CrearClaseRequest = {
+      ...operacion.request,
+      forzarAsignacion,
+    };
+
+    if (operacion.id !== undefined) {
+      return editarClase(operacion.id, request);
+    }
+
+    return crearClase(request);
+  };
+
+  const finalizarGuardado = (
+    cantidadOperaciones: number,
+  ) => {
+    toast.success(
+      esEdicion
+        ? "Clase actualizada correctamente"
+        : cantidadOperaciones === 1
+          ? "Clase creada correctamente"
+          : `${cantidadOperaciones} clases creadas correctamente`,
+    );
+
+    if (grupoIdDesdeUrl) {
+      navigate(`/admin/grupos/${grupoIdDesdeUrl}`);
+      return;
+    }
+
+    navigate("/admin/clases");
+  };
+
+  const procesarOperaciones = async (
+    operaciones: OperacionGuardado[],
+    totalOriginal: number,
+  ) => {
+    for (let indice = 0; indice < operaciones.length; indice++) {
+      const operacion = operaciones[indice];
+
+      try {
+        await ejecutarOperacion(operacion);
+      } catch (error: any) {
+        if (esConflictoConfirmable(error)) {
+          setConflictoPendiente({
+            operacion,
+            restantes: operaciones.slice(indice + 1),
+            respuesta: error.response.data,
+          });
+
+          return;
+        }
+
+        throw error;
+      }
+    }
+
+    finalizarGuardado(totalOriginal);
+  };
+
+  const construirOperaciones = (): OperacionGuardado[] => {
+    if (esEdicion && id) {
+      const dia =
+        tipoClase === "puntual"
+          ? obtenerDiaDesdeFecha(form.fechaInicio)
+          : diasConHorarios[0].diaSemana;
+
+      const horario =
+        tipoClase === "puntual"
+          ? horarioPuntual
+          : diasConHorarios[0].horarios[0];
+
+      return [
+        {
+          id: Number(id),
+          request: armarRequest(
+            dia,
+            horario.horaInicio,
+            horario.horaFin,
+          ),
+        },
+      ];
+    }
+
+    if (tipoClase === "puntual") {
+      return [
+        {
+          request: armarRequest(
+            obtenerDiaDesdeFecha(form.fechaInicio),
+            horarioPuntual.horaInicio,
+            horarioPuntual.horaFin,
+          ),
+        },
+      ];
+    }
+
+    return diasConHorarios.flatMap((dia) =>
+      dia.horarios.map((horario) => ({
+        request: armarRequest(
+          dia.diaSemana,
+          horario.horaInicio,
+          horario.horaFin,
+        ),
+      })),
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validarFormulario()) return;
 
+    const operaciones = construirOperaciones();
+
     try {
       setGuardando(true);
-
-      if (esEdicion && id) {
-        const dia =
-          tipoClase === "puntual"
-            ? obtenerDiaDesdeFecha(form.fechaInicio)
-            : diasConHorarios[0].diaSemana;
-
-        const horario =
-          tipoClase === "puntual"
-            ? horarioPuntual
-            : diasConHorarios[0].horarios[0];
-
-        await editarClase(
-          Number(id),
-          armarRequest(dia, horario.horaInicio, horario.horaFin),
-        );
-
-        toast.success("Clase actualizada correctamente");
-      } else if (tipoClase === "puntual") {
-        const dia = obtenerDiaDesdeFecha(form.fechaInicio);
-
-        await crearClase(
-          armarRequest(dia, horarioPuntual.horaInicio, horarioPuntual.horaFin),
-        );
-
-        toast.success("Clase puntual creada correctamente");
-      } else {
-        const requests = diasConHorarios.flatMap((dia) =>
-          dia.horarios.map((horario) =>
-            crearClase(
-              armarRequest(dia.diaSemana, horario.horaInicio, horario.horaFin),
-            ),
-          ),
-        );
-
-        await Promise.all(requests);
-
-        toast.success(
-          requests.length === 1
-            ? "Clase recurrente creada correctamente"
-            : `${requests.length} clases recurrentes creadas correctamente`,
-        );
-      }
-
-      if (grupoIdDesdeUrl) {
-        navigate(`/admin/grupos/${grupoIdDesdeUrl}`);
-      } else {
-        navigate("/admin/clases");
-      }
+      await procesarOperaciones(
+        operaciones,
+        operaciones.length,
+      );
     } catch (error: any) {
-      console.error(error);
+      if (!error?.response || error.response.status >= 500) {
+        console.error("[Guardar clase]", error);
+      }
+
       toast.error(
-        error.response?.data?.mensaje ?? "No se pudo guardar la clase",
+        error?.response?.data?.mensaje ??
+          "No se pudo guardar la clase",
       );
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const cancelarConflicto = () => {
+    if (confirmandoConflicto) return;
+    setConflictoPendiente(null);
+  };
+
+  const confirmarConflicto = async () => {
+    if (!conflictoPendiente) return;
+
+    const {
+      operacion,
+      restantes,
+    } = conflictoPendiente;
+
+    try {
+      setConfirmandoConflicto(true);
+
+      await ejecutarOperacion(
+        operacion,
+        true,
+      );
+
+      setConflictoPendiente(null);
+
+      if (restantes.length > 0) {
+        await procesarOperaciones(
+          restantes,
+          construirOperaciones().length,
+        );
+      } else {
+        finalizarGuardado(
+          construirOperaciones().length,
+        );
+      }
+    } catch (error: any) {
+      if (esConflictoConfirmable(error)) {
+        setConflictoPendiente({
+          operacion,
+          restantes,
+          respuesta: error.response.data,
+        });
+
+        return;
+      }
+
+      if (!error?.response || error.response.status >= 500) {
+        console.error(
+          "[Confirmar conflicto de entrenadores]",
+          error,
+        );
+      }
+
+      toast.error(
+        error?.response?.data?.mensaje ??
+          "No se pudo guardar la clase",
+      );
+    } finally {
+      setConfirmandoConflicto(false);
     }
   };
 
@@ -951,24 +1135,50 @@ export default function ClaseFormPage() {
             />
           </div>
 
-          <div>
-            <label className="block mb-2 text-sm text-gray-300">
-              Entrenadores
-            </label>
+          <div className="space-y-5 rounded-3xl border border-[#2d463b] bg-[#12201b] p-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
+                Equipo responsable
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold">
+                Entrenadores de la clase
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-400">
+                Seleccioná uno o varios entrenadores y definí quién será
+                el responsable principal.
+              </p>
+            </div>
 
             <Autocomplete
               multiple
               options={entrenadores}
               getOptionLabel={(option) => option.nombreCompleto}
-              value={entrenadores.filter((e) =>
-                form.entrenadoresIds.includes(e.id),
-              )}
-              onChange={(_, values) =>
-                setForm((prev) => ({
-                  ...prev,
-                  entrenadoresIds: values.map((v) => v.id),
-                }))
+              isOptionEqualToValue={(option, value) =>
+                option.id === value.id
               }
+              value={entrenadores.filter((entrenador) =>
+                form.entrenadoresIds.includes(entrenador.id),
+              )}
+              onChange={(_, values) => {
+                const ids = values.map((value) => value.id);
+
+                setForm((prev) => {
+                  const principalActualSigueSeleccionado =
+                    ids.includes(prev.entrenadorPrincipalId);
+
+                  return {
+                    ...prev,
+                    entrenadoresIds: ids,
+                    entrenadorPrincipalId:
+                      principalActualSigueSeleccionado
+                        ? prev.entrenadorPrincipalId
+                        : (ids[0] ?? 0),
+                  };
+                });
+              }}
+              noOptionsText="No hay entrenadores disponibles"
               slotProps={{
                 chip: {
                   sx: {
@@ -978,9 +1188,6 @@ export default function ClaseFormPage() {
                     "& .MuiChip-deleteIcon": {
                       color: "#12201b",
                     },
-                    "& .MuiChip-deleteIcon:hover": {
-                      color: "#000",
-                    },
                   },
                 },
               }}
@@ -988,9 +1195,14 @@ export default function ClaseFormPage() {
                 <TextField
                   {...params}
                   label="Seleccionar entrenadores"
+                  placeholder={
+                    form.entrenadoresIds.length === 0
+                      ? "Buscá por nombre"
+                      : undefined
+                  }
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#12201b",
+                      backgroundColor: "#17251f",
                       color: "white",
                       "& fieldset": {
                         borderColor: "#2d463b",
@@ -1018,6 +1230,49 @@ export default function ClaseFormPage() {
                 />
               )}
             />
+
+            {form.entrenadoresIds.length > 0 && (
+              <div>
+                <label
+                  htmlFor="entrenador-principal"
+                  className="mb-2 block text-sm font-semibold text-gray-200"
+                >
+                  Entrenador principal
+                </label>
+
+                <select
+                  id="entrenador-principal"
+                  value={form.entrenadorPrincipalId}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      entrenadorPrincipalId: Number(
+                        event.target.value,
+                      ),
+                    }))
+                  }
+                  className={inputClass}
+                >
+                  {entrenadores
+                    .filter((entrenador) =>
+                      form.entrenadoresIds.includes(entrenador.id),
+                    )
+                    .map((entrenador) => (
+                      <option
+                        key={entrenador.id}
+                        value={entrenador.id}
+                      >
+                        {entrenador.nombreCompleto}
+                      </option>
+                    ))}
+                </select>
+
+                <p className="mt-2 text-xs text-gray-500">
+                  Se mostrará como responsable principal y se mantendrá
+                  en el campo compatible entrenadorNombre.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -1134,6 +1389,20 @@ export default function ClaseFormPage() {
           </button>
         </form>
       </main>
+
+      <ConflictoEntrenadoresModal
+        abierto={conflictoPendiente !== null}
+        mensaje={
+          conflictoPendiente?.respuesta.mensaje ??
+          "Uno o más entrenadores ya tienen otra clase en ese horario."
+        }
+        conflictos={
+          conflictoPendiente?.respuesta.conflictos ?? []
+        }
+        confirmando={confirmandoConflicto}
+        onCancelar={cancelarConflicto}
+        onConfirmar={confirmarConflicto}
+      />
     </div>
   );
 }

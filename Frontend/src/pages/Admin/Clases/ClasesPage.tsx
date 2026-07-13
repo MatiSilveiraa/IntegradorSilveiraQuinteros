@@ -383,20 +383,32 @@ export default function ClasesPage() {
                             </td>
 
                             <td className="px-6 py-4">
-                              {clase.entrenadores.length === 0 ? (
+                              {(clase.entrenadores ?? []).length === 0 ? (
                                 <span className="text-gray-500">
-                                  Sin asignar
+                                  {clase.entrenadorNombre ?? "Sin asignar"}
                                 </span>
                               ) : (
-                                <div className="flex flex-wrap gap-2">
-                                  {clase.entrenadores.map((nombre) => (
-                                    <span
-                                      key={nombre}
-                                      className="px-2 py-1 rounded-full bg-[#4adea8]/10 text-[#4adea8] text-xs"
-                                    >
-                                      {nombre}
-                                    </span>
-                                  ))}
+                                <div className="flex flex-col gap-2">
+                                  {(clase.entrenadores ?? []).map((nombre) => {
+                                    const esPrincipal =
+                                      nombre === clase.entrenadorPrincipal ||
+                                      (!clase.entrenadorPrincipal &&
+                                        nombre === clase.entrenadorNombre);
+
+                                    return (
+                                      <span
+                                        key={nombre}
+                                        className={`w-fit px-2 py-1 rounded-full border text-xs ${
+                                          esPrincipal
+                                            ? "bg-[#4adea8]/15 border-[#4adea8]/40 text-[#4adea8] font-bold"
+                                            : "bg-[#12201b] border-[#2d463b] text-gray-300"
+                                        }`}
+                                      >
+                                        {nombre}
+                                        {esPrincipal ? " · Principal" : ""}
+                                      </span>
+                                    );
+                                  })}
                                 </div>
                               )}
                             </td>

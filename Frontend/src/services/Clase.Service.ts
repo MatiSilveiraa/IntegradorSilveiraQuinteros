@@ -1,37 +1,53 @@
 import axiosInstance from "../api/axios";
-import type { CrearClaseRequest } from "../types";
-import type { CambiarEstadoClaseRequest } from "../types";
-import type { InscriptoClase } from "../types";
+
+import type {
+  CambiarEstadoClaseRequest,
+  Clase,
+  CrearClaseRequest,
+  InscriptoClase,
+} from "../types";
 
 export const inscribirseClase = async (claseId: number) => {
   const response = await axiosInstance.post(
     `/api/inscripciones/${claseId}`,
-    {}
+    {},
   );
 
   return response.data;
 };
 
-export const obtenerClases = async () => {
+export const obtenerClases = async (): Promise<Clase[]> => {
   const response = await axiosInstance.get("/api/Clase");
   return response.data;
 };
 
-export const obtenerClasePorId = async (id: number) => {
+export const obtenerClasePorId = async (
+  id: number,
+): Promise<Clase> => {
   const response = await axiosInstance.get(`/api/Clase/${id}`);
   return response.data;
 };
 
-export const crearClase = async (data: CrearClaseRequest) => {
+export const crearClase = async (
+  data: CrearClaseRequest,
+) => {
   const response = await axiosInstance.post("/api/Clase", data);
   return response.data;
 };
 
+export const editarClase = async (
+  id: number,
+  data: CrearClaseRequest,
+) => {
+  const response = await axiosInstance.put(`/api/Clase/${id}`, data);
+  return response.data;
+};
+
 export const obtenerInscriptosClase = async (
-  claseId: number
+  claseId: number,
 ): Promise<InscriptoClase[]> => {
   const response = await axiosInstance.get(
-    `/api/Clase/${claseId}/inscriptos`
+    `/api/Clase/${claseId}/inscriptos`,
   );
 
   return response.data;
@@ -39,21 +55,13 @@ export const obtenerInscriptosClase = async (
 
 export const cambiarEstadoClase = async (
   id: number,
-  data: CambiarEstadoClaseRequest
+  data: CambiarEstadoClaseRequest,
 ) => {
   const response = await axiosInstance.put(
     `/api/Clase/${id}/estado`,
-    data
+    data,
   );
 
-  return response.data;
-};
-
-export const editarClase = async (
-  id: number,
-  data: CrearClaseRequest
-) => {
-  const response = await axiosInstance.put(`/api/Clase/${id}`, data);
   return response.data;
 };
 
