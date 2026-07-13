@@ -9,11 +9,14 @@ namespace Joki.WebApi.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IObtenerAdminDashboard _obtenerAdminDashboard;
+        private readonly IObtenerEntrenadoresSelector _obtenerEntrenadoresSelector;
 
         public AdminController(
-            IObtenerAdminDashboard obtenerAdminDashboard)
+            IObtenerAdminDashboard obtenerAdminDashboard,
+            IObtenerEntrenadoresSelector obtenerEntrenadoresSelector)
         {
             _obtenerAdminDashboard = obtenerAdminDashboard;
+            _obtenerEntrenadoresSelector = obtenerEntrenadoresSelector;
         }
 
         [Authorize(Roles = "Admin")]
@@ -26,6 +29,26 @@ namespace Joki.WebApi.Controllers
                     _obtenerAdminDashboard.Ejecutar();
 
                 return Ok(dashboard);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje = "Hubo un problema. Prueba nuevamente"
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("entrenadores")]
+        public IActionResult ObtenerEntrenadores()
+        {
+            try
+            {
+                var entrenadores =
+                    _obtenerEntrenadoresSelector.Ejecutar();
+
+                return Ok(entrenadores);
             }
             catch (Exception)
             {

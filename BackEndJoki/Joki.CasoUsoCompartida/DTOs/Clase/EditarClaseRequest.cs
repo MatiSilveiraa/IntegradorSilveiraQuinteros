@@ -32,5 +32,7 @@ namespace Joki.CasoUsoCompartida.DTOs.Clase
         {
             CodigoPostal = string.Empty;
         }
+
+        public List<int> EntrenadoresIds { get; set; } = new();
     }
 }

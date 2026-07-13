@@ -21,9 +21,9 @@ export default function ClasesPage() {
   const [loading, setLoading] = useState(true);
 
   const [busqueda, setBusqueda] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState<"todas" | "fijas" | "eventuales">(
-    "todas"
-  );
+  const [filtroTipo, setFiltroTipo] = useState<
+    "todas" | "fijas" | "eventuales"
+  >("todas");
 
   const [claseAEliminar, setClaseAEliminar] = useState<Clase | null>(null);
   const [eliminando, setEliminando] = useState(false);
@@ -143,7 +143,7 @@ export default function ClasesPage() {
       console.error(error);
 
       toast.error(
-        error.response?.data?.mensaje ?? "No se pudo cambiar el estado"
+        error.response?.data?.mensaje ?? "No se pudo cambiar el estado",
       );
     } finally {
       setCambiandoEstado(false);
@@ -169,7 +169,7 @@ export default function ClasesPage() {
         if (diaA !== diaB) return diaA - diaB;
 
         return formatearHora(a.horaInicio).localeCompare(
-          formatearHora(b.horaInicio)
+          formatearHora(b.horaInicio),
         );
       });
   }, [clases, busqueda, filtroTipo]);
@@ -187,7 +187,7 @@ export default function ClasesPage() {
   }, [clasesFiltradas]);
 
   const totalProgramadas = clases.filter(
-    (c) => c.estado?.toUpperCase() === "PROGRAMADA"
+    (c) => c.estado?.toUpperCase() === "PROGRAMADA",
   ).length;
 
   const totalFijas = clases.filter((c) => c.esFija).length;
@@ -209,7 +209,7 @@ export default function ClasesPage() {
       console.error(error);
 
       toast.error(
-        error.response?.data?.mensaje ?? "No se pudo eliminar la clase"
+        error.response?.data?.mensaje ?? "No se pudo eliminar la clase",
       );
     } finally {
       setEliminando(false);
@@ -285,7 +285,7 @@ export default function ClasesPage() {
               value={filtroTipo}
               onChange={(e) =>
                 setFiltroTipo(
-                  e.target.value as "todas" | "fijas" | "eventuales"
+                  e.target.value as "todas" | "fijas" | "eventuales",
                 )
               }
               className="p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
@@ -353,6 +353,7 @@ export default function ClasesPage() {
                         <tr>
                           <th className="px-6 py-4">Horario</th>
                           <th className="px-6 py-4">Grupo</th>
+                          <th className="px-6 py-4">Entrenadores</th>
                           <th className="px-6 py-4">Tipo</th>
                           <th className="px-6 py-4">Cupo</th>
                           <th className="px-6 py-4">Inscriptos</th>
@@ -379,6 +380,25 @@ export default function ClasesPage() {
                               <p className="font-semibold">
                                 {obtenerNombreGrupo(clase)}
                               </p>
+                            </td>
+
+                            <td className="px-6 py-4">
+                              {clase.entrenadores.length === 0 ? (
+                                <span className="text-gray-500">
+                                  Sin asignar
+                                </span>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  {clase.entrenadores.map((nombre) => (
+                                    <span
+                                      key={nombre}
+                                      className="px-2 py-1 rounded-full bg-[#4adea8]/10 text-[#4adea8] text-xs"
+                                    >
+                                      {nombre}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </td>
 
                             <td className="px-6 py-4">
@@ -418,7 +438,7 @@ export default function ClasesPage() {
                             <td className="px-6 py-4">
                               <span
                                 className={`px-3 py-1 rounded-full border text-xs font-semibold ${obtenerClaseEstado(
-                                  clase.estado
+                                  clase.estado,
                                 )}`}
                               >
                                 {obtenerTextoEstado(clase.estado)}
@@ -476,9 +496,7 @@ export default function ClasesPage() {
               ⚙️
             </div>
 
-            <h2 className="text-2xl font-bold mb-2">
-              Cambiar estado de clase
-            </h2>
+            <h2 className="text-2xl font-bold mb-2">Cambiar estado de clase</h2>
 
             <p className="text-gray-400 mb-6">
               Modificá el estado de la clase. Si corresponde, los alumnos
@@ -542,8 +560,8 @@ export default function ClasesPage() {
                     nuevoEstado === 3
                       ? "Ej: Se suspende por lluvia."
                       : nuevoEstado === 2
-                      ? "Ej: Se cancela por falta de disponibilidad."
-                      : "Ej: Se retoma normalmente."
+                        ? "Ej: Se cancela por falta de disponibilidad."
+                        : "Ej: Se retoma normalmente."
                   }
                   rows={4}
                   className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8] resize-none"

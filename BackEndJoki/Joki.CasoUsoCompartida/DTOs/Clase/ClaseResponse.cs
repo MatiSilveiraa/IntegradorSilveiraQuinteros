@@ -42,6 +42,10 @@
 
         public int CantidadInscriptos { get; set; }
 
+        public List<int> EntrenadoresIds { get; set; } = new();
+
+        public List<string> Entrenadores { get; set; } = new();
+
         public ClaseResponse()
         {
             DiaSemana = string.Empty;

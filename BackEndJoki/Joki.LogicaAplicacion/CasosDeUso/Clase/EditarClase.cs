@@ -1,6 +1,7 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Clase;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Clase;
 using Joki.LogicaAplicacion.Mappers;
+using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
@@ -13,15 +14,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
         private readonly IRepositorioClase _repositorioClase;
         private readonly IRepositorioGrupo _repositorioGrupo;
         private readonly IRepositorioAuditoria _repositorioAuditoria;
+        private readonly IRepositorioClaseEntrenador _repositorioClaseEntrenador;
 
         public EditarClase(
             IRepositorioClase repositorioClase,
             IRepositorioGrupo repositorioGrupo,
-            IRepositorioAuditoria repositorioAuditoria)
+            IRepositorioAuditoria repositorioAuditoria,
+            IRepositorioClaseEntrenador repositorioClaseEntrenador)
         {
             _repositorioClase = repositorioClase;
             _repositorioGrupo = repositorioGrupo;
             _repositorioAuditoria = repositorioAuditoria;
+            _repositorioClaseEntrenador = repositorioClaseEntrenador;
         }
 
         public ClaseResponse Ejecutar(
@@ -93,6 +97,21 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                 request);
 
             _repositorioClase.Actualizar(clase);
+            _repositorioClaseEntrenador.EliminarPorClase(clase.Id);
+
+            if (request.EntrenadoresIds != null &&
+                request.EntrenadoresIds.Any())
+            {
+                var relaciones = request.EntrenadoresIds
+                    .Distinct()
+                    .Select(id => new ClaseEntrenador
+                    {
+                        ClaseId = clase.Id,
+                        EntrenadorId = id
+                    });
+
+                _repositorioClaseEntrenador.AgregarVarios(relaciones);
+            }
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad

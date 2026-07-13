@@ -21,6 +21,7 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             var mockRepoClase = new Mock<IRepositorioClase>();
             var mockRepoGrupo = new Mock<IRepositorioGrupo>();
             var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
+            var mockRepoClaseEntrenador = new Mock<IRepositorioClaseEntrenador>();
 
             var grupo = new GrupoEntidad
             {
@@ -61,7 +62,8 @@ namespace Joki.Pruebas.CasosDeUso.Clases
                 new CrearClase(
                     mockRepoClase.Object,
                     mockRepoGrupo.Object,
-                    mockRepoAuditoria.Object);
+                    mockRepoAuditoria.Object,
+                    mockRepoClaseEntrenador.Object);
 
             var resultado =
                 casoUso.Ejecutar(request, 99);
@@ -88,6 +90,7 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             var mockRepoClase = new Mock<IRepositorioClase>();
             var mockRepoGrupo = new Mock<IRepositorioGrupo>();
             var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
+            var mockRepoClaseEntrenador = new Mock<IRepositorioClaseEntrenador>();
 
             var request = new CrearClaseRequest
             {
@@ -106,7 +109,9 @@ namespace Joki.Pruebas.CasosDeUso.Clases
                 new CrearClase(
                     mockRepoClase.Object,
                     mockRepoGrupo.Object,
-                    mockRepoAuditoria.Object);
+                    mockRepoAuditoria.Object,
+                    mockRepoClaseEntrenador.Object);
+                 
 
             var ex =
                 Assert.Throws<LogicaNegocioException>(

@@ -50,15 +50,25 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
                 .Include(c => c.MaterialesEjercicio)
+
+                // NUEVO
+                .Include(c => c.Entrenadores)
+                    .ThenInclude(e => e.Entrenador)
+
                 .FirstOrDefault(c => c.Id == id);
         }
 
         public IEnumerable<Clase> ObtenerTodos()
         {
             return _context.Clases
+                .Include(c => c.Grupo)
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
                 .Include(c => c.MaterialesEjercicio)
+
+                .Include(c => c.Entrenadores)
+                    .ThenInclude(e => e.Entrenador)
+
                 .ToList();
         }
 
@@ -99,9 +109,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
                 .Include(c => c.MaterialesEjercicio)
 
-                .FirstOrDefault(c =>
-                    c.Id == claseId &&
-                    c.Grupo.EntrenadorId == entrenadorId);
+              .Include(c => c.Entrenadores)
+
+            .FirstOrDefault(c =>
+                c.Id == claseId &&
+                c.Entrenadores.Any(e =>
+                e.EntrenadorId == entrenadorId));
 
             if (clase == null)
             {
@@ -159,7 +172,51 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
         public List<ClaseDetalleVO> ObtenerClasesPorEntrenador(int entrenadorId)
         {
-            throw new NotImplementedException();
+            return _context.Clases
+
+                .AsNoTracking()
+
+                .Include(c => c.Grupo)
+
+                .Include(c => c.Inscripciones)
+
+                .Include(c => c.Entrenadores)
+
+                .Where(c =>
+                c.Entrenadores.Any(e =>
+                 e.EntrenadorId == entrenadorId))
+
+                .Select(c => new ClaseDetalleVO
+                {
+                    Id = c.Id,
+
+                    GrupoId = c.GrupoId,
+
+                    Grupo = c.Grupo.Nombre,
+
+                    DiaSemana = c.DiaSemana.ToString(),
+
+                    HoraInicio = c.HoraInicio,
+
+                    HoraFin = c.HoraFin,
+
+                    CupoMaximo = c.CupoMaximo,
+
+                    Inscriptos = c.Inscripciones.Count,
+
+                    CuposDisponibles =
+                        c.CupoMaximo - c.Inscripciones.Count,
+
+                    Latitud = c.Ubicacion.Latitud,
+
+                    Longitud = c.Ubicacion.Longitud,
+
+                    CodigoPostal = c.Ubicacion.CodigoPostal,
+
+                    Radio = c.RadioGeolocalizacion
+                })
+
+                .ToList();
         }
     }
 }

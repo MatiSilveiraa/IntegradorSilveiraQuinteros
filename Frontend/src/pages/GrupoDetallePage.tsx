@@ -31,32 +31,32 @@ export default function GrupoDetallePage() {
   const [perfil, setPerfil] = useState<any>(null);
 
   const [clasesInscritas, setClasesInscritas] = useState<number[]>([]);
-  
+
   const cargarGrupo = async () => {
-  try {
-    const grupos: Grupo[] = await obtenerGrupos();
+    try {
+      const grupos: Grupo[] = await obtenerGrupos();
 
-    const grupoEncontrado = grupos.find(
-      (g: Grupo) => g.id === Number(grupoId),
-    );
+      const grupoEncontrado = grupos.find(
+        (g: Grupo) => g.id === Number(grupoId),
+      );
 
-    setGrupo(grupoEncontrado!);
-  } catch (error) {
-    console.error(error);
+      setGrupo(grupoEncontrado!);
+    } catch (error) {
+      console.error(error);
 
-    toast.error("No fue posible cargar el grupo");
-  }
-};
-
-  useEffect(() => {
-  const cargar = async () => {
-    await cargarGrupo();
-
-    setLoading(false);
+      toast.error("No fue posible cargar el grupo");
+    }
   };
 
-  cargar();
-}, [grupoId]);
+  useEffect(() => {
+    const cargar = async () => {
+      await cargarGrupo();
+
+      setLoading(false);
+    };
+
+    cargar();
+  }, [grupoId]);
 
   useEffect(() => {
     obtenerMisClases()
@@ -72,49 +72,46 @@ export default function GrupoDetallePage() {
       });
   }, []);
 
- const handleInscribirse = async (claseId: number) => {
-  try {
-    await inscribirseClase(claseId);
+  const handleInscribirse = async (claseId: number) => {
+    try {
+      await inscribirseClase(claseId);
 
-    setClasesInscritas((prev) => [...prev, claseId]);
+      setClasesInscritas((prev) => [...prev, claseId]);
 
-    await cargarGrupo();
+      await cargarGrupo();
 
-    toast.success("Inscripción realizada correctamente");
-  } catch (error: any) {
-    console.error(error);
+      toast.success("Inscripción realizada correctamente");
+    } catch (error: any) {
+      console.error(error);
 
-    toast.error(
-      error?.response?.data?.mensaje ||
-        "No fue posible realizar la inscripción",
-    );
-  }
-};
+      toast.error(
+        error?.response?.data?.mensaje ||
+          "No fue posible realizar la inscripción",
+      );
+    }
+  };
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);
   }, []);
 
   const handleDesinscribirse = async (claseId: number) => {
-  try {
-    await desinscribirseClase(claseId);
+    try {
+      await desinscribirseClase(claseId);
 
-    setClasesInscritas((prev) =>
-      prev.filter((id) => id !== claseId),
-    );
+      setClasesInscritas((prev) => prev.filter((id) => id !== claseId));
 
-    await cargarGrupo();
+      await cargarGrupo();
 
-    toast.success("Te desinscribiste correctamente");
-  } catch (error: any) {
-    console.error(error);
+      toast.success("Te desinscribiste correctamente");
+    } catch (error: any) {
+      console.error(error);
 
-    toast.error(
-      error?.response?.data?.mensaje ||
-      "No fue posible desinscribirse",
-    );
-  }
-};
+      toast.error(
+        error?.response?.data?.mensaje || "No fue posible desinscribirse",
+      );
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner />;
@@ -200,6 +197,28 @@ export default function GrupoDetallePage() {
                         {clase.horaFin.substring(0, 5)}
                       </p>
 
+                      {clase.entrenadores && clase.entrenadores.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {clase.entrenadores.map((nombre) => (
+                            <span
+                              key={nombre}
+                              className="
+          px-3
+          py-1
+          rounded-lg
+          bg-[#12201b]
+          text-[#4adea8]
+          text-sm
+          border
+          border-[#2d463b]
+        "
+                            >
+                              👨‍🏫 {nombre}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-2">
                         <span
                           className="
@@ -282,7 +301,7 @@ export default function GrupoDetallePage() {
           hover:underline
         "
                         >
-                           Ver ubicación
+                          Ver ubicación
                         </a>
                       )}
 

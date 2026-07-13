@@ -11,7 +11,7 @@ import { obtenerDetalleClase } from "../../services/Entrenador.Service";
 import type { Perfil } from "../../types";
 import type { ClaseDetalle } from "../../types/claseDetalle";
 import ClaseHero from "../../components/entrenador/clase/ClaseHero";
-import ClaseSidebar from "../../components/entrenador/clase/ClaseSideBar";
+import ClaseSidebar from "../../components/entrenador/clase/ClaseSidebar";
 import ClaseAlumnos from "../../components/entrenador/clase/ClaseAlumno";
 
 export default function ClaseDetallePage() {

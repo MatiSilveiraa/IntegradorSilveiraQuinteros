@@ -28,9 +28,14 @@ namespace Joki.CasoUsoCompartida.DTOs.Clase
 
         public int CupoMaximo { get; set; }
 
+        // NUEVO
+        public List<int> EntrenadoresIds { get; set; }
+
         public CrearClaseRequest()
         {
             CodigoPostal = string.Empty;
+
+            EntrenadoresIds = new List<int>();
         }
     }
 }

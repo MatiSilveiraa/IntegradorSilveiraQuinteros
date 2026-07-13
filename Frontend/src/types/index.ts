@@ -89,6 +89,8 @@ export interface Clase {
   asistenciaRegistradaHoy?: boolean;
   fechaRegistroAsistencia?: string | null;
   tipoRegistroAsistencia?: "GEOLOCALIZACION" | "MANUAL" | string | null;
+  entrenadores: string[];
+entrenadoresIds: number[];
 }
 
 export type EstadoClaseValor = 0 | 1 | 2 | 3;
@@ -326,6 +328,8 @@ export interface CrearClaseRequest {
   fechaInicio: string;
   fechaFin?: string | null;
   cupoMaximo: number;
+
+  entrenadoresIds: number[];
 }
 
 export interface AlumnoAgenda {

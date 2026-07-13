@@ -24,6 +24,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         public DbSet<Alumno> Alumnos { get; set; }
         public DbSet<Entrenador> Entrenadores { get; set; }
         public DbSet<ConfiguracionCuota> ConfiguracionesCuota { get; set; }
+        public DbSet<ClaseEntrenador> ClaseEntrenadores { get; set; }
         public DbSet<Descuento> Descuentos { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Grupo> Grupos { get; set; }

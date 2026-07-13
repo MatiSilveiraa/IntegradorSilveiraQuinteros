@@ -16,6 +16,8 @@ export interface ClaseGrupo {
   cupoMaximo: number;
   inscriptos: number;
   activa: boolean;
+  entrenadores: string[];
+entrenadoresIds: number[];
 }
 
 export interface GrupoDetalle {

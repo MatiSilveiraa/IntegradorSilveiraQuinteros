@@ -5,6 +5,8 @@ using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using AuditoriaEntidad = Joki.LogicaNegocio.Entidades.Auditoria;
+using Joki.LogicaNegocio.Entidades;
+
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 {
@@ -13,15 +15,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
         private readonly IRepositorioClase _repositorioClase;
         private readonly IRepositorioGrupo _repositorioGrupo;
         private readonly IRepositorioAuditoria _repositorioAuditoria;
+        private readonly IRepositorioClaseEntrenador _repositorioClaseEntrenador;
 
         public CrearClase(
             IRepositorioClase repositorioClase,
             IRepositorioGrupo repositorioGrupo,
-            IRepositorioAuditoria repositorioAuditoria)
+            IRepositorioAuditoria repositorioAuditoria,
+            IRepositorioClaseEntrenador repositorioClaseEntrenador)
         {
             _repositorioClase = repositorioClase;
             _repositorioGrupo = repositorioGrupo;
             _repositorioAuditoria = repositorioAuditoria;
+            _repositorioClaseEntrenador = repositorioClaseEntrenador;
         }
 
         public ClaseResponse Ejecutar(
@@ -73,7 +78,30 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                 MapperClase.ToEntity(request);
 
             var claseCreada =
-                _repositorioClase.Agregar(clase);
+            _repositorioClase.Agregar(clase);
+
+            if (request.EntrenadoresIds.Any())
+            {
+                bool principal = true;
+
+                var entrenadores = new List<ClaseEntrenador>();
+
+                foreach (var entrenadorId in request.EntrenadoresIds.Distinct())
+                {
+                    entrenadores.Add(
+                        new ClaseEntrenador
+                        {
+                            ClaseId = claseCreada.Id,
+                            EntrenadorId = entrenadorId,
+                            EsPrincipal = principal,
+                            FechaAsignacion = DateTime.UtcNow
+                        });
+
+                    principal = false;
+                }
+
+                _repositorioClaseEntrenador.AgregarVarios(entrenadores);
+            }
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad

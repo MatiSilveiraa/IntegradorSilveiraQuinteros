@@ -69,12 +69,13 @@ namespace Joki.WebApi.Controllers
                     mensaje = e.Message
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
-                    mensaje =
-                        "Hubo un problema. Prueba nuevamente"
+                    mensaje = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    stack = ex.StackTrace
                 });
             }
         }

@@ -68,8 +68,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             int entrenadorId)
         {
             return _context.Grupos
-                .Count(g =>
-                    g.EntrenadorId == entrenadorId);
+    .Count(g =>
+        g.Clases.Any(c =>
+            c.Entrenadores.Any(e =>
+                e.EntrenadorId == entrenadorId)));
         }
 
         public int ContarAlumnosPorEntrenador(
@@ -77,9 +79,9 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _context.Inscripciones
                 .AsNoTracking()
-                .Where(i =>
-                    i.Clase.Grupo.EntrenadorId ==
-                    entrenadorId)
+              .Where(i =>
+    i.Clase.Entrenadores.Any(e =>
+        e.EntrenadorId == entrenadorId))
                 .Select(i => i.AlumnoId)
                 .Distinct()
                 .Count();
@@ -104,6 +106,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(c => c.Grupo)
                     .Include(c => c.Inscripciones)
                         .ThenInclude(i => i.Alumno)
+                    .Include(c => c.Entrenadores)
                     .Where(c =>
                         c.Grupo.EntrenadorId ==
                             entrenadorId &&
@@ -116,6 +119,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .ToList();
 
             return clases
+
+
                 .Where(c =>
                     ClaseVigenteEnFecha(c, hoy))
                 .OrderBy(c => c.HoraInicio)
@@ -175,6 +180,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .AsNoTracking()
                     .Include(c => c.Grupo)
                     .Include(c => c.Inscripciones)
+                    .Include(c => c.Entrenadores)
                     .Where(c =>
                         c.Grupo.EntrenadorId == entrenadorId &&
                         c.Grupo.Estado == EstadoGrupo.ACTIVO &&
@@ -222,18 +228,26 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(g => g.Clases)
                         .ThenInclude(c =>
                             c.Inscripciones)
-                    .Where(g =>
-                        g.EntrenadorId ==
-                        entrenadorId)
+                        .Include(g => g.Clases)
+    .ThenInclude(c => c.Entrenadores)
+                   .Where(g =>
+    g.Clases.Any(c =>
+        c.Entrenadores.Any(e =>
+            e.EntrenadorId == entrenadorId)))
                     .ToList();
 
             return grupos
                 .Select(grupo =>
                 {
+                    var clasesEntrenador = grupo.Clases
+    .Where(c =>
+        c.Entrenadores.Any(e =>
+            e.EntrenadorId == entrenadorId))
+    .ToList();
                     ProximaClaseVO? proximaClase =
-                        CalcularProximaClase(
-                            grupo.Clases,
-                            ahoraUruguay);
+                       CalcularProximaClase(
+    clasesEntrenador,
+    ahoraUruguay);
 
                     int cantidadAlumnos =
                         grupo.Clases
@@ -256,7 +270,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                             grupo.Estado.ToString(),
 
                         CantidadClases =
-                            grupo.Clases.Count,
+                            clasesEntrenador.Count,
 
                         CantidadAlumnos =
                             cantidadAlumnos,
@@ -300,21 +314,27 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             var grupo =
                 _context.Grupos
                     .AsNoTracking()
-                    .Include(g => g.Clases)
-                        .ThenInclude(c =>
-                            c.Inscripciones)
-                            .ThenInclude(i =>
-                                i.Alumno)
+                   .Include(g => g.Clases)
+    .ThenInclude(c => c.Inscripciones)
+        .ThenInclude(i => i.Alumno)
+
+.Include(g => g.Clases)
+    .ThenInclude(c => c.Entrenadores)
                     .FirstOrDefault(g =>
-                        g.Id == grupoId &&
-                        g.EntrenadorId ==
-                            entrenadorId);
+    g.Id == grupoId &&
+    g.Clases.Any(c =>
+        c.Entrenadores.Any(e =>
+            e.EntrenadorId == entrenadorId)));
 
             if (grupo == null)
             {
                 return null;
             }
-
+            var clasesEntrenador = grupo.Clases
+    .Where(c =>
+        c.Entrenadores.Any(e =>
+            e.EntrenadorId == entrenadorId))
+    .ToList();
             return new GrupoDetalleVO
             {
                 Id = grupo.Id,
@@ -327,19 +347,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     grupo.Estado.ToString(),
 
                 CantidadClases =
-                    grupo.Clases.Count,
+    clasesEntrenador.Count,
 
                 CantidadAlumnos =
-                    grupo.Clases
+    clasesEntrenador
                         .SelectMany(c =>
                             c.Inscripciones)
                         .Select(i =>
                             i.AlumnoId)
                         .Distinct()
                         .Count(),
-
                 Alumnos =
-                    grupo.Clases
+    clasesEntrenador
                         .SelectMany(c =>
                             c.Inscripciones)
                         .GroupBy(i =>
@@ -378,7 +397,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                         .ToList(),
 
                 Clases =
-                    grupo.Clases
+    clasesEntrenador
                         .OrderBy(c =>
                             ObtenerOrdenDia(
                                 c.DiaSemana))

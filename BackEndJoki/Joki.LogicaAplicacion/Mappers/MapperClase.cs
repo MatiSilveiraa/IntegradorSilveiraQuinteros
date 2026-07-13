@@ -7,6 +7,11 @@ namespace Joki.LogicaAplicacion.Mappers
 {
     public class MapperClase
     {
+
+        public List<int> EntrenadoresIds { get; set; } = new();
+
+        public List<string> Entrenadores { get; set; } = new();
+
         public static Clase ToEntity(CrearClaseRequest request)
         {
             return new Clase
@@ -43,21 +48,38 @@ namespace Joki.LogicaAplicacion.Mappers
 
         public static ClaseResponse ToResponse(Clase clase)
         {
+
             return new ClaseResponse
             {
                 Id = clase.Id,
 
                 GrupoId = clase.GrupoId,
-                GrupoNombre = clase.Grupo?.Nombre,
-                UbicacionNombre =
-    string.IsNullOrWhiteSpace(clase.Ubicacion.Direccion)
-        ? clase.Ubicacion.CodigoPostal
-        : clase.Ubicacion.Direccion,
 
+                GrupoNombre = clase.Grupo?.Nombre,
+
+                UbicacionNombre =
+                    string.IsNullOrWhiteSpace(clase.Ubicacion.Direccion)
+                        ? clase.Ubicacion.CodigoPostal
+                        : clase.Ubicacion.Direccion,
+
+                // Compatibilidad con pantallas viejas
                 EntrenadorNombre =
-    clase.Grupo?.Entrenador == null
-        ? null
-        : $"{clase.Grupo.Entrenador.Nombre.Valor} {clase.Grupo.Entrenador.Apellido.Valor}",
+                    clase.Entrenadores.Any()
+                        ? string.Join(", ",
+                            clase.Entrenadores.Select(x =>
+                                $"{x.Entrenador.Nombre.Valor} {x.Entrenador.Apellido.Valor}"))
+                        : null,
+
+                // NUEVO
+                    EntrenadoresIds = clase.Entrenadores
+                    .Select(x => x.EntrenadorId)
+                    .ToList(),
+
+                // NUEVO
+                    Entrenadores = clase.Entrenadores
+                    .Select(x =>
+                        $"{x.Entrenador.Nombre.Valor} {x.Entrenador.Apellido.Valor}")
+                    .ToList(),
 
                 DiaSemana = clase.DiaSemana.ToString(),
 

@@ -14,6 +14,12 @@ import {
 } from "../../../services/Clase.Service";
 
 import type { CrearClaseRequest, Grupo } from "../../../types";
+import {
+  obtenerEntrenadores,
+  type EntrenadorSelector,
+} from "../../../services/Admin.Service";
+
+import { Autocomplete, TextField } from "@mui/material";
 
 type HorarioClase = {
   horaInicio: string;
@@ -37,6 +43,7 @@ export default function ClaseFormPage() {
   const esEdicion = Boolean(id);
 
   const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [entrenadores, setEntrenadores] = useState<EntrenadorSelector[]>([]);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
@@ -68,6 +75,7 @@ export default function ClaseFormPage() {
     fechaInicio: "",
     fechaFin: null,
     cupoMaximo: 20,
+    entrenadoresIds: [],
   });
 
   const grupoSeleccionadoDesdeUrl = grupos.find(
@@ -121,9 +129,7 @@ export default function ClaseFormPage() {
       return -1;
     }
 
-    const diaJavaScript = new Date(
-      Date.UTC(anio, mes - 1, dia),
-    ).getUTCDay();
+    const diaJavaScript = new Date(Date.UTC(anio, mes - 1, dia)).getUTCDay();
 
     return (diaJavaScript + 6) % 7;
   };
@@ -216,6 +222,8 @@ export default function ClaseFormPage() {
       try {
         const gruposData = await obtenerGrupos();
         setGrupos(gruposData);
+        const entrenadoresData = await obtenerEntrenadores();
+        setEntrenadores(entrenadoresData);
 
         if (esEdicion && id) {
           const clase = await obtenerClasePorId(Number(id));
@@ -253,6 +261,9 @@ export default function ClaseFormPage() {
             fechaInicio: clase.fechaInicio?.substring(0, 10) ?? "",
             fechaFin: clase.fechaFin ? clase.fechaFin.substring(0, 10) : null,
             cupoMaximo: clase.cupoMaximo,
+
+            // NUEVO
+            entrenadoresIds: [],
           });
         }
       } catch (error) {
@@ -431,6 +442,11 @@ export default function ClaseFormPage() {
       return false;
     }
 
+    if (form.entrenadoresIds.length === 0) {
+      toast.error("Seleccioná al menos un entrenador");
+      return false;
+    }
+
     if (hayErroresEnHorarios) {
       toast.error("Corregí los errores de horarios antes de guardar");
       return false;
@@ -574,13 +590,6 @@ export default function ClaseFormPage() {
 
       <main className="max-w-4xl mx-auto px-6 pt-24 pb-10">
         <div className="mb-8">
-          <button
-            onClick={() => navigate("/admin/clases")}
-            className="text-[#4adea8] hover:underline mb-4"
-          >
-            ← Volver a clases
-          </button>
-
           <h1 className="text-3xl font-bold">
             {esEdicion
               ? "Editar clase"
@@ -903,8 +912,9 @@ export default function ClaseFormPage() {
 
               {!esEdicion && form.fechaInicio && (
                 <p className="mt-2 text-xs text-gray-500">
-                  Día detectado: {nombreDia(obtenerDiaDesdeFecha(form.fechaInicio))}.
-                  La fecha elegida no se modificará automáticamente.
+                  Día detectado:{" "}
+                  {nombreDia(obtenerDiaDesdeFecha(form.fechaInicio))}. La fecha
+                  elegida no se modificará automáticamente.
                 </p>
               )}
             </div>
@@ -938,6 +948,75 @@ export default function ClaseFormPage() {
               onChange={handleChange}
               placeholder="Ej: 18"
               className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-2 text-sm text-gray-300">
+              Entrenadores
+            </label>
+
+            <Autocomplete
+              multiple
+              options={entrenadores}
+              getOptionLabel={(option) => option.nombreCompleto}
+              value={entrenadores.filter((e) =>
+                form.entrenadoresIds.includes(e.id),
+              )}
+              onChange={(_, values) =>
+                setForm((prev) => ({
+                  ...prev,
+                  entrenadoresIds: values.map((v) => v.id),
+                }))
+              }
+              slotProps={{
+                chip: {
+                  sx: {
+                    backgroundColor: "#4adea8",
+                    color: "#12201b",
+                    fontWeight: 700,
+                    "& .MuiChip-deleteIcon": {
+                      color: "#12201b",
+                    },
+                    "& .MuiChip-deleteIcon:hover": {
+                      color: "#000",
+                    },
+                  },
+                },
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Seleccionar entrenadores"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#12201b",
+                      color: "white",
+                      "& fieldset": {
+                        borderColor: "#2d463b",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#4adea8",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#4adea8",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: "#cbd5e1",
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: "#4adea8",
+                    },
+                    "& input": {
+                      color: "white",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      color: "white",
+                    },
+                  }}
+                />
+              )}
             />
           </div>
 

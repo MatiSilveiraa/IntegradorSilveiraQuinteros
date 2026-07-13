@@ -10,6 +10,7 @@ namespace Joki.LogicaNegocio.Entidades
         public int GrupoId { get; set; }
 
         public virtual Grupo Grupo { get; set; } = null!;
+       
 
         public DiaSemana DiaSemana { get; set; }
 
@@ -37,6 +38,7 @@ namespace Joki.LogicaNegocio.Entidades
 
         public virtual ICollection<MaterialEjercicio> MaterialesEjercicio { get; set; }
         public virtual ICollection<SolicitudCupo> SolicitudesCupo { get; set; }
+        public virtual ICollection<ClaseEntrenador> Entrenadores { get; set; }
 
         public Clase()
         {
@@ -50,6 +52,7 @@ namespace Joki.LogicaNegocio.Entidades
 
             MaterialesEjercicio = new List<MaterialEjercicio>();
             SolicitudesCupo = new List<SolicitudCupo>();
+            Entrenadores = new List<ClaseEntrenador>();
         }
 
         public bool TieneCupoDisponible()

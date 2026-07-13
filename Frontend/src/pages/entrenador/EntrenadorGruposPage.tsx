@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ClearOutlinedIcon from "@mui/icons-material/ClearOutlined";
@@ -23,8 +20,6 @@ import type { GrupoEntrenador } from "../../types/grupoEntrenador";
 type FiltroEstado = "Todos" | "ACTIVO" | "SUSPENDIDO";
 
 export default function EntrenadorGruposPage() {
-  const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [grupos, setGrupos] = useState<GrupoEntrenador[]>([]);
@@ -103,15 +98,7 @@ export default function EntrenadorGruposPage() {
       <TopBar nombre={perfil?.nombre} />
 
       <main className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-        <button
-          type="button"
-          onClick={() => navigate("/entrenador")}
-          className="inline-flex items-center gap-2 mb-6 text-sm font-semibold text-gray-400 hover:text-[#4adea8] transition-colors"
-        >
-          <ArrowBackOutlinedIcon fontSize="small" />
-          Volver al panel del entrenador
-        </button>
-
+      
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8 mb-8">
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-7">
             <div className="flex items-start gap-4">

@@ -21,6 +21,7 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             var mockRepoClase = new Mock<IRepositorioClase>();
             var mockRepoGrupo = new Mock<IRepositorioGrupo>();
             var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
+            var mockRepoClaseEntrenador = new Mock<IRepositorioClaseEntrenador>();
 
             var clase = new ClaseEntidad
             {
@@ -67,7 +68,9 @@ namespace Joki.Pruebas.CasosDeUso.Clases
                 new EditarClase(
                     mockRepoClase.Object,
                     mockRepoGrupo.Object,
-                    mockRepoAuditoria.Object);
+                    mockRepoAuditoria.Object,
+                    mockRepoClaseEntrenador.Object
+                    );
 
             var resultado =
                 casoUso.Ejecutar(1, request, 99);
@@ -94,6 +97,7 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             var mockRepoClase = new Mock<IRepositorioClase>();
             var mockRepoGrupo = new Mock<IRepositorioGrupo>();
             var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
+            var mockRepoClaseEntrenador = new Mock<IRepositorioClaseEntrenador>();
 
             var request = new EditarClaseRequest
             {
@@ -112,7 +116,9 @@ namespace Joki.Pruebas.CasosDeUso.Clases
                 new EditarClase(
                     mockRepoClase.Object,
                     mockRepoGrupo.Object,
-                    mockRepoAuditoria.Object);
+                    mockRepoAuditoria.Object,
+                    mockRepoClaseEntrenador.Object
+                    );
 
             var ex =
                 Assert.Throws<LogicaNegocioException>(
@@ -131,6 +137,7 @@ namespace Joki.Pruebas.CasosDeUso.Clases
             var mockRepoClase = new Mock<IRepositorioClase>();
             var mockRepoGrupo = new Mock<IRepositorioGrupo>();
             var mockRepoAuditoria = new Mock<IRepositorioAuditoria>();
+            var mockRepoClaseEntrenador = new Mock<IRepositorioClaseEntrenador>();
 
             var clase = new ClaseEntidad
             {
@@ -159,7 +166,9 @@ namespace Joki.Pruebas.CasosDeUso.Clases
                 new EditarClase(
                     mockRepoClase.Object,
                     mockRepoGrupo.Object,
-                    mockRepoAuditoria.Object);
+                    mockRepoAuditoria.Object,
+                    mockRepoClaseEntrenador.Object
+                    );
 
             var ex =
                 Assert.Throws<LogicaNegocioException>(
