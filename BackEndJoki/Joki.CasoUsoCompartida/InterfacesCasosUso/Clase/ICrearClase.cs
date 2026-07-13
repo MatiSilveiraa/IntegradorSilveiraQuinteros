@@ -4,7 +4,7 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Clase
 {
     public interface ICrearClase
     {
-        ClaseResponse Ejecutar(
+        ResultadoOperacionClaseResponse Ejecutar(
             CrearClaseRequest request,
             int usuarioId);
     }

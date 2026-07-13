@@ -5,108 +5,179 @@ using Joki.LogicaNegocio.ValueObjects;
 
 namespace Joki.LogicaAplicacion.Mappers
 {
-    public class MapperClase
+    public static class MapperClase
     {
-
-        public List<int> EntrenadoresIds { get; set; } = new();
-
-        public List<string> Entrenadores { get; set; } = new();
-
-        public static Clase ToEntity(CrearClaseRequest request)
+        public static Clase ToEntity(
+            CrearClaseRequest request)
         {
             return new Clase
             {
-                GrupoId = request.GrupoId,
+                GrupoId =
+                    request.GrupoId,
 
-                DiaSemana = request.DiaSemana,
+                DiaSemana =
+                    request.DiaSemana,
 
-                HoraInicio = request.HoraInicio,
+                HoraInicio =
+                    request.HoraInicio,
 
-                HoraFin = request.HoraFin,
+                HoraFin =
+                    request.HoraFin,
 
                 Ubicacion = new Ubicacion
                 {
-                    Latitud = request.Latitud,
-                    Longitud = request.Longitud,
-                    CodigoPostal = request.CodigoPostal
+                    Latitud =
+                        request.Latitud,
+
+                    Longitud =
+                        request.Longitud,
+
+                    CodigoPostal =
+                        request.CodigoPostal
+                            ?? string.Empty
                 },
 
                 RadioGeolocalizacion =
                     request.RadioGeolocalizacion,
 
-                EsFija = request.EsFija,
+                EsFija =
+                    request.EsFija,
 
-                FechaInicio = request.FechaInicio,
+                FechaInicio =
+                    request.FechaInicio,
 
-                FechaFin = request.FechaFin,
+                FechaFin =
+                    request.FechaFin,
 
-                CupoMaximo = request.CupoMaximo,
+                CupoMaximo =
+                    request.CupoMaximo,
 
-                Estado = EstadoClase.Programada
+                Estado =
+                    EstadoClase.Programada
             };
         }
 
-        public static ClaseResponse ToResponse(Clase clase)
+        public static ClaseResponse ToResponse(
+            Clase clase)
         {
+            if (clase == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(clase));
+            }
+
+            var relacionesEntrenadores =
+                clase.Entrenadores?
+                    .Where(x =>
+                        x.Entrenador != null)
+                    .OrderByDescending(x =>
+                        x.EsPrincipal)
+                    .ThenBy(x =>
+                        x.Entrenador.Nombre?.Valor
+                        ?? string.Empty)
+                    .ThenBy(x =>
+                        x.Entrenador.Apellido?.Valor
+                        ?? string.Empty)
+                    .ToList()
+                ?? new List<ClaseEntrenador>();
+
+            var relacionPrincipal =
+                relacionesEntrenadores
+                    .FirstOrDefault(x =>
+                        x.EsPrincipal)
+                ?? relacionesEntrenadores
+                    .FirstOrDefault();
+
+            string? nombrePrincipal =
+                relacionPrincipal == null
+                    ? null
+                    : ObtenerNombreCompleto(
+                        relacionPrincipal.Entrenador);
 
             return new ClaseResponse
             {
-                Id = clase.Id,
+                Id =
+                    clase.Id,
 
-                GrupoId = clase.GrupoId,
+                GrupoId =
+                    clase.GrupoId,
 
-                GrupoNombre = clase.Grupo?.Nombre,
+                GrupoNombre =
+                    clase.Grupo?.Nombre,
 
                 UbicacionNombre =
-                    string.IsNullOrWhiteSpace(clase.Ubicacion.Direccion)
-                        ? clase.Ubicacion.CodigoPostal
-                        : clase.Ubicacion.Direccion,
+                    ObtenerNombreUbicacion(
+                        clase),
 
-                // Compatibilidad con pantallas viejas
+    
                 EntrenadorNombre =
-                    clase.Entrenadores.Any()
-                        ? string.Join(", ",
-                            clase.Entrenadores.Select(x =>
-                                $"{x.Entrenador.Nombre.Valor} {x.Entrenador.Apellido.Valor}"))
-                        : null,
+                    nombrePrincipal,
 
-                // NUEVO
-                    EntrenadoresIds = clase.Entrenadores
-                    .Select(x => x.EntrenadorId)
-                    .ToList(),
+                EntrenadoresIds =
+                    relacionesEntrenadores
+                        .Select(x =>
+                            x.EntrenadorId)
+                        .ToList(),
 
-                // NUEVO
-                    Entrenadores = clase.Entrenadores
-                    .Select(x =>
-                        $"{x.Entrenador.Nombre.Valor} {x.Entrenador.Apellido.Valor}")
-                    .ToList(),
+                Entrenadores =
+                    relacionesEntrenadores
+                        .Select(x =>
+                            ObtenerNombreCompleto(
+                                x.Entrenador))
+                        .Where(nombre =>
+                            !string.IsNullOrWhiteSpace(
+                                nombre))
+                        .ToList(),
 
-                DiaSemana = clase.DiaSemana.ToString(),
+                EntrenadorPrincipalId =
+                    relacionPrincipal
+                        ?.EntrenadorId,
 
-                HoraInicio = clase.HoraInicio,
+                EntrenadorPrincipal =
+                    nombrePrincipal,
 
-                HoraFin = clase.HoraFin,
+                DiaSemana =
+                    clase.DiaSemana.ToString(),
 
-                Latitud = clase.Ubicacion.Latitud,
+                HoraInicio =
+                    clase.HoraInicio,
 
-                Longitud = clase.Ubicacion.Longitud,
+                HoraFin =
+                    clase.HoraFin,
 
-                CodigoPostal = clase.Ubicacion.CodigoPostal,
+                Latitud =
+                    clase.Ubicacion?.Latitud
+                    ?? 0,
+
+                Longitud =
+                    clase.Ubicacion?.Longitud
+                    ?? 0,
+
+                CodigoPostal =
+                    clase.Ubicacion?.CodigoPostal
+                    ?? string.Empty,
 
                 RadioGeolocalizacion =
                     clase.RadioGeolocalizacion,
 
-                EsFija = clase.EsFija,
+                EsFija =
+                    clase.EsFija,
 
-                FechaInicio = clase.FechaInicio,
+                FechaInicio =
+                    clase.FechaInicio,
 
-                FechaFin = clase.FechaFin,
+                FechaFin =
+                    clase.FechaFin,
 
-                CupoMaximo = clase.CupoMaximo,
+                CupoMaximo =
+                    clase.CupoMaximo,
 
-                Estado = clase.Estado.ToString(),
+                Estado =
+                    clase.Estado.ToString(),
 
-                CantidadInscriptos = clase.Inscripciones.Count
+                CantidadInscriptos =
+                    clase.Inscripciones?.Count
+                    ?? 0
             };
         }
 
@@ -114,31 +185,94 @@ namespace Joki.LogicaAplicacion.Mappers
             Clase clase,
             EditarClaseRequest request)
         {
-            clase.GrupoId = request.GrupoId;
+            if (clase == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(clase));
+            }
 
-            clase.DiaSemana = request.DiaSemana;
+            if (request == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(request));
+            }
 
-            clase.HoraInicio = request.HoraInicio;
+            clase.GrupoId =
+                request.GrupoId;
 
-            clase.HoraFin = request.HoraFin;
+            clase.DiaSemana =
+                request.DiaSemana;
+
+            clase.HoraInicio =
+                request.HoraInicio;
+
+            clase.HoraFin =
+                request.HoraFin;
 
             clase.Ubicacion = new Ubicacion
             {
-                Latitud = request.Latitud,
-                Longitud = request.Longitud,
-                CodigoPostal = request.CodigoPostal
+                Latitud =
+                    request.Latitud,
+
+                Longitud =
+                    request.Longitud,
+
+                CodigoPostal =
+                    request.CodigoPostal
+                        ?? string.Empty
             };
 
             clase.RadioGeolocalizacion =
                 request.RadioGeolocalizacion;
 
-            clase.EsFija = request.EsFija;
+            clase.EsFija =
+                request.EsFija;
 
-            clase.FechaInicio = request.FechaInicio;
+            clase.FechaInicio =
+                request.FechaInicio;
 
-            clase.FechaFin = request.FechaFin;
+            clase.FechaFin =
+                request.FechaFin;
 
-            clase.CupoMaximo = request.CupoMaximo;
+            clase.CupoMaximo =
+                request.CupoMaximo;
+        }
+
+        private static string ObtenerNombreUbicacion(
+            Clase clase)
+        {
+            if (clase.Ubicacion == null)
+            {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                clase.Ubicacion.Direccion))
+            {
+                return clase.Ubicacion.Direccion;
+            }
+
+            return clase.Ubicacion.CodigoPostal
+                ?? string.Empty;
+        }
+
+        private static string ObtenerNombreCompleto(
+            Entrenador entrenador)
+        {
+            if (entrenador == null)
+            {
+                return string.Empty;
+            }
+
+            string nombre =
+                entrenador.Nombre?.Valor
+                ?? string.Empty;
+
+            string apellido =
+                entrenador.Apellido?.Valor
+                ?? string.Empty;
+
+            return $"{nombre} {apellido}".Trim();
         }
     }
 }

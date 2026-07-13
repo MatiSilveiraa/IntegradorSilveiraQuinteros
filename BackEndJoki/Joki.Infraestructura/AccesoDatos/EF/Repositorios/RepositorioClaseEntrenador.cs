@@ -1,93 +1,204 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Joki.LogicaNegocio.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
-    public class RepositorioClaseEntrenador : IRepositorioClaseEntrenador
+    public class RepositorioClaseEntrenador :
+        IRepositorioClaseEntrenador
     {
         private readonly JokiContext _context;
 
-        public RepositorioClaseEntrenador(JokiContext context)
+        public RepositorioClaseEntrenador(
+            JokiContext context)
         {
             _context = context;
         }
 
-        public ClaseEntrenador Agregar(ClaseEntrenador claseEntrenador)
+        public void Agregar(
+            ClaseEntrenador relacion)
         {
-            _context.ClaseEntrenadores.Add(claseEntrenador);
-
-            _context.SaveChanges();
-
-            return claseEntrenador;
-        }
-
-        public void AgregarVarios(IEnumerable<ClaseEntrenador> entrenadores)
-        {
-            _context.ClaseEntrenadores.AddRange(entrenadores);
+            _context.Set<ClaseEntrenador>()
+                .Add(relacion);
 
             _context.SaveChanges();
         }
 
-        public bool Existe(int claseId, int entrenadorId)
+        public void AgregarVarios(
+            IEnumerable<ClaseEntrenador> relaciones)
         {
-            return _context.ClaseEntrenadores.Any(x =>
-                x.ClaseId == claseId &&
-                x.EntrenadorId == entrenadorId);
+            var lista = relaciones.ToList();
+
+            if (!lista.Any())
+            {
+                return;
+            }
+
+            _context.Set<ClaseEntrenador>()
+                .AddRange(lista);
+
+            _context.SaveChanges();
         }
 
-        public ClaseEntrenador? Obtener(int claseId, int entrenadorId)
+        public void Modificar(
+            ClaseEntrenador relacion)
         {
-            return _context.ClaseEntrenadores
+            _context.Set<ClaseEntrenador>()
+                .Update(relacion);
+
+            _context.SaveChanges();
+        }
+
+        public void Eliminar(
+            ClaseEntrenador relacion)
+        {
+            _context.Set<ClaseEntrenador>()
+                .Remove(relacion);
+
+            _context.SaveChanges();
+        }
+
+        public void EliminarPorClase(
+            int claseId)
+        {
+            var relaciones =
+                _context.Set<ClaseEntrenador>()
+                    .Where(x =>
+                        x.ClaseId == claseId)
+                    .ToList();
+
+            if (!relaciones.Any())
+            {
+                return;
+            }
+
+            _context.Set<ClaseEntrenador>()
+                .RemoveRange(relaciones);
+
+            _context.SaveChanges();
+        }
+
+        public ClaseEntrenador? Obtener(
+            int claseId,
+            int entrenadorId)
+        {
+            return _context.Set<ClaseEntrenador>()
                 .Include(x => x.Entrenador)
-                .Include(x => x.Clase)
                 .FirstOrDefault(x =>
                     x.ClaseId == claseId &&
                     x.EntrenadorId == entrenadorId);
         }
 
-        public IEnumerable<ClaseEntrenador> ObtenerPorClase(int claseId)
+        public List<ClaseEntrenador> ObtenerPorClase(
+            int claseId)
         {
-            return _context.ClaseEntrenadores
+            return _context.Set<ClaseEntrenador>()
                 .Include(x => x.Entrenador)
-                .Where(x => x.ClaseId == claseId)
+                .Where(x =>
+                    x.ClaseId == claseId)
+                .OrderByDescending(x =>
+                    x.EsPrincipal)
+                .ThenBy(x =>
+                    x.FechaAsignacion)
                 .ToList();
         }
 
-        public IEnumerable<ClaseEntrenador> ObtenerPorEntrenador(int entrenadorId)
+        public List<ConflictoEntrenadorVO> ObtenerConflictos(
+            IEnumerable<int> entrenadoresIds,
+            DiaSemana diaSemana,
+            TimeSpan horaInicio,
+            TimeSpan horaFin,
+            DateTime fechaInicio,
+            DateTime? fechaFin,
+            int? claseExcluirId = null)
         {
-            return _context.ClaseEntrenadores
-                .Include(x => x.Clase)
-                .Where(x => x.EntrenadorId == entrenadorId)
+            var ids = entrenadoresIds
+                .Distinct()
                 .ToList();
-        }
 
-        public void Eliminar(int claseId, int entrenadorId)
-        {
-            var entidad = Obtener(claseId, entrenadorId);
-
-            if (entidad == null)
+            if (!ids.Any())
             {
-                return;
+                return new List<ConflictoEntrenadorVO>();
             }
 
-            _context.ClaseEntrenadores.Remove(entidad);
+            var relaciones =
+                _context.Set<ClaseEntrenador>()
+                    .AsNoTracking()
+                    .Include(x => x.Entrenador)
+                    .Include(x => x.Clase)
+                        .ThenInclude(c => c.Grupo)
+                    .Where(x =>
+                        ids.Contains(x.EntrenadorId) &&
+                        x.Clase.Estado ==
+                            EstadoClase.Programada &&
+                        x.Clase.DiaSemana ==
+                            diaSemana &&
+                        x.Clase.HoraInicio <
+                            horaFin &&
+                        x.Clase.HoraFin >
+                            horaInicio &&
+                        (!claseExcluirId.HasValue ||
+                         x.ClaseId !=
+                            claseExcluirId.Value))
+                    .ToList();
 
-            _context.SaveChanges();
+            return relaciones
+                .Where(x =>
+                    RangosFechasSeSuperponen(
+                        x.Clase.FechaInicio,
+                        x.Clase.FechaFin,
+                        fechaInicio,
+                        fechaFin))
+                .Select(x =>
+                    new ConflictoEntrenadorVO
+                    {
+                        EntrenadorId =
+                            x.EntrenadorId,
+
+                        Entrenador =
+                            $"{x.Entrenador.Nombre.Valor} " +
+                            $"{x.Entrenador.Apellido.Valor}",
+
+                        ClaseId =
+                            x.ClaseId,
+
+                        Grupo =
+                            x.Clase.Grupo?.Nombre
+                            ?? string.Empty,
+
+                        DiaSemana =
+                            x.Clase.DiaSemana
+                                .ToString(),
+
+                        HoraInicio =
+                            x.Clase.HoraInicio,
+
+                        HoraFin =
+                            x.Clase.HoraFin
+                    })
+                .OrderBy(x =>
+                    x.Entrenador)
+                .ThenBy(x =>
+                    x.HoraInicio)
+                .ToList();
         }
 
-        public void EliminarPorClase(int claseId)
+        private static bool RangosFechasSeSuperponen(
+            DateTime inicioA,
+            DateTime? finA,
+            DateTime inicioB,
+            DateTime? finB)
         {
-            var relaciones = _context.ClaseEntrenadores
-                .Where(x => x.ClaseId == claseId)
-                .ToList();
+            DateTime finRealA =
+                finA?.Date ?? DateTime.MaxValue.Date;
 
-            if (!relaciones.Any())
-                return;
+            DateTime finRealB =
+                finB?.Date ?? DateTime.MaxValue.Date;
 
-            _context.ClaseEntrenadores.RemoveRange(relaciones);
-
-            _context.SaveChanges();
+            return inicioA.Date <= finRealB &&
+                   inicioB.Date <= finRealA;
         }
     }
 }

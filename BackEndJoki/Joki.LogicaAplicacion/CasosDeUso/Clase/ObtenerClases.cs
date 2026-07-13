@@ -5,14 +5,17 @@ using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 {
-    public class ObtenerClases : IObtenerClases
+    public class ObtenerClases :
+        IObtenerClases
     {
-        private readonly IRepositorioClase _repositorioClase;
+        private readonly IRepositorioClase
+            _repositorioClase;
 
         public ObtenerClases(
             IRepositorioClase repositorioClase)
         {
-            _repositorioClase = repositorioClase;
+            _repositorioClase =
+                repositorioClase;
         }
 
         public IEnumerable<ClaseResponse> Ejecutar()
@@ -20,8 +23,10 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
             var clases =
                 _repositorioClase.ObtenerTodos();
 
-            return clases.Select(
-                MapperClase.ToResponse);
+            return clases
+                .Select(
+                    MapperClase.ToResponse)
+                .ToList();
         }
     }
 }

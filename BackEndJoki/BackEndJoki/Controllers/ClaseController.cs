@@ -45,16 +45,38 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioIdAutenticado();
 
-                var response =
+                var resultado =
                     _crearClase.Ejecutar(
                         request,
                         usuarioId);
 
-                return StatusCode(201, response);
+                /*
+                 * Si hay entrenadores con clases superpuestas,
+                 * todavía no se crea la clase.
+                 *
+                 * El frontend debe mostrar un modal y reenviar
+                 * el mismo request con:
+                 *
+                 * ForzarAsignacion = true
+                 */
+                if (resultado.RequiereConfirmacion)
+                {
+                    return Conflict(resultado);
+                }
+
+                return StatusCode(
+                    StatusCodes.Status201Created,
+                    resultado);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (InfraestructuraException e)
             {
@@ -69,46 +91,20 @@ namespace Joki.WebApi.Controllers
                     mensaje = e.Message
                 });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    mensaje = ex.Message,
-                    inner = ex.InnerException?.Message,
-                    stack = ex.StackTrace
-                });
-            }
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("{id}/inscriptos")]
-        public IActionResult ObtenerInscriptos(int id)
-        {
-            try
-            {
-                var inscriptos =
-                    _obtenerInscriptosClase.Ejecutar(id);
-
-                return Ok(inscriptos);
-            }
-            catch (LogicaNegocioException e)
-            {
-                return NotFound(new
-                {
-                    mensaje = e.Message
-                });
-            }
             catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al crear la clase."
+                    });
             }
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult ObtenerTodas()
         {
             try
             {
@@ -119,16 +115,19 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Hubo un problema. Prueba nuevamente"
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al cargar las clases."
+                    });
             }
         }
 
-        [HttpGet("{id}")]
-        public IActionResult ObtenerPorId(int id)
+        [HttpGet("{id:int}")]
+        public IActionResult ObtenerPorId(
+            int id)
         {
             try
             {
@@ -146,33 +145,85 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Hubo un problema. Prueba nuevamente"
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al cargar la clase."
+                    });
             }
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
+        [HttpGet("{id:int}/inscriptos")]
+        public IActionResult ObtenerInscriptos(
+            int id)
+        {
+            try
+            {
+                var inscriptos =
+                    _obtenerInscriptosClase.Ejecutar(id);
+
+                return Ok(inscriptos);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al cargar los inscriptos de la clase."
+                    });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:int}")]
         public IActionResult Editar(
             int id,
             [FromBody] EditarClaseRequest request)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioIdAutenticado();
 
-                var clase =
+                var resultado =
                     _editarClase.Ejecutar(
                         id,
                         request,
                         usuarioId);
 
-                return Ok(clase);
+                /*
+                 * Si hay superposición de entrenadores,
+                 * el backend devuelve 409 y no guarda los cambios.
+                 *
+                 * El frontend debe reenviar el request con:
+                 *
+                 * ForzarAsignacion = true
+                 */
+                if (resultado.RequiereConfirmacion)
+                {
+                    return Conflict(resultado);
+                }
+
+                return Ok(resultado);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
             }
             catch (LogicaNegocioException e)
             {
@@ -183,25 +234,26 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Hubo un problema. Prueba nuevamente"
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al actualizar la clase."
+                    });
             }
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}/estado")]
+        [HttpPut("{id:int}/estado")]
         public IActionResult CambiarEstado(
-    int id,
-    [FromBody] CambiarEstadoClaseRequest request)
+            int id,
+            [FromBody] CambiarEstadoClaseRequest request)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioIdAutenticado();
 
                 _cambiarEstadoClase.Ejecutar(
                     id,
@@ -210,7 +262,15 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Estado de clase actualizado correctamente"
+                    mensaje =
+                        "Estado de clase actualizado correctamente"
+                });
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
                 });
             }
             catch (LogicaNegocioException e)
@@ -222,23 +282,25 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje = "Hubo un problema. Prueba nuevamente"
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al cambiar el estado de la clase."
+                    });
             }
         }
 
-
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public IActionResult Eliminar(int id)
+        [HttpDelete("{id:int}")]
+        public IActionResult Eliminar(
+            int id)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                int usuarioId =
+                    ObtenerUsuarioIdAutenticado();
 
                 _eliminarClase.Ejecutar(
                     id,
@@ -250,6 +312,13 @@ namespace Joki.WebApi.Controllers
                         "Clase eliminada correctamente"
                 });
             }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
+            }
             catch (LogicaNegocioException e)
             {
                 return NotFound(new
@@ -257,14 +326,34 @@ namespace Joki.WebApi.Controllers
                     mensaje = e.Message
                 });
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                return StatusCode(500, new
-                {
-                    mensaje = e.Message,
-                    detalle = e.InnerException?.Message
-                });
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al eliminar la clase."
+                    });
             }
+        }
+
+        private int ObtenerUsuarioIdAutenticado()
+        {
+            string? valor =
+                User.FindFirst(
+                    ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(valor) ||
+                !int.TryParse(
+                    valor,
+                    out int usuarioId))
+            {
+                throw new UnauthorizedAccessException(
+                    "El token no contiene un identificador de usuario válido.");
+            }
+
+            return usuarioId;
         }
     }
 }

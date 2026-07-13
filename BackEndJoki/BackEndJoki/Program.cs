@@ -230,7 +230,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<RachasJob>();
     builder.Services.AddScoped<ICambiarEstadoClase, CambiarEstadoClase>();
     builder.Services.AddScoped<IObtenerEntrenadorDashboard,ObtenerEntrenadorDashboard>();
-    builder.Services.AddScoped<IObtenerEntrenadorDashboard,ObtenerEntrenadorDashboard>();
     builder.Services.AddScoped<IRepositorioGrupo,RepositorioGrupo>();
     builder.Services.AddScoped<IObtenerGruposEntrenador,ObtenerGruposEntrenador>();
     builder.Services.AddScoped<IObtenerDetalleGrupo,ObtenerDetalleGrupo>();
@@ -243,6 +242,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IRepositorioClaseEntrenador, RepositorioClaseEntrenador>();
 builder.Services.AddScoped<IRepositorioEntrenador, RepositorioEntrenador>();
 builder.Services.AddScoped<IObtenerEntrenadoresSelector, ObtenerEntrenadoresSelector>();
+builder.Services.AddScoped<
+    IUnirseAClase,
+    UnirseAClase>();
+
+builder.Services.AddScoped<
+    ISalirDeClase,
+    SalirDeClase>();
+
+builder.Services.AddScoped<
+    IObtenerClasesDisponiblesEntrenador,
+    ObtenerClasesDisponiblesEntrenador>();
 
 
 builder.Services.AddRateLimiter(options =>

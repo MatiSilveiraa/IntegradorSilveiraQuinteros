@@ -6,20 +6,31 @@ using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Clase
 {
-    public class ObtenerClase : IObtenerClase
+    public class ObtenerClase :
+        IObtenerClase
     {
-        private readonly IRepositorioClase _repositorioClase;
+        private readonly IRepositorioClase
+            _repositorioClase;
 
         public ObtenerClase(
             IRepositorioClase repositorioClase)
         {
-            _repositorioClase = repositorioClase;
+            _repositorioClase =
+                repositorioClase;
         }
 
-        public ClaseResponse Ejecutar(int id)
+        public ClaseResponse Ejecutar(
+            int id)
         {
+            if (id <= 0)
+            {
+                throw new LogicaNegocioException(
+                    "El identificador de la clase no es válido");
+            }
+
             var clase =
-                _repositorioClase.ObtenerPorId(id);
+                _repositorioClase.ObtenerPorId(
+                    id);
 
             if (clase == null)
             {
@@ -27,7 +38,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                     "La clase no existe");
             }
 
-            return MapperClase.ToResponse(clase);
+            return MapperClase.ToResponse(
+                clase);
         }
     }
 }

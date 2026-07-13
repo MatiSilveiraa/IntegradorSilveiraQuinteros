@@ -16,7 +16,7 @@ namespace Joki.CasoUsoCompartida.DTOs.Clase
 
         public decimal Longitud { get; set; }
 
-        public string CodigoPostal { get; set; }
+        public string CodigoPostal { get; set; } = string.Empty;
 
         public decimal RadioGeolocalizacion { get; set; }
 
@@ -28,11 +28,10 @@ namespace Joki.CasoUsoCompartida.DTOs.Clase
 
         public int CupoMaximo { get; set; }
 
-        public EditarClaseRequest()
-        {
-            CodigoPostal = string.Empty;
-        }
-
         public List<int> EntrenadoresIds { get; set; } = new();
+
+        public int? EntrenadorPrincipalId { get; set; }
+
+        public bool ForzarAsignacion { get; set; }
     }
 }

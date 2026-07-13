@@ -1,8 +1,8 @@
 ﻿using Joki.LogicaNegocio.Entidades;
-using Joki.LogicaNegocio.InterfacesRepositorio;
-using Microsoft.EntityFrameworkCore;
 using Joki.LogicaNegocio.Enums;
+using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.LogicaNegocio.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
@@ -43,32 +43,65 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             }
         }
 
-        public Clase? ObtenerPorId(int id)
+        public List<Clase> ObtenerDisponiblesParaEntrenador(
+    int entrenadorId)
+        {
+            DateTime hoyUruguay =
+                ObtenerFechaHoraUruguay().Date;
+
+            return _context.Clases
+                .AsNoTracking()
+                .Include(c => c.Grupo)
+                .Include(c => c.Entrenadores)
+                .Where(c =>
+                    c.Estado ==
+                        EstadoClase.Programada &&
+                    c.Grupo.Estado ==
+                        EstadoGrupo.ACTIVO &&
+                    (!c.FechaFin.HasValue ||
+                     c.FechaFin.Value.Date >=
+                        hoyUruguay) &&
+                    !c.Entrenadores.Any(e =>
+                        e.EntrenadorId ==
+                        entrenadorId))
+                .OrderBy(c =>
+                    c.DiaSemana)
+                .ThenBy(c =>
+                    c.HoraInicio)
+                .ToList();
+        }
+
+        public Clase? ObtenerPorId(
+            int id)
         {
             return _context.Clases
+                .AsNoTracking()
                 .Include(c => c.Grupo)
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
                 .Include(c => c.MaterialesEjercicio)
-
-                // NUEVO
                 .Include(c => c.Entrenadores)
-                    .ThenInclude(e => e.Entrenador)
-
-                .FirstOrDefault(c => c.Id == id);
+                    .ThenInclude(ce =>
+                        ce.Entrenador)
+                .FirstOrDefault(c =>
+                    c.Id == id);
         }
 
         public IEnumerable<Clase> ObtenerTodos()
         {
             return _context.Clases
+                .AsNoTracking()
                 .Include(c => c.Grupo)
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
                 .Include(c => c.MaterialesEjercicio)
-
                 .Include(c => c.Entrenadores)
-                    .ThenInclude(e => e.Entrenador)
-
+                    .ThenInclude(ce =>
+                        ce.Entrenador)
+                .OrderBy(c =>
+                    c.DiaSemana)
+                .ThenBy(c =>
+                    c.HoraInicio)
                 .ToList();
         }
 
@@ -93,33 +126,33 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public ClaseDetalleVO? ObtenerDetalleClase(
-    int claseId,
-    int entrenadorId)
+           int claseId,
+           int entrenadorId)
         {
+            DateTime hoyUruguay =
+                ObtenerFechaHoraUruguay().Date;
+
             var clase = _context.Clases
-
                 .AsNoTracking()
-
                 .Include(c => c.Grupo)
-
                 .Include(c => c.Inscripciones)
                     .ThenInclude(i => i.Alumno)
-
                 .Include(c => c.Asistencias)
-
                 .Include(c => c.MaterialesEjercicio)
-
-              .Include(c => c.Entrenadores)
-
-            .FirstOrDefault(c =>
-                c.Id == claseId &&
-                c.Entrenadores.Any(e =>
-                e.EntrenadorId == entrenadorId));
+                .Include(c => c.Entrenadores)
+                .FirstOrDefault(c =>
+                    c.Id == claseId &&
+                    c.Entrenadores.Any(e =>
+                        e.EntrenadorId == entrenadorId));
 
             if (clase == null)
             {
                 return null;
             }
+
+            int cantidadInscriptos =
+                clase.Inscripciones.Count(i =>
+                    i.Alumno != null);
 
             return new ClaseDetalleVO
             {
@@ -127,48 +160,98 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
                 GrupoId = clase.GrupoId,
 
-                Grupo = clase.Grupo.Nombre,
+                Grupo = clase.Grupo?.Nombre
+                    ?? string.Empty,
 
-                DiaSemana = clase.DiaSemana.ToString(),
+                DiaSemana =
+                    clase.DiaSemana.ToString(),
 
-                HoraInicio = clase.HoraInicio,
+                HoraInicio =
+                    clase.HoraInicio,
 
-                HoraFin = clase.HoraFin,
+                HoraFin =
+                    clase.HoraFin,
 
-                CupoMaximo = clase.CupoMaximo,
+                CupoMaximo =
+                    clase.CupoMaximo,
 
-                Inscriptos = clase.Inscripciones.Count,
+                Inscriptos =
+                    cantidadInscriptos,
 
                 CuposDisponibles =
-                    clase.CupoMaximo - clase.Inscripciones.Count,
+                    Math.Max(
+                        0,
+                        clase.CupoMaximo -
+                        cantidadInscriptos),
 
-                Latitud = clase.Ubicacion.Latitud,
+                Latitud =
+                    clase.Ubicacion.Latitud,
 
-                Longitud = clase.Ubicacion.Longitud,
+                Longitud =
+                    clase.Ubicacion.Longitud,
 
-                CodigoPostal = clase.Ubicacion.CodigoPostal,
+                CodigoPostal =
+                    clase.Ubicacion.CodigoPostal
+                    ?? string.Empty,
 
-                Radio = clase.RadioGeolocalizacion,
+                Radio =
+                    clase.RadioGeolocalizacion,
 
                 Alumnos = clase.Inscripciones
-
-                    .OrderBy(i => i.Alumno.Nombre)
-
+                    .Where(i => i.Alumno != null)
+                    .OrderBy(i =>
+                        i.Alumno.Nombre?.Valor
+                        ?? string.Empty)
+                    .ThenBy(i =>
+                        i.Alumno.Apellido?.Valor
+                        ?? string.Empty)
                     .Select(i => new AlumnoClaseVO
                     {
-                        Id = i.Alumno.UsuarioId,
+                        Id =
+                            i.Alumno.UsuarioId,
 
-                        Nombre = i.Alumno.Nombre.Valor,
+                        Nombre =
+                            i.Alumno.Nombre?.Valor
+                            ?? string.Empty,
 
-                        Apellido = i.Alumno.Apellido.Valor,
+                        Apellido =
+                            i.Alumno.Apellido?.Valor
+                            ?? string.Empty,
 
                         Presente = clase.Asistencias.Any(a =>
-                            a.AlumnoId == i.Alumno.UsuarioId &&
-                            a.Presente == true)
+                            a.AlumnoId ==
+                                i.Alumno.UsuarioId &&
+                            a.Presente &&
+                            a.Fecha.Date ==
+                                hoyUruguay)
                     })
                     .ToList()
             };
         }
+
+
+        private static DateTime ObtenerFechaHoraUruguay()
+        {
+            TimeZoneInfo zonaUruguay;
+
+            try
+            {
+                zonaUruguay =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "Montevideo Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                zonaUruguay =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "America/Montevideo");
+            }
+
+            return TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                zonaUruguay);
+        }
+
 
         public List<ClaseDetalleVO> ObtenerClasesPorEntrenador(int entrenadorId)
         {
@@ -219,4 +302,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .ToList();
         }
     }
+
+
+
+
 }

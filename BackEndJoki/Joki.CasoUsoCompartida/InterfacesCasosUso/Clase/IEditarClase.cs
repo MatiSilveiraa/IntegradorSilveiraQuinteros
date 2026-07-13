@@ -4,7 +4,7 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Clase
 {
     public interface IEditarClase
     {
-        ClaseResponse Ejecutar(
+        ResultadoOperacionClaseResponse Ejecutar(
             int id,
             EditarClaseRequest request,
             int usuarioId);

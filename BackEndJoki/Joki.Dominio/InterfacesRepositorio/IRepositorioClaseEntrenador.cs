@@ -1,24 +1,39 @@
 ﻿using Joki.LogicaNegocio.Entidades;
+using Joki.LogicaNegocio.Enums;
+using Joki.LogicaNegocio.ValueObjects;
 
 namespace Joki.LogicaNegocio.InterfacesRepositorio
 {
     public interface IRepositorioClaseEntrenador
     {
-        ClaseEntrenador Agregar(ClaseEntrenador claseEntrenador);
+        void Agregar(ClaseEntrenador relacion);
 
-        void AgregarVarios(IEnumerable<ClaseEntrenador> entrenadores);
+        void AgregarVarios(
+            IEnumerable<ClaseEntrenador> relaciones);
 
-        bool Existe(int claseId, int entrenadorId);
+        void Modificar(
+            ClaseEntrenador relacion);
 
-        ClaseEntrenador? Obtener(int claseId, int entrenadorId);
+        void Eliminar(
+            ClaseEntrenador relacion);
 
-        IEnumerable<ClaseEntrenador> ObtenerPorClase(int claseId);
+        void EliminarPorClase(
+            int claseId);
 
-        IEnumerable<ClaseEntrenador> ObtenerPorEntrenador(int entrenadorId);
+        ClaseEntrenador? Obtener(
+            int claseId,
+            int entrenadorId);
 
-        void Eliminar(int claseId, int entrenadorId);
+        List<ClaseEntrenador> ObtenerPorClase(
+            int claseId);
 
-        // NUEVO
-        void EliminarPorClase(int claseId);
+        List<ConflictoEntrenadorVO> ObtenerConflictos(
+            IEnumerable<int> entrenadoresIds,
+            DiaSemana diaSemana,
+            TimeSpan horaInicio,
+            TimeSpan horaFin,
+            DateTime fechaInicio,
+            DateTime? fechaFin,
+            int? claseExcluirId = null);
     }
 }

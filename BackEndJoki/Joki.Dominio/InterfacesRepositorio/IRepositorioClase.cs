@@ -24,6 +24,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         List<ClaseDetalleVO> ObtenerClasesPorEntrenador(
             int entrenadorId);
 
+        List<Clase> ObtenerDisponiblesParaEntrenador(
+    int entrenadorId);
+
         ClaseDetalleVO? ObtenerDetalleClase(
             int claseId,
             int entrenadorId);
