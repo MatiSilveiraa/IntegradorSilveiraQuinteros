@@ -51,24 +51,30 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
             return _context.Clases
                 .AsNoTracking()
+
                 .Include(c => c.Grupo)
-                .Include(c => c.Entrenadores)
+
                 .Include(c => c.Inscripciones)
+
+                .Include(c => c.Entrenadores)
+
                 .Where(c =>
                     c.Estado == EstadoClase.Programada &&
                     c.Grupo.Estado == EstadoGrupo.ACTIVO &&
-                    c.FechaInicio.Date <=
-                        (c.FechaFin.HasValue
-                            ? c.FechaFin.Value.Date
-                            : DateTime.MaxValue.Date) &&
-                    (!c.FechaFin.HasValue ||
-                     c.FechaFin.Value.Date >= hoyUruguay) &&
-                    !c.Entrenadores.Any(ce =>
-                        ce.EntrenadorId == entrenadorId))
+                    c.FechaInicio.Date <= hoyUruguay &&
+                    (
+                        !c.FechaFin.HasValue ||
+                        c.FechaFin.Value.Date >= hoyUruguay
+                    ) &&
+                    !c.Entrenadores.Any(e =>
+                        e.EntrenadorId == entrenadorId))
+
                 .OrderBy(c =>
                     c.DiaSemana)
+
                 .ThenBy(c =>
                     c.HoraInicio)
+
                 .ToList();
         }
 

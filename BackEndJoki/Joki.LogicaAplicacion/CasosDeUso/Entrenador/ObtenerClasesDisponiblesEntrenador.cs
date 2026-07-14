@@ -76,15 +76,35 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                         FechaFin =
                             clase.FechaFin,
 
+                        Estado =
+                            clase.Estado.ToString(),
+
                         CupoMaximo =
                             clase.CupoMaximo,
+
+                        CantidadAlumnos =
+                            clase.Inscripciones?.Count
+                            ?? 0,
 
                         CantidadEntrenadores =
                             clase.Entrenadores?.Count
                             ?? 0,
 
                         TieneConflictoHorario =
-                            tieneConflicto
+                            tieneConflicto,
+
+                        Latitud =
+                            clase.Ubicacion.Latitud,
+
+                        Longitud =
+                            clase.Ubicacion.Longitud,
+
+                        CodigoPostal =
+                            clase.Ubicacion.CodigoPostal
+                            ?? string.Empty,
+
+                        RadioGeolocalizacion =
+                            clase.RadioGeolocalizacion
                     };
                 })
                 .ToList();
