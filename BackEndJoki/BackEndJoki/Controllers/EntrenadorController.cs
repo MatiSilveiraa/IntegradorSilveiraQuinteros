@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
-using Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador;
+using Joki.CasoUsoCompartida
+    .InterfacesCasosUso.Entrenador;
 using Joki.LogicaNegocio.Excepciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,8 @@ namespace Joki.WebApi.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Entrenador")]
-    public class EntrenadorController : ControllerBase
+    public class EntrenadorController :
+        ControllerBase
     {
         private readonly IObtenerEntrenadorDashboard
             _obtenerDashboard;
@@ -23,10 +25,17 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerDetalleClase
             _obtenerDetalleClase;
 
-        private readonly IUnirseAClase _unirseAClase;
-        private readonly ISalirDeClase _salirDeClase;
+        private readonly IUnirseAClase
+            _unirseAClase;
+
+        private readonly ISalirDeClase
+            _salirDeClase;
+
         private readonly IObtenerClasesDisponiblesEntrenador
             _obtenerClasesDisponibles;
+
+        private readonly IObtenerMisClasesEntrenador
+            _obtenerMisClases;
 
         public EntrenadorController(
             IObtenerEntrenadorDashboard obtenerDashboard,
@@ -35,7 +44,9 @@ namespace Joki.WebApi.Controllers
             IObtenerDetalleClase obtenerDetalleClase,
             IUnirseAClase unirseAClase,
             ISalirDeClase salirDeClase,
-            IObtenerClasesDisponiblesEntrenador obtenerClasesDisponibles)
+            IObtenerClasesDisponiblesEntrenador
+                obtenerClasesDisponibles,
+            IObtenerMisClasesEntrenador obtenerMisClases)
         {
             _obtenerDashboard =
                 obtenerDashboard;
@@ -57,6 +68,9 @@ namespace Joki.WebApi.Controllers
 
             _obtenerClasesDisponibles =
                 obtenerClasesDisponibles;
+
+            _obtenerMisClases =
+                obtenerMisClases;
         }
 
         [HttpGet("dashboard")]
@@ -67,11 +81,9 @@ namespace Joki.WebApi.Controllers
                 int entrenadorId =
                     ObtenerUsuarioIdAutenticado();
 
-                var dashboard =
+                return Ok(
                     _obtenerDashboard.Ejecutar(
-                        entrenadorId);
-
-                return Ok(dashboard);
+                        entrenadorId));
             }
             catch (UnauthorizedAccessException e)
             {
@@ -92,114 +104,7 @@ namespace Joki.WebApi.Controllers
                 return StatusCode(500, new
                 {
                     mensaje =
-                        "Ocurrió un error al cargar el dashboard del entrenador."
-                });
-            }
-        }
-
-        [HttpGet("clases-disponibles")]
-        public IActionResult ObtenerClasesDisponibles()
-        {
-            try
-            {
-                int entrenadorId =
-                    ObtenerUsuarioIdAutenticado();
-
-                var clases =
-                    _obtenerClasesDisponibles.Ejecutar(
-                        entrenadorId);
-
-                return Ok(clases);
-            }
-            catch (LogicaNegocioException e)
-            {
-                return BadRequest(new
-                {
-                    mensaje = e.Message
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Ocurrió un error al cargar las clases disponibles."
-                });
-            }
-        }
-
-        [HttpPost("clases/{id:int}/unirme")]
-        public IActionResult UnirmeAClase(
-            int id,
-            [FromQuery] bool forzar = false)
-        {
-            try
-            {
-                int entrenadorId =
-                    ObtenerUsuarioIdAutenticado();
-
-                var resultado =
-                    _unirseAClase.Ejecutar(
-                        id,
-                        entrenadorId,
-                        forzar);
-
-                if (resultado.RequiereConfirmacion)
-                {
-                    return Conflict(resultado);
-                }
-
-                return Ok(resultado);
-            }
-            catch (LogicaNegocioException e)
-            {
-                return BadRequest(new
-                {
-                    mensaje = e.Message
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Ocurrió un error al unirse a la clase."
-                });
-            }
-        }
-
-        [HttpDelete("clases/{id:int}/salir")]
-        public IActionResult SalirDeClase(
-            int id)
-        {
-            try
-            {
-                int entrenadorId =
-                    ObtenerUsuarioIdAutenticado();
-
-                _salirDeClase.Ejecutar(
-                    id,
-                    entrenadorId);
-
-                return Ok(new
-                {
-                    mensaje =
-                        "Dejaste de estar asociado a la clase"
-                });
-            }
-            catch (LogicaNegocioException e)
-            {
-                return BadRequest(new
-                {
-                    mensaje = e.Message
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new
-                {
-                    mensaje =
-                        "Ocurrió un error al salir de la clase."
+                        "Ocurrió un error al cargar el dashboard."
                 });
             }
         }
@@ -212,11 +117,9 @@ namespace Joki.WebApi.Controllers
                 int entrenadorId =
                     ObtenerUsuarioIdAutenticado();
 
-                var grupos =
+                return Ok(
                     _obtenerGruposEntrenador.Ejecutar(
-                        entrenadorId);
-
-                return Ok(grupos);
+                        entrenadorId));
             }
             catch (UnauthorizedAccessException e)
             {
@@ -237,7 +140,7 @@ namespace Joki.WebApi.Controllers
                 return StatusCode(500, new
                 {
                     mensaje =
-                        "Ocurrió un error al cargar los grupos del entrenador."
+                        "Ocurrió un error al cargar los grupos."
                 });
             }
         }
@@ -286,7 +189,7 @@ namespace Joki.WebApi.Controllers
                 return StatusCode(500, new
                 {
                     mensaje =
-                        "Ocurrió un error al cargar el detalle del grupo."
+                        "Ocurrió un error al cargar el grupo."
                 });
             }
         }
@@ -335,7 +238,173 @@ namespace Joki.WebApi.Controllers
                 return StatusCode(500, new
                 {
                     mensaje =
-                        "Ocurrió un error al cargar el detalle de la clase."
+                        "Ocurrió un error al cargar la clase."
+                });
+            }
+        }
+
+        [HttpGet("mis-clases")]
+        public IActionResult ObtenerMisClases()
+        {
+            try
+            {
+                int entrenadorId =
+                    ObtenerUsuarioIdAutenticado();
+
+                var clases =
+                    _obtenerMisClases.Ejecutar(
+                        entrenadorId);
+
+                return Ok(clases);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Ocurrió un error al cargar tus clases."
+                });
+            }
+        }
+
+        [HttpGet("clases-disponibles")]
+        public IActionResult ObtenerClasesDisponibles()
+        {
+            try
+            {
+                int entrenadorId =
+                    ObtenerUsuarioIdAutenticado();
+
+                var clases =
+                    _obtenerClasesDisponibles.Ejecutar(
+                        entrenadorId);
+
+                return Ok(clases);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Ocurrió un error al cargar las clases disponibles."
+                });
+            }
+        }
+
+        [HttpPost("clases/{id:int}/unirme")]
+        public IActionResult UnirmeAClase(
+            int id,
+            [FromQuery] bool forzar = false)
+        {
+            try
+            {
+                int entrenadorId =
+                    ObtenerUsuarioIdAutenticado();
+
+                var resultado =
+                    _unirseAClase.Ejecutar(
+                        id,
+                        entrenadorId,
+                        forzar);
+
+                if (resultado.RequiereConfirmacion)
+                {
+                    return Conflict(resultado);
+                }
+
+                return Ok(resultado);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Ocurrió un error al unirse a la clase."
+                });
+            }
+        }
+
+        [HttpDelete("clases/{id:int}/salir")]
+        public IActionResult SalirDeClase(
+            int id)
+        {
+            try
+            {
+                int entrenadorId =
+                    ObtenerUsuarioIdAutenticado();
+
+                _salirDeClase.Ejecutar(
+                    id,
+                    entrenadorId);
+
+                return Ok(new
+                {
+                    mensaje =
+                        "Dejaste de estar asociado a la clase."
+                });
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (LogicaNegocioException e)
+            {
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    mensaje =
+                        "Ocurrió un error al salir de la clase."
                 });
             }
         }

@@ -240,19 +240,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<IObtenerDetalleCuotaAdmin, ObtenerDetalleCuotaAdmin>();
     builder.Services.AddScoped<IObtenerDetalleClase, ObtenerDetalleClase>();
     builder.Services.AddScoped<IRepositorioClaseEntrenador, RepositorioClaseEntrenador>();
-builder.Services.AddScoped<IRepositorioEntrenador, RepositorioEntrenador>();
-builder.Services.AddScoped<IObtenerEntrenadoresSelector, ObtenerEntrenadoresSelector>();
-builder.Services.AddScoped<
-    IUnirseAClase,
-    UnirseAClase>();
-
-builder.Services.AddScoped<
-    ISalirDeClase,
-    SalirDeClase>();
-
-builder.Services.AddScoped<
-    IObtenerClasesDisponiblesEntrenador,
-    ObtenerClasesDisponiblesEntrenador>();
+    builder.Services.AddScoped<IRepositorioEntrenador, RepositorioEntrenador>();
+    builder.Services.AddScoped<IObtenerEntrenadoresSelector, ObtenerEntrenadoresSelector>();
+    builder.Services.AddScoped<IUnirseAClase,UnirseAClase>();
+    builder.Services.AddScoped<ISalirDeClase,SalirDeClase>();
+    builder.Services.AddScoped<IObtenerClasesDisponiblesEntrenador,ObtenerClasesDisponiblesEntrenador>();
+    builder.Services.AddScoped<IObtenerMisClasesEntrenador,ObtenerMisClasesEntrenador>();
 
 
 builder.Services.AddRateLimiter(options =>

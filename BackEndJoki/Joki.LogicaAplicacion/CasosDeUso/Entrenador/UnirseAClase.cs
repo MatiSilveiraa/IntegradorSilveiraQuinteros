@@ -1,14 +1,22 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Clase;
 using Joki.CasoUsoCompartida.DTOs.Entrenador;
-using Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador;
+using Joki.CasoUsoCompartida
+    .InterfacesCasosUso.Entrenador;
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
+using AuditoriaEntidad =
+    Joki.LogicaNegocio.Entidades.Auditoria;
+
+using EntrenadorEntidad =
+    Joki.LogicaNegocio.Entidades.Entrenador;
+
 namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 {
-    public class UnirseAClase : IUnirseAClase
+    public class UnirseAClase :
+        IUnirseAClase
     {
         private readonly IRepositorioClase
             _repositorioClase;
@@ -19,10 +27,15 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
         private readonly IRepositorioUsuario
             _repositorioUsuario;
 
+        private readonly IRepositorioAuditoria
+            _repositorioAuditoria;
+
         public UnirseAClase(
             IRepositorioClase repositorioClase,
-            IRepositorioClaseEntrenador repositorioClaseEntrenador,
-            IRepositorioUsuario repositorioUsuario)
+            IRepositorioClaseEntrenador
+                repositorioClaseEntrenador,
+            IRepositorioUsuario repositorioUsuario,
+            IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioClase =
                 repositorioClase;
@@ -32,6 +45,9 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 
             _repositorioUsuario =
                 repositorioUsuario;
+
+            _repositorioAuditoria =
+                repositorioAuditoria;
         }
 
         public ResultadoAsignacionClaseResponse Ejecutar(
@@ -43,11 +59,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                 _repositorioUsuario.ObtenerPorId(
                     entrenadorId);
 
-            if (usuario is not
-                Joki.LogicaNegocio.Entidades.Entrenador)
+            if (usuario is not EntrenadorEntidad)
             {
                 throw new LogicaNegocioException(
                     "El usuario autenticado no es entrenador");
+            }
+
+            if (usuario.Estado != EstadoUsuario.ACTIVO)
+            {
+                throw new LogicaNegocioException(
+                    "El entrenador no se encuentra activo");
             }
 
             var clase =
@@ -64,12 +85,31 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                 EstadoClase.Programada)
             {
                 throw new LogicaNegocioException(
-                    "La clase no se encuentra disponible");
+                    "La clase no está disponible");
             }
 
-            if (_repositorioClaseEntrenador.Obtener(
+            if (clase.Grupo == null ||
+                clase.Grupo.Estado !=
+                    EstadoGrupo.ACTIVO)
+            {
+                throw new LogicaNegocioException(
+                    "El grupo de la clase no está activo");
+            }
+
+            if (clase.FechaFin.HasValue &&
+                clase.FechaFin.Value.Date <
+                    ObtenerFechaUruguay())
+            {
+                throw new LogicaNegocioException(
+                    "La clase ya finalizó");
+            }
+
+            var relacionExistente =
+                _repositorioClaseEntrenador.Obtener(
                     claseId,
-                    entrenadorId) != null)
+                    entrenadorId);
+
+            if (relacionExistente != null)
             {
                 throw new LogicaNegocioException(
                     "Ya estás asociado a esta clase");
@@ -84,7 +124,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                         clase.HoraFin,
                         clase.FechaInicio,
                         clase.FechaFin,
-                        claseExcluirId: clase.Id);
+                        clase.Id);
 
             if (conflictos.Any() &&
                 !forzar)
@@ -98,33 +138,43 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                         "¿Deseas unirte igualmente?",
 
                     Conflictos = conflictos
-                        .Select(x =>
+                        .Select(c =>
                             new ConflictoEntrenadorResponse
                             {
                                 EntrenadorId =
-                                    x.EntrenadorId,
+                                    c.EntrenadorId,
 
                                 Entrenador =
-                                    x.Entrenador,
+                                    c.Entrenador,
 
                                 ClaseId =
-                                    x.ClaseId,
+                                    c.ClaseId,
 
                                 Grupo =
-                                    x.Grupo,
+                                    c.Grupo,
 
                                 DiaSemana =
-                                    x.DiaSemana,
+                                    c.DiaSemana,
 
                                 HoraInicio =
-                                    x.HoraInicio,
+                                    c.HoraInicio,
 
                                 HoraFin =
-                                    x.HoraFin
+                                    c.HoraFin
                             })
                         .ToList()
                 };
             }
+
+            var relacionesActuales =
+                _repositorioClaseEntrenador
+                    .ObtenerPorClase(
+                        claseId);
+
+            bool debeSerPrincipal =
+                relacionesActuales.Count == 0 ||
+                !relacionesActuales.Any(r =>
+                    r.EsPrincipal);
 
             _repositorioClaseEntrenador.Agregar(
                 new ClaseEntrenador
@@ -136,18 +186,62 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                         entrenadorId,
 
                     EsPrincipal =
-                        false,
+                        debeSerPrincipal,
 
                     FechaAsignacion =
+                        DateTime.UtcNow
+                });
+
+            _repositorioAuditoria.Agregar(
+                new AuditoriaEntidad
+                {
+                    UsuarioId =
+                        entrenadorId,
+
+                    Entidad =
+                        "ClaseEntrenador",
+
+                    EntidadId =
+                        claseId,
+
+                    Accion =
+                        $"El entrenador Id {entrenadorId} " +
+                        $"se unió a la clase Id {claseId}",
+
+                    Fecha =
                         DateTime.UtcNow
                 });
 
             return new ResultadoAsignacionClaseResponse
             {
                 RequiereConfirmacion = false,
+
                 Mensaje =
                     "Te uniste correctamente a la clase"
             };
+        }
+
+        private static DateTime ObtenerFechaUruguay()
+        {
+            TimeZoneInfo zona;
+
+            try
+            {
+                zona =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "Montevideo Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                zona =
+                    TimeZoneInfo.FindSystemTimeZoneById(
+                        "America/Montevideo");
+            }
+
+            return TimeZoneInfo.ConvertTimeFromUtc(
+                    DateTime.UtcNow,
+                    zona)
+                .Date;
         }
     }
 }

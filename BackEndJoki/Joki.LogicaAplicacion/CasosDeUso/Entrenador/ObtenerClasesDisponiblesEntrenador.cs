@@ -1,5 +1,6 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Entrenador;
-using Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador;
+using Joki.CasoUsoCompartida
+    .InterfacesCasosUso.Entrenador;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
@@ -15,7 +16,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 
         public ObtenerClasesDisponiblesEntrenador(
             IRepositorioClase repositorioClase,
-            IRepositorioClaseEntrenador repositorioClaseEntrenador)
+            IRepositorioClaseEntrenador
+                repositorioClaseEntrenador)
         {
             _repositorioClase =
                 repositorioClase;
@@ -32,55 +34,60 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                     .ObtenerDisponiblesParaEntrenador(
                         entrenadorId);
 
-            return clases.Select(clase =>
-            {
-                bool tieneConflicto =
-                    _repositorioClaseEntrenador
-                        .ObtenerConflictos(
-                            new[] { entrenadorId },
-                            clase.DiaSemana,
-                            clase.HoraInicio,
-                            clase.HoraFin,
-                            clase.FechaInicio,
-                            clase.FechaFin,
-                            claseExcluirId: clase.Id)
-                        .Any();
-
-                return new ClaseDisponibleEntrenadorDTO
+            return clases
+                .Select(clase =>
                 {
-                    ClaseId =
-                        clase.Id,
+                    bool tieneConflicto =
+                        _repositorioClaseEntrenador
+                            .ObtenerConflictos(
+                                new[] { entrenadorId },
+                                clase.DiaSemana,
+                                clase.HoraInicio,
+                                clase.HoraFin,
+                                clase.FechaInicio,
+                                clase.FechaFin,
+                                clase.Id)
+                            .Any();
 
-                    GrupoId =
-                        clase.GrupoId,
+                    return new ClaseDisponibleEntrenadorDTO
+                    {
+                        ClaseId =
+                            clase.Id,
 
-                    Grupo =
-                        clase.Grupo?.Nombre
-                        ?? string.Empty,
+                        GrupoId =
+                            clase.GrupoId,
 
-                    DiaSemana =
-                        clase.DiaSemana.ToString(),
+                        Grupo =
+                            clase.Grupo?.Nombre
+                            ?? string.Empty,
 
-                    HoraInicio =
-                        clase.HoraInicio,
+                        DiaSemana =
+                            clase.DiaSemana.ToString(),
 
-                    HoraFin =
-                        clase.HoraFin,
+                        HoraInicio =
+                            clase.HoraInicio,
 
-                    FechaInicio =
-                        clase.FechaInicio,
+                        HoraFin =
+                            clase.HoraFin,
 
-                    FechaFin =
-                        clase.FechaFin,
+                        FechaInicio =
+                            clase.FechaInicio,
 
-                    CantidadEntrenadores =
-                        clase.Entrenadores.Count,
+                        FechaFin =
+                            clase.FechaFin,
 
-                    TieneConflicto =
-                        tieneConflicto
-                };
-            })
-            .ToList();
+                        CupoMaximo =
+                            clase.CupoMaximo,
+
+                        CantidadEntrenadores =
+                            clase.Entrenadores?.Count
+                            ?? 0,
+
+                        TieneConflictoHorario =
+                            tieneConflicto
+                    };
+                })
+                .ToList();
         }
     }
 }

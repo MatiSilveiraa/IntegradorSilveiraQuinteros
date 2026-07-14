@@ -44,7 +44,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public List<Clase> ObtenerDisponiblesParaEntrenador(
-    int entrenadorId)
+            int entrenadorId)
         {
             DateTime hoyUruguay =
                 ObtenerFechaHoraUruguay().Date;
@@ -53,17 +53,18 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .AsNoTracking()
                 .Include(c => c.Grupo)
                 .Include(c => c.Entrenadores)
+                .Include(c => c.Inscripciones)
                 .Where(c =>
-                    c.Estado ==
-                        EstadoClase.Programada &&
-                    c.Grupo.Estado ==
-                        EstadoGrupo.ACTIVO &&
+                    c.Estado == EstadoClase.Programada &&
+                    c.Grupo.Estado == EstadoGrupo.ACTIVO &&
+                    c.FechaInicio.Date <=
+                        (c.FechaFin.HasValue
+                            ? c.FechaFin.Value.Date
+                            : DateTime.MaxValue.Date) &&
                     (!c.FechaFin.HasValue ||
-                     c.FechaFin.Value.Date >=
-                        hoyUruguay) &&
-                    !c.Entrenadores.Any(e =>
-                        e.EntrenadorId ==
-                        entrenadorId))
+                     c.FechaFin.Value.Date >= hoyUruguay) &&
+                    !c.Entrenadores.Any(ce =>
+                        ce.EntrenadorId == entrenadorId))
                 .OrderBy(c =>
                     c.DiaSemana)
                 .ThenBy(c =>

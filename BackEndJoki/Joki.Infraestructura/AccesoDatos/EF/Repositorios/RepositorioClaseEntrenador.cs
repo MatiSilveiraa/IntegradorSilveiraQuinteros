@@ -185,6 +185,26 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .ToList();
         }
 
+        public List<ClaseEntrenador> ObtenerPorEntrenador(
+    int entrenadorId)
+        {
+            return _context.Set<ClaseEntrenador>()
+                .AsNoTracking()
+                .Include(ce => ce.Clase)
+                    .ThenInclude(c => c.Grupo)
+                .Include(ce => ce.Clase)
+                    .ThenInclude(c => c.Inscripciones)
+                .Include(ce => ce.Clase)
+                    .ThenInclude(c => c.Entrenadores)
+                .Where(ce =>
+                    ce.EntrenadorId == entrenadorId)
+                .OrderBy(ce =>
+                    ce.Clase.DiaSemana)
+                .ThenBy(ce =>
+                    ce.Clase.HoraInicio)
+                .ToList();
+        }
+
         private static bool RangosFechasSeSuperponen(
             DateTime inicioA,
             DateTime? finA,

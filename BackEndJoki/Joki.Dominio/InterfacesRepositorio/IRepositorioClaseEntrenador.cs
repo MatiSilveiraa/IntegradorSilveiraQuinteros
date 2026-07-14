@@ -6,7 +6,8 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 {
     public interface IRepositorioClaseEntrenador
     {
-        void Agregar(ClaseEntrenador relacion);
+        void Agregar(
+            ClaseEntrenador relacion);
 
         void AgregarVarios(
             IEnumerable<ClaseEntrenador> relaciones);
@@ -26,6 +27,9 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         List<ClaseEntrenador> ObtenerPorClase(
             int claseId);
+
+        List<ClaseEntrenador> ObtenerPorEntrenador(
+            int entrenadorId);
 
         List<ConflictoEntrenadorVO> ObtenerConflictos(
             IEnumerable<int> entrenadoresIds,

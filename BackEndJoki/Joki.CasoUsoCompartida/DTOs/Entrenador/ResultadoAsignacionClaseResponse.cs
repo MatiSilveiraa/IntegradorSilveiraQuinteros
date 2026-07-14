@@ -6,9 +6,13 @@ namespace Joki.CasoUsoCompartida.DTOs.Entrenador
     {
         public bool RequiereConfirmacion { get; set; }
 
-        public string Mensaje { get; set; } = string.Empty;
+        public string Mensaje { get; set; } =
+            string.Empty;
 
-        public List<ConflictoEntrenadorResponse> Conflictos { get; set; }
-            = new();
+        public List<ConflictoEntrenadorResponse> Conflictos
+        {
+            get;
+            set;
+        } = new();
     }
 }
