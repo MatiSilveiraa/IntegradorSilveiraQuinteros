@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
+import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 import ClaseDisponibleCard from "../../components/entrenador/clase/ClaseDisponibleCard";
+import ClaseDisponibleDetalleModal from "../../components/entrenador/clase/ClaseDisponibleDetalleModal";
 import ConflictoHorarioModal from "../../components/entrenador/clase/ConflictoHorarioModal";
 
 import {
@@ -30,6 +32,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+  const [actualizando, setActualizando] = useState(false);
   const [clases, setClases] = useState<
     ClaseDisponibleEntrenador[]
   >([]);
@@ -38,16 +41,32 @@ export default function ClasesDisponiblesEntrenadorPage() {
     useState(false);
   const [uniendoseId, setUniendoseId] =
     useState<number | null>(null);
+  const [claseDetalle, setClaseDetalle] =
+    useState<ClaseDisponibleEntrenador | null>(null);
   const [conflictoPendiente, setConflictoPendiente] =
     useState<ConflictoPendiente | null>(null);
 
-  const cargar = async () => {
+  const cargar = async (cargaCompleta = true) => {
     try {
-      setLoading(true);
+      if (cargaCompleta) {
+        setLoading(true);
+      } else {
+        setActualizando(true);
+      }
+
       const data =
         await obtenerClasesDisponiblesEntrenador();
 
       setClases(data ?? []);
+
+      if (claseDetalle) {
+        const actualizada = (data ?? []).find(
+          (clase) =>
+            clase.claseId === claseDetalle.claseId,
+        );
+
+        setClaseDetalle(actualizada ?? null);
+      }
     } catch (error: any) {
       if (!error?.response || error.response.status >= 500) {
         console.error(
@@ -62,6 +81,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
       );
     } finally {
       setLoading(false);
+      setActualizando(false);
     }
   };
 
@@ -74,7 +94,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
 
     return clases.filter((clase) => {
       const coincideTexto =
-        `${clase.grupo} ${clase.diaSemana}`
+        `${clase.grupo} ${clase.diaSemana} ${clase.estado}`
           .toLowerCase()
           .includes(termino);
 
@@ -109,14 +129,15 @@ export default function ClasesDisponiblesEntrenadorPage() {
         `Ahora participás en ${clase.grupo}.`,
       );
 
-      await cargar();
+      setClaseDetalle(null);
+      await cargar(false);
     } catch (error: any) {
       if (esConflicto(error)) {
+        setClaseDetalle(null);
         setConflictoPendiente({
           clase,
           respuesta: error.response.data,
         });
-
         return;
       }
 
@@ -147,7 +168,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
       );
 
       setConflictoPendiente(null);
-      await cargar();
+      await cargar(false);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.mensaje ??
@@ -167,16 +188,35 @@ export default function ClasesDisponiblesEntrenadorPage() {
       <TopBar />
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() =>
-            navigate("/entrenador/mis-clases")
-          }
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
-        >
-          <ArrowBackOutlinedIcon fontSize="small" />
-          Volver a mis clases
-        </button>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/entrenador/mis-clases")
+            }
+            className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
+          >
+            <ArrowBackOutlinedIcon fontSize="small" />
+            Volver a mis clases
+          </button>
+
+          <button
+            type="button"
+            disabled={actualizando}
+            onClick={() => void cargar(false)}
+            className="inline-flex h-10 w-fit items-center gap-2 rounded-xl border border-[#2d463b] bg-[#1a2b24] px-4 text-sm font-semibold text-gray-300 transition-all hover:border-[#4adea8] hover:text-[#4adea8] disabled:opacity-50"
+          >
+            <RefreshOutlinedIcon
+              fontSize="small"
+              className={
+                actualizando ? "animate-spin" : ""
+              }
+            />
+            {actualizando
+              ? "Actualizando..."
+              : "Actualizar"}
+          </button>
+        </div>
 
         <section className="mb-8 rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
@@ -187,9 +227,9 @@ export default function ClasesDisponiblesEntrenadorPage() {
             Clases disponibles
           </h1>
 
-          <p className="mt-2 max-w-2xl text-gray-300">
-            Explorá las clases en las que todavía no participás
-            y unite directamente.
+          <p className="mt-2 max-w-3xl leading-relaxed text-gray-300">
+            Revisá horarios, vigencia, ocupación y ubicación antes
+            de decidir si querés unirte como entrenador.
           </p>
         </section>
 
@@ -211,7 +251,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
                 onChange={(event) =>
                   setBusqueda(event.target.value)
                 }
-                placeholder="Buscar por grupo o día..."
+                placeholder="Buscar por grupo, día o estado..."
                 className="h-12 w-full rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-4 outline-none transition-all focus:border-[#4adea8]"
               />
             </div>
@@ -238,7 +278,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
         {clases.length === 0 ? (
           <EstadoVacio
             titulo="No hay clases disponibles"
-            descripcion="Actualmente ya participás en todas las clases disponibles o no existen clases abiertas."
+            descripcion="Actualmente ya participás en todas las clases o no existen clases disponibles."
           />
         ) : clasesFiltradas.length === 0 ? (
           <EstadoVacio
@@ -268,6 +308,7 @@ export default function ClasesDisponiblesEntrenadorPage() {
                   uniendose={
                     uniendoseId === clase.claseId
                   }
+                  onVerDetalle={setClaseDetalle}
                   onUnirme={unirme}
                 />
               ))}
@@ -275,6 +316,16 @@ export default function ClasesDisponiblesEntrenadorPage() {
           </section>
         )}
       </main>
+
+      <ClaseDisponibleDetalleModal
+        clase={claseDetalle}
+        uniendose={
+          claseDetalle !== null &&
+          uniendoseId === claseDetalle.claseId
+        }
+        onCerrar={() => setClaseDetalle(null)}
+        onUnirme={unirme}
+      />
 
       <ConflictoHorarioModal
         abierto={conflictoPendiente !== null}

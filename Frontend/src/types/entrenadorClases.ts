@@ -16,12 +16,22 @@ export interface ClaseAsignadaEntrenador {
 
 export interface ClaseDisponibleEntrenador {
   claseId: number;
+  grupoId: number;
   grupo: string;
   diaSemana: string;
   horaInicio: string;
   horaFin: string;
+  fechaInicio: string;
+  fechaFin: string | null;
+  estado: string;
+  cupoMaximo: number;
+  cantidadAlumnos: number;
   cantidadEntrenadores: number;
   tieneConflictoHorario: boolean;
+  latitud: number;
+  longitud: number;
+  codigoPostal: string;
+  radioGeolocalizacion: number;
 }
 
 export interface ConflictoHorarioEntrenador {
