@@ -1,6 +1,5 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Entrenador;
-using Joki.CasoUsoCompartida
-    .InterfacesCasosUso.Entrenador;
+using Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
@@ -22,12 +21,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
         public List<MiClaseEntrenadorDTO> Ejecutar(
             int entrenadorId)
         {
+            if (entrenadorId <= 0)
+            {
+                return new List<MiClaseEntrenadorDTO>();
+            }
+
             var relaciones =
                 _repositorioClaseEntrenador
                     .ObtenerPorEntrenador(
                         entrenadorId);
 
             return relaciones
+                .Where(relacion =>
+                    relacion.Clase != null)
                 .Select(relacion =>
                     new MiClaseEntrenadorDTO
                     {
@@ -65,13 +71,13 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                             relacion.EsPrincipal,
 
                         CantidadEntrenadores =
-                            relacion.Clase.Entrenadores
-                                ?.Count
+                            relacion.Clase.Entrenadores?
+                                .Count
                             ?? 0,
 
                         CantidadAlumnos =
-                            relacion.Clase.Inscripciones
-                                ?.Count
+                            relacion.Clase.Inscripciones?
+                                .Count
                             ?? 0,
 
                         CupoMaximo =

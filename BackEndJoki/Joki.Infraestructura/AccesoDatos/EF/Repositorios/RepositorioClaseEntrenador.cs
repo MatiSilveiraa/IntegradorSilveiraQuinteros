@@ -186,22 +186,30 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public List<ClaseEntrenador> ObtenerPorEntrenador(
-    int entrenadorId)
+           int entrenadorId)
         {
             return _context.Set<ClaseEntrenador>()
-                .AsNoTracking()
+
                 .Include(ce => ce.Clase)
                     .ThenInclude(c => c.Grupo)
+
                 .Include(ce => ce.Clase)
                     .ThenInclude(c => c.Inscripciones)
+
                 .Include(ce => ce.Clase)
                     .ThenInclude(c => c.Entrenadores)
+
+                .AsSplitQuery()
+
                 .Where(ce =>
                     ce.EntrenadorId == entrenadorId)
+
                 .OrderBy(ce =>
                     ce.Clase.DiaSemana)
+
                 .ThenBy(ce =>
                     ce.Clase.HoraInicio)
+
                 .ToList();
         }
 
