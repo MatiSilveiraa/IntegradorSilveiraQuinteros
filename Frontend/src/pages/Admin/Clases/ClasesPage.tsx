@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import TopBar from "../../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../../components/FullScreenSpinner";
 import ClassLocationMap from "../../../components/maps/ClassLocationMap";
@@ -347,19 +350,23 @@ export default function ClasesPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                  <div className="w-full">
+                    <table className="min-w-full text-left">
                       <thead className="bg-[#12201b] text-gray-400 text-sm">
                         <tr>
-                          <th className="px-6 py-4">Horario</th>
-                          <th className="px-6 py-4">Grupo</th>
-                          <th className="px-6 py-4">Entrenadores</th>
-                          <th className="px-6 py-4">Tipo</th>
-                          <th className="px-6 py-4">Cupo</th>
-                          <th className="px-6 py-4">Inscriptos</th>
-                          <th className="px-6 py-4">Radio</th>
-                          <th className="px-6 py-4">Estado</th>
-                          <th className="px-6 py-4 text-right">Acciones</th>
+                          <th className="w-28 px-4 py-4">Horario</th>
+                          <th className="w-48 px-4 py-4">Grupo</th>
+                          <th className="w-56 px-4 py-4">Entrenadores</th>
+                          <th className="w-32 px-4 py-4">Tipo</th>
+                          <th className="w-16 px-4 py-4 text-center">Cupo</th>
+                          <th className="w-20 px-4 py-4 text-center">
+                            Inscriptos
+                          </th>
+                          <th className="w-20 px-4 py-4 text-center">Radio</th>
+                          <th className="w-40 px-4 py-4">Estado</th>
+                          <th className="w-56 px-4 py-4 text-right">
+                            Acciones
+                          </th>
                         </tr>
                       </thead>
 
@@ -413,7 +420,7 @@ export default function ClasesPage() {
                               )}
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4 whitespace-nowrap">
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-bold ${
                                   clase.esFija
@@ -425,11 +432,11 @@ export default function ClasesPage() {
                               </span>
                             </td>
 
-                            <td className="px-6 py-4">
-                              {clase.cupoMaximo ?? 0}
+                            <td className="px-4 py-4 text-center">
+                              {clase.cupoMaximo}
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4 text-center">
                               <span
                                 className={
                                   clase.cantidadInscriptos &&
@@ -443,50 +450,100 @@ export default function ClasesPage() {
                               </span>
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4 whitespace-nowrap text-center">
                               {clase.radioGeolocalizacion ?? 0} m
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4 whitespace-nowrap">
                               <span
-                                className={`px-3 py-1 rounded-full border text-xs font-semibold ${obtenerClaseEstado(
-                                  clase.estado,
-                                )}`}
+                                className={`
+            inline-flex
+            items-center
+            gap-2
+            px-3
+            py-1
+            rounded-full
+            whitespace-nowrap
+            text-xs
+            font-semibold
+            ${obtenerClaseEstado(clase.estado)}
+        `}
                               >
                                 {obtenerTextoEstado(clase.estado)}
                               </span>
                             </td>
 
-                            <td className="px-6 py-4">
+                            <td className="px-4 py-4">
                               <div className="flex justify-end gap-2">
                                 <button
+                                  title="Ver ubicación"
                                   onClick={() => setClaseUbicacion(clase)}
-                                  className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] transition-all"
+                                  className="
+        w-10 h-10
+        rounded-xl
+        flex items-center justify-center
+        bg-[#12201b]
+        border border-[#2d463b]
+        hover:border-[#4adea8]
+        hover:bg-[#4adea8]/10
+        transition-all
+      "
                                 >
-                                  Ubicación
+                                  <LocationOnOutlinedIcon fontSize="small" />
                                 </button>
 
                                 <button
+                                  title="Cambiar estado"
                                   onClick={() => abrirModalEstado(clase)}
-                                  className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-yellow-400 transition-all"
+                                  className="
+        w-10 h-10
+        rounded-xl
+        flex items-center justify-center
+        bg-[#12201b]
+        border border-[#2d463b]
+        hover:border-yellow-400
+        hover:bg-yellow-500/10
+        transition-all
+      "
                                 >
-                                  Estado
+                                  <SettingsOutlinedIcon fontSize="small" />
                                 </button>
 
                                 <button
+                                  title="Editar"
                                   onClick={() =>
                                     navigate(`/admin/clases/editar/${clase.id}`)
                                   }
-                                  className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] transition-all"
+                                  className="
+        w-10 h-10
+        rounded-xl
+        flex items-center justify-center
+        bg-[#12201b]
+        border border-[#2d463b]
+        hover:border-[#4adea8]
+        hover:bg-[#4adea8]/10
+        transition-all
+      "
                                 >
-                                  Editar
+                                  <EditOutlinedIcon fontSize="small" />
                                 </button>
 
                                 <button
+                                  title="Eliminar"
                                   onClick={() => setClaseAEliminar(clase)}
-                                  className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:border-red-400 transition-all"
+                                  className="
+        w-10 h-10
+        rounded-xl
+        flex items-center justify-center
+        bg-red-500/10
+        border border-red-500/30
+        text-red-400
+        hover:border-red-400
+        hover:bg-red-500/20
+        transition-all
+      "
                                 >
-                                  Eliminar
+                                  <DeleteOutlineOutlinedIcon fontSize="small" />
                                 </button>
                               </div>
                             </td>

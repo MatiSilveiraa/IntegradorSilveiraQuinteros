@@ -24,8 +24,6 @@ import {
   type EntrenadorSelector,
 } from "../../../services/Admin.Service";
 
-import { Autocomplete, TextField } from "@mui/material";
-
 type HorarioClase = {
   horaInicio: string;
   horaFin: string;
@@ -62,8 +60,7 @@ export default function ClaseFormPage() {
   const [entrenadores, setEntrenadores] = useState<EntrenadorSelector[]>([]);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [confirmandoConflicto, setConfirmandoConflicto] =
-    useState(false);
+  const [confirmandoConflicto, setConfirmandoConflicto] = useState(false);
   const [conflictoPendiente, setConflictoPendiente] =
     useState<ConflictoPendiente | null>(null);
 
@@ -290,9 +287,7 @@ export default function ClaseFormPage() {
                 ? [clase.entrenadorPrincipalId]
                 : []),
             entrenadorPrincipalId:
-              clase.entrenadorPrincipalId ??
-              clase.entrenadoresIds?.[0] ??
-              0,
+              clase.entrenadorPrincipalId ?? clase.entrenadoresIds?.[0] ?? 0,
             forzarAsignacion: false,
           });
         }
@@ -472,16 +467,14 @@ export default function ClaseFormPage() {
       return false;
     }
 
-    if (form.entrenadoresIds.length === 0) {
+    if (!form.entrenadorPrincipalId) {
       toast.error("Seleccioná al menos un entrenador");
       return false;
     }
 
     if (
       !form.entrenadorPrincipalId ||
-      !form.entrenadoresIds.includes(
-        form.entrenadorPrincipalId,
-      )
+      !form.entrenadoresIds.includes(form.entrenadorPrincipalId)
     ) {
       toast.error(
         "Seleccioná un entrenador principal entre los entrenadores asignados",
@@ -540,6 +533,15 @@ export default function ClaseFormPage() {
     horaFin: string,
   ): CrearClaseRequest => ({
     ...form,
+
+  entrenadoresIds: [
+    form.entrenadorPrincipalId,
+    ...form.entrenadoresIds.filter(
+        id => id !== 0 && id !== form.entrenadorPrincipalId
+    ),
+],
+    entrenadorPrincipalId: form.entrenadorPrincipalId,
+
     diaSemana,
     esFija: tipoClase === "recurrente",
     horaInicio: formatearHora(horaInicio),
@@ -579,9 +581,7 @@ export default function ClaseFormPage() {
     return crearClase(request);
   };
 
-  const finalizarGuardado = (
-    cantidadOperaciones: number,
-  ) => {
+  const finalizarGuardado = (cantidadOperaciones: number) => {
     toast.success(
       esEdicion
         ? "Clase actualizada correctamente"
@@ -640,11 +640,7 @@ export default function ClaseFormPage() {
       return [
         {
           id: Number(id),
-          request: armarRequest(
-            dia,
-            horario.horaInicio,
-            horario.horaFin,
-          ),
+          request: armarRequest(dia, horario.horaInicio, horario.horaFin),
         },
       ];
     }
@@ -681,18 +677,14 @@ export default function ClaseFormPage() {
 
     try {
       setGuardando(true);
-      await procesarOperaciones(
-        operaciones,
-        operaciones.length,
-      );
+      await procesarOperaciones(operaciones, operaciones.length);
     } catch (error: any) {
       if (!error?.response || error.response.status >= 500) {
         console.error("[Guardar clase]", error);
       }
 
       toast.error(
-        error?.response?.data?.mensaje ??
-          "No se pudo guardar la clase",
+        error?.response?.data?.mensaje ?? "No se pudo guardar la clase",
       );
     } finally {
       setGuardando(false);
@@ -707,30 +699,19 @@ export default function ClaseFormPage() {
   const confirmarConflicto = async () => {
     if (!conflictoPendiente) return;
 
-    const {
-      operacion,
-      restantes,
-    } = conflictoPendiente;
+    const { operacion, restantes } = conflictoPendiente;
 
     try {
       setConfirmandoConflicto(true);
 
-      await ejecutarOperacion(
-        operacion,
-        true,
-      );
+      await ejecutarOperacion(operacion, true);
 
       setConflictoPendiente(null);
 
       if (restantes.length > 0) {
-        await procesarOperaciones(
-          restantes,
-          construirOperaciones().length,
-        );
+        await procesarOperaciones(restantes, construirOperaciones().length);
       } else {
-        finalizarGuardado(
-          construirOperaciones().length,
-        );
+        finalizarGuardado(construirOperaciones().length);
       }
     } catch (error: any) {
       if (esConflictoConfirmable(error)) {
@@ -744,15 +725,11 @@ export default function ClaseFormPage() {
       }
 
       if (!error?.response || error.response.status >= 500) {
-        console.error(
-          "[Confirmar conflicto de entrenadores]",
-          error,
-        );
+        console.error("[Confirmar conflicto de entrenadores]", error);
       }
 
       toast.error(
-        error?.response?.data?.mensaje ??
-          "No se pudo guardar la clase",
+        error?.response?.data?.mensaje ?? "No se pudo guardar la clase",
       );
     } finally {
       setConfirmandoConflicto(false);
@@ -1146,133 +1123,114 @@ export default function ClaseFormPage() {
               </h2>
 
               <p className="mt-2 text-sm text-gray-400">
-                Seleccioná uno o varios entrenadores y definí quién será
-                el responsable principal.
+                Seleccioná uno o varios entrenadores y definí quién será el
+                responsable principal.
               </p>
             </div>
 
-            <Autocomplete
-              multiple
-              options={entrenadores}
-              getOptionLabel={(option) => option.nombreCompleto}
-              isOptionEqualToValue={(option, value) =>
-                option.id === value.id
-              }
-              value={entrenadores.filter((entrenador) =>
-                form.entrenadoresIds.includes(entrenador.id),
-              )}
-              onChange={(_, values) => {
-                const ids = values.map((value) => value.id);
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-gray-200">
+                Entrenador principal
+              </label>
 
-                setForm((prev) => {
-                  const principalActualSigueSeleccionado =
-                    ids.includes(prev.entrenadorPrincipalId);
+              <select
+                value={form.entrenadorPrincipalId}
+                onChange={(e) => {
+  const principal = Number(e.target.value);
 
-                  return {
-                    ...prev,
-                    entrenadoresIds: ids,
-                    entrenadorPrincipalId:
-                      principalActualSigueSeleccionado
-                        ? prev.entrenadorPrincipalId
-                        : (ids[0] ?? 0),
-                  };
-                });
-              }}
-              noOptionsText="No hay entrenadores disponibles"
-              slotProps={{
-                chip: {
-                  sx: {
-                    backgroundColor: "#4adea8",
-                    color: "#12201b",
-                    fontWeight: 700,
-                    "& .MuiChip-deleteIcon": {
-                      color: "#12201b",
-                    },
-                  },
-                },
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Seleccionar entrenadores"
-                  placeholder={
-                    form.entrenadoresIds.length === 0
-                      ? "Buscá por nombre"
-                      : undefined
-                  }
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#17251f",
-                      color: "white",
-                      "& fieldset": {
-                        borderColor: "#2d463b",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "#4adea8",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#4adea8",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: "#cbd5e1",
-                    },
-                    "& .MuiInputLabel-root.Mui-focused": {
-                      color: "#4adea8",
-                    },
-                    "& input": {
-                      color: "white",
-                    },
-                    "& .MuiSvgIcon-root": {
-                      color: "white",
-                    },
-                  }}
-                />
-              )}
-            />
+  setForm((prev) => ({
+    ...prev,
+    entrenadorPrincipalId: principal,
+  }));
+}}
+                className={inputClass}
+              >
+                <option value={0}>Seleccionar entrenador</option>
 
-            {form.entrenadoresIds.length > 0 && (
-              <div>
-                <label
-                  htmlFor="entrenador-principal"
-                  className="mb-2 block text-sm font-semibold text-gray-200"
-                >
-                  Entrenador principal
-                </label>
+                {entrenadores.map((entrenador) => (
+                  <option key={entrenador.id} value={entrenador.id}>
+                    {entrenador.nombreCompleto}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                <select
-                  id="entrenador-principal"
-                  value={form.entrenadorPrincipalId}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      entrenadorPrincipalId: Number(
-                        event.target.value,
-                      ),
-                    }))
-                  }
-                  className={inputClass}
-                >
-                  {entrenadores
-                    .filter((entrenador) =>
-                      form.entrenadoresIds.includes(entrenador.id),
-                    )
-                    .map((entrenador) => (
-                      <option
-                        key={entrenador.id}
-                        value={entrenador.id}
-                      >
-                        {entrenador.nombreCompleto}
-                      </option>
-                    ))}
-                </select>
+          
+          </div>
 
-                <p className="mt-2 text-xs text-gray-500">
-                  Se mostrará como responsable principal y se mantendrá
-                  en el campo compatible entrenadorNombre.
-                </p>
-              </div>
-            )}
+          <button
+            type="button"
+            onClick={() =>
+              setForm((prev) => ({
+                ...prev,
+                entrenadoresIds: [...prev.entrenadoresIds, 0],
+              }))
+            }
+            className="px-4 py-2 rounded-xl border border-[#4adea8] text-[#4adea8] hover:bg-[#4adea8]/10"
+          >
+            + Agregar otro entrenador
+          </button>
+
+          <div className="space-y-3">
+            {form.entrenadoresIds
+              .filter((id) => id !== form.entrenadorPrincipalId)
+              .map((idSeleccionado, index) => (
+                <div key={index} className="flex gap-3">
+                  <select
+                    value={idSeleccionado}
+                    className={`${inputClass} flex-1`}
+                    onChange={(e) => {
+                      const nuevoId = Number(e.target.value);
+
+                      setForm((prev) => {
+                        const ids = [...prev.entrenadoresIds];
+
+                        const posicion = ids.findIndex(
+                          (x) =>
+                            x === idSeleccionado &&
+                            x !== prev.entrenadorPrincipalId,
+                        );
+
+                        ids[posicion] = nuevoId;
+
+                        return {
+                          ...prev,
+                          entrenadoresIds: [...new Set(ids)],
+                        };
+                      });
+                    }}
+                  >
+                    <option value={0}>Seleccionar entrenador</option>
+
+                    {entrenadores
+                      .filter(
+                        (e) =>
+                          e.id === idSeleccionado ||
+                          !form.entrenadoresIds.includes(e.id),
+                      )
+                      .map((entrenador) => (
+                        <option key={entrenador.id} value={entrenador.id}>
+                          {entrenador.nombreCompleto}
+                        </option>
+                      ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        entrenadoresIds: prev.entrenadoresIds.filter(
+                          (x) => x !== idSeleccionado,
+                        ),
+                      }))
+                    }
+                    className="px-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
           </div>
 
           <div>
@@ -1396,9 +1354,7 @@ export default function ClaseFormPage() {
           conflictoPendiente?.respuesta.mensaje ??
           "Uno o más entrenadores ya tienen otra clase en ese horario."
         }
-        conflictos={
-          conflictoPendiente?.respuesta.conflictos ?? []
-        }
+        conflictos={conflictoPendiente?.respuesta.conflictos ?? []}
         confirmando={confirmandoConflicto}
         onCancelar={cancelarConflicto}
         onConfirmar={confirmarConflicto}
