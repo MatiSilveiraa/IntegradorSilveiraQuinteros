@@ -53,6 +53,8 @@ import AdminClaseDetallePage from "../pages/AdminClaseDetallePage";
 
 import ClaseDetallePage from "../pages/entrenador/ClaseDetallePage";
 import AsistenciaClasePage from "../pages/entrenador/AsistenciaClasePage";
+import MisClasesEntrenadorPage from "../pages/entrenador/MisClasesEntrenadorPage";
+import ClasesDisponiblesEntrenadorPage from "../pages/entrenador/ClasesDisponiblesEntrenadorPage";
 
 export default function AppRouter() {
   return (
@@ -381,6 +383,24 @@ export default function AppRouter() {
     </ProtectedRoute>
   }
 />
+<Route
+  path="/entrenador/mis-clases"
+  element={
+    <ProtectedRoute rolPermitido="Entrenador">
+      <MisClasesEntrenadorPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/entrenador/clases-disponibles"
+  element={
+    <ProtectedRoute rolPermitido="Entrenador">
+      <ClasesDisponiblesEntrenadorPage />
+    </ProtectedRoute>
+  }
+/>
+
 <Route
   path="/entrenador/clases/:id"
   element={

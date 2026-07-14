@@ -17,6 +17,7 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import RedeemOutlinedIcon from "@mui/icons-material/RedeemOutlined";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 
 import { obtenerMisNotificaciones } from "../../services/Notificacion.Service";
 import type { Notificacion } from "../../types";
@@ -123,6 +124,51 @@ export default function DashboardTopBar({ nombre }: Props) {
     { texto: "Seguridad", ruta: "/admin/seguridad", icono: <SecurityOutlinedIcon />, grupo: "cuenta" },
   ];
 
+  const itemsEntrenador: ItemMenu[] = [
+    {
+      texto: "Inicio",
+      ruta: "/entrenador",
+      icono: <HomeOutlinedIcon />,
+      grupo: "principal",
+    },
+    {
+      texto: "Mis clases",
+      ruta: "/entrenador/mis-clases",
+      icono: <CalendarMonthOutlinedIcon />,
+      grupo: "gestion",
+    },
+    {
+      texto: "Clases disponibles",
+      ruta: "/entrenador/clases-disponibles",
+      icono: <PersonAddAltOutlinedIcon />,
+      grupo: "gestion",
+    },
+    {
+      texto: "Mis grupos",
+      ruta: "/entrenador/grupos",
+      icono: <GroupsOutlinedIcon />,
+      grupo: "gestion",
+    },
+    {
+      texto: "Notificaciones",
+      ruta: "/entrenador/notificaciones",
+      icono: <NotificationsOutlinedIcon />,
+      grupo: "cuenta",
+    },
+    {
+      texto: "Seguridad",
+      ruta: "/entrenador/seguridad",
+      icono: <SecurityOutlinedIcon />,
+      grupo: "cuenta",
+    },
+  ];
+
+  const itemsMenu = esAdmin
+    ? itemsAdmin
+    : esEntrenador
+      ? itemsEntrenador
+      : [];
+
 
   const handleLogout = () => {
     setMenuMobileAbierto(false);
@@ -160,6 +206,10 @@ export default function DashboardTopBar({ nombre }: Props) {
       return location.pathname === "/admin";
     }
 
+    if (ruta === "/entrenador") {
+      return location.pathname === "/entrenador";
+    }
+
     return location.pathname.startsWith(ruta);
   };
 
@@ -167,12 +217,12 @@ export default function DashboardTopBar({ nombre }: Props) {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0e1511] border-b border-[#2d463b] flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          {esAdmin && (
+          {(esAdmin || esEntrenador) && (
             <button
               type="button"
               onClick={() => setMenuMobileAbierto(true)}
               className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full text-gray-300 hover:bg-[#1f2d27] hover:text-[#4adea8] transition-all"
-              aria-label="Abrir menú de administración"
+              aria-label={esAdmin ? "Abrir menú de administración" : "Abrir menú del entrenador"}
               aria-expanded={menuMobileAbierto}
             >
               <MenuOutlinedIcon />
@@ -205,10 +255,10 @@ export default function DashboardTopBar({ nombre }: Props) {
             </span>
           </button>
 
-          {esAdmin && (
+          {(esAdmin || esEntrenador) && (
             <div className="hidden sm:block">
               <p className="text-xs text-gray-500">
-                Administración
+                {esAdmin ? "Administración" : "Entrenador"}
               </p>
 
               <p className="text-sm text-white font-semibold max-w-44 truncate">
@@ -246,7 +296,7 @@ export default function DashboardTopBar({ nombre }: Props) {
         </div>
       </header>
 
-      {esAdmin && menuMobileAbierto && (
+      {(esAdmin || esEntrenador) && menuMobileAbierto && (
         <div className="fixed inset-0 z-[100] lg:hidden">
           <button
             type="button"
@@ -259,7 +309,7 @@ export default function DashboardTopBar({ nombre }: Props) {
             className="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-[#0e1511] border-r border-[#2d463b] shadow-2xl flex flex-col"
             role="dialog"
             aria-modal="true"
-            aria-label="Menú de administración"
+            aria-label={esAdmin ? "Menú de administración" : "Menú del entrenador"}
           >
             <div className="h-20 px-5 border-b border-[#2d463b] flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
@@ -271,7 +321,7 @@ export default function DashboardTopBar({ nombre }: Props) {
 
                 <div className="min-w-0">
                   <p className="text-xs text-[#4adea8] font-bold uppercase tracking-wide">
-                    Administrador
+                    {esAdmin ? "Administrador" : "Entrenador"}
                   </p>
 
                   <p className="font-semibold truncate">
@@ -304,7 +354,7 @@ export default function DashboardTopBar({ nombre }: Props) {
                         ? "Actividad"
                         : "Cuenta"
                     }
-                    items={itemsAdmin.filter((item) => item.grupo === grupo)}
+                    items={itemsMenu.filter((item) => item.grupo === grupo)}
                     rutaActiva={rutaActiva}
                     onNavigate={navegarDesdeMenu}
                   />
