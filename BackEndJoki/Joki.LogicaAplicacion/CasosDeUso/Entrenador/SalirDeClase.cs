@@ -37,8 +37,8 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
         }
 
         public void Ejecutar(
-            int claseId,
-            int entrenadorId)
+    int claseId,
+    int entrenadorId)
         {
             var clase =
                 _repositorioClase.ObtenerPorId(
@@ -66,6 +66,12 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                     .ObtenerPorClase(
                         claseId);
 
+            if (relaciones.Count == 1)
+            {
+                throw new LogicaNegocioException(
+                    "No puedes abandonar la clase porque eres el único entrenador asignado. Asigna otro entrenador antes de salir.");
+            }
+
             bool eraPrincipal =
                 relacion.EsPrincipal;
 
@@ -74,46 +80,48 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 
             if (eraPrincipal)
             {
-                var restantes =
+                var nuevoPrincipal =
                     relaciones
                         .Where(r =>
-                            r.EntrenadorId !=
-                            entrenadorId)
+                            r.EntrenadorId != entrenadorId)
                         .OrderBy(r =>
                             r.FechaAsignacion)
-                        .ToList();
+                        .First();
 
-                var nuevoPrincipal =
-                    restantes.FirstOrDefault();
+                nuevoPrincipal.EsPrincipal = true;
 
-                if (nuevoPrincipal != null)
-                {
-                    nuevoPrincipal.EsPrincipal =
-                        true;
+                _repositorioClaseEntrenador.Modificar(
+                    nuevoPrincipal);
 
-                    _repositorioClaseEntrenador.Modificar(
-                        nuevoPrincipal);
-                }
+                _repositorioAuditoria.Agregar(
+                    new AuditoriaEntidad
+                    {
+                        UsuarioId = entrenadorId,
+
+                        Entidad = "ClaseEntrenador",
+
+                        EntidadId = claseId,
+
+                        Accion =
+                            $"El entrenador Id {nuevoPrincipal.EntrenadorId} pasó a ser entrenador principal de la clase Id {claseId}",
+
+                        Fecha = DateTime.UtcNow
+                    });
             }
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad
                 {
-                    UsuarioId =
-                        entrenadorId,
+                    UsuarioId = entrenadorId,
 
-                    Entidad =
-                        "ClaseEntrenador",
+                    Entidad = "ClaseEntrenador",
 
-                    EntidadId =
-                        claseId,
+                    EntidadId = claseId,
 
                     Accion =
-                        $"El entrenador Id {entrenadorId} " +
-                        $"abandonó la clase Id {claseId}",
+                        $"El entrenador Id {entrenadorId} abandonó la clase Id {claseId}",
 
-                    Fecha =
-                        DateTime.UtcNow
+                    Fecha = DateTime.UtcNow
                 });
         }
     }
