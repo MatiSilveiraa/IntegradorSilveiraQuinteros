@@ -1,12 +1,12 @@
 import axiosInstance from "../api/axios";
 
 export const solicitarReactivacion = async (
-  motivoAlumno: string
+  motivo: string
 ) => {
   const response = await axiosInstance.post(
     "/api/Reactivacion/solicitar",
     {
-      motivoAlumno,
+      motivo,
     }
   );
 

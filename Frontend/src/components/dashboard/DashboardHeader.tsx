@@ -28,7 +28,7 @@ export default function DashboardHeader({ nombre }: Props) {
         </p>
 
         <h1 className="text-3xl lg:text-5xl font-bold text-white mt-3">
-          {saludo}, {nombre || "Alumno"} 👋
+          {saludo}, {nombre || "Alumno"} 
         </h1>
 
         <p className="text-gray-400 mt-3 capitalize">

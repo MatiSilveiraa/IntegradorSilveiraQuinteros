@@ -11,6 +11,7 @@ import CuotaCard from "../../components/dashboard/CuotaCard";
 import RachaCard from "../../components/dashboard/RachaCard";
 import ResumenCard from "../../components/dashboard/ResumenCard";
 import NovedadesCard from "../../components/dashboard/NovedadesCard";
+import SecurityIcon from "@mui/icons-material/Security";
 
 import { useNavigate } from "react-router-dom";
 
@@ -76,7 +77,6 @@ export default function AlumnoDashboard() {
         setPerfil(perfilData);
 
         setHistorial(historialData);
-
         setMisClases(clasesData);
 
         try {
@@ -143,7 +143,8 @@ export default function AlumnoDashboard() {
                 text-lg
               "
               >
-                🔐 Protegé tu cuenta
+                  <SecurityIcon fontSize="small" />
+                 Protegé tu cuenta
               </h3>
 
               <p className="text-gray-300 mt-1">

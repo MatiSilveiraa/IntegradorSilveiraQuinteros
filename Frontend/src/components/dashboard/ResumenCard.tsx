@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
-
 import Card from "../ui/Card";
+import type { ReactNode } from "react";
 import type { Historial } from "../../types";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 
 type Props = {
   historial?: Historial;
@@ -11,7 +15,7 @@ export default function ResumenCard({ historial }: Props) {
   const navigate = useNavigate();
 
   const asistencias = historial?.asistencias?.length ?? 0;
-  const pagos = historial?.pagos?.length ?? 0;
+  // const pagos = historial?.pagos?.length ?? 0;
   const cuotas = historial?.cuotas?.length ?? 0;
 
   return (
@@ -31,8 +35,13 @@ export default function ResumenCard({ historial }: Props) {
           </p>
         </div>
 
-        <div className="hidden md:flex w-14 h-14 shrink-0 rounded-2xl bg-blue-500/10 border border-blue-500/30 items-center justify-center text-2xl">
-          📊
+        <div className="hidden md:flex w-14 h-14 shrink-0 rounded-2xl bg-blue-500/10 border border-blue-500/30 items-center justify-center">
+          <DashboardRoundedIcon
+            sx={{
+              color: "#60a5fa",
+              fontSize: 32,
+            }}
+          />
         </div>
       </div>
 
@@ -41,15 +50,24 @@ export default function ResumenCard({ historial }: Props) {
           titulo="Asistencias"
           valor={asistencias}
           descripcion="Registros acumulados"
-          icono="📅"
+          icono={
+            <CalendarMonthRoundedIcon sx={{ color: "#60a5fa", fontSize: 24 }} />
+          }
           onClick={() => navigate("/alumno/asistencias")}
         />
 
         <ResumenItem
           titulo="Pagos"
-          valor={pagos}
+          valor={2}
           descripcion="Pagos registrados"
-          icono="💳"
+          icono={
+            <CreditCardRoundedIcon
+              sx={{
+                color: "#4adea8",
+                fontSize: 28,
+              }}
+            />
+          }
           onClick={() => navigate("/alumno/pagos")}
         />
 
@@ -57,7 +75,14 @@ export default function ResumenCard({ historial }: Props) {
           titulo="Cuotas"
           valor={cuotas}
           descripcion="Cuotas generadas"
-          icono="📄"
+          icono={
+            <DescriptionRoundedIcon
+              sx={{
+                color: "#4adea8",
+                fontSize: 28,
+              }}
+            />
+          }
           onClick={() => navigate("/alumno/pagos")}
         />
       </div>
@@ -75,7 +100,7 @@ function ResumenItem({
   titulo: string;
   valor: number;
   descripcion: string;
-  icono: string;
+  icono: ReactNode;
   onClick: () => void;
 }) {
   return (
@@ -88,9 +113,7 @@ function ResumenItem({
         <div>
           <p className="text-gray-400 text-sm">{titulo}</p>
 
-          <p className="text-4xl font-bold text-white mt-3">
-            {valor}
-          </p>
+          <p className="text-4xl font-bold text-white mt-3">{valor}</p>
         </div>
 
         <div className="w-11 h-11 rounded-xl bg-[#1a2b24] border border-[#2d463b] flex items-center justify-center text-xl">
@@ -98,13 +121,9 @@ function ResumenItem({
         </div>
       </div>
 
-      <p className="text-xs text-gray-500 mt-4">
-        {descripcion}
-      </p>
+      <p className="text-xs text-gray-500 mt-4">{descripcion}</p>
 
-      <p className="text-sm text-[#4adea8] font-semibold mt-4">
-        Ver detalle →
-      </p>
+      <p className="text-sm text-[#4adea8] font-semibold mt-4">Ver detalle →</p>
     </button>
   );
 }

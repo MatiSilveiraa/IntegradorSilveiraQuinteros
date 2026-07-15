@@ -53,10 +53,15 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         {
             return _context.Inscripciones
                 .Include(i => i.Clase)
-                    .ThenInclude(c => c.Grupo)
-                        .ThenInclude(g => g.Entrenador)
+                .ThenInclude(c => c.Grupo)
+
                 .Include(i => i.Clase)
-                    .ThenInclude(c => c.Asistencias)
+                .ThenInclude(c => c.Entrenadores)
+                .ThenInclude(ce => ce.Entrenador)
+
+                .Include(i => i.Clase)
+                .ThenInclude(c => c.Asistencias)
+
                 .Where(i => i.AlumnoId == alumnoId)
                 .ToList();
         }

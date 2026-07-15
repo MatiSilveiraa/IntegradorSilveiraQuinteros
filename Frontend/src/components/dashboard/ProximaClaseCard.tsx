@@ -1,5 +1,8 @@
 import Card from "../ui/Card";
 import type { Clase } from "../../types";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SportsIcon from "@mui/icons-material/Sports";
 
 type Props = {
   clase?: Clase;
@@ -11,15 +14,14 @@ export default function ProximaClaseCard({ clase }: Props) {
 
     window.open(
       `https://www.google.com/maps?q=${clase.latitud},${clase.longitud}`,
-      "_blank"
+      "_blank",
     );
   };
 
   const ubicacionLegible =
-  clase?.ubicacionNombre &&
-  !/^\d+$/.test(clase.ubicacionNombre.trim())
-    ? clase.ubicacionNombre
-    : null;
+    clase?.ubicacionNombre && !/^\d+$/.test(clase.ubicacionNombre.trim())
+      ? clase.ubicacionNombre
+      : null;
 
   return (
     <Card className="lg:col-span-2">
@@ -36,9 +38,15 @@ export default function ProximaClaseCard({ clase }: Props) {
               </h2>
 
               <div className="space-y-3 mt-6">
-
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">📅</span>
+                  <span className="text-xl">
+                    <CalendarMonthIcon
+                      sx={{
+                        color: "#4adea8",
+                        fontSize: 30,
+                      }}
+                    />
+                  </span>
 
                   <div>
                     <p className="text-white font-semibold">
@@ -52,23 +60,36 @@ export default function ProximaClaseCard({ clase }: Props) {
                   </div>
                 </div>
 
-           {ubicacionLegible && (
-  <div className="flex items-center gap-3">
-    <span className="text-xl">📍</span>
+                {ubicacionLegible && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">
+                      <LocationOnIcon
+                        sx={{
+                          color: "#4adea8",
+                          fontSize: 30,
+                        }}
+                      />
+                    </span>
 
-    <p className="text-white font-semibold">
-      {ubicacionLegible}
-    </p>
-  </div>
-)}
+                    <p className="text-white font-semibold">
+                      {ubicacionLegible}
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">👨‍🏫</span>
+                  <span className="text-xl">
+                    <SportsIcon
+                      sx={{
+                        color: "#4adea8",
+                        fontSize: 30,
+                      }}
+                    />
+                  </span>
 
                   <div>
                     <p className="text-white font-semibold">
-                      {clase.entrenadorNombre ??
-                        "Entrenador"}
+                      {clase.entrenadorNombre ?? "Entrenador"}
                     </p>
                   </div>
                 </div>
@@ -98,8 +119,7 @@ export default function ProximaClaseCard({ clase }: Props) {
               </h2>
 
               <p className="text-gray-400 mt-3">
-                Cuando te inscribas a una clase,
-                aparecerá aquí.
+                Cuando te inscribas a una clase, aparecerá aquí.
               </p>
             </>
           )}
@@ -120,9 +140,14 @@ export default function ProximaClaseCard({ clase }: Props) {
             text-4xl
           "
         >
-          📅
+          <CalendarMonthIcon
+            sx={{
+              color: "#4adea8",
+              fontSize: 30,
+            }}
+          />
         </div>
       </div>
     </Card>
-);
+  );
 }
