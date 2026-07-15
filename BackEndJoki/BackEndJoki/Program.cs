@@ -246,7 +246,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ISalirDeClase,SalirDeClase>();
     builder.Services.AddScoped<IObtenerClasesDisponiblesEntrenador,ObtenerClasesDisponiblesEntrenador>();
     builder.Services.AddScoped<IObtenerMisClasesEntrenador,ObtenerMisClasesEntrenador>();
-
+builder.Services.Configure<DemoSettings>(
+    builder.Configuration.GetSection("DemoSettings"));
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -350,9 +351,14 @@ RecurringJob.AddOrUpdate<RachasJob>(
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<JokiContext>();
-    var seed = new SeedData(context);
-    seed.Run();
+    var context =
+        scope.ServiceProvider
+            .GetRequiredService<JokiContext>();
+
+    var seedDemo =
+        new SeedDataDemo(context);
+
+    seedDemo.Run();
 }
 
 //app.UseHttpsRedirection();

@@ -1,9 +1,11 @@
-﻿using Joki.CasoUsoCompartida.DTOs.Autenticacion;
+﻿using Joki.CasoUsoCompartida.Configuracion;
+using Joki.CasoUsoCompartida.DTOs.Autenticacion;
 using Joki.CasoUsoCompartida.InterfacesCasosUso.Autenticacion;
 using Joki.LogicaNegocio.Excepciones;
 using Joki.LogicaNegocio.InterfacesRepositorio;
 using Joki.LogicaNegocio.ValueObjects;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
 {
@@ -16,15 +18,22 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
         private readonly IRepositorioRecuperacionContrasena
             _repositorioRecuperacion;
 
+        private readonly DemoSettings
+            _demoSettings;
+
         public RestablecerContrasena(
             IRepositorioUsuario repositorioUsuario,
-            IRepositorioRecuperacionContrasena repositorioRecuperacion)
+            IRepositorioRecuperacionContrasena repositorioRecuperacion,
+            IOptions<DemoSettings> demoSettings)
         {
             _repositorioUsuario =
                 repositorioUsuario;
 
             _repositorioRecuperacion =
                 repositorioRecuperacion;
+
+            _demoSettings =
+                demoSettings.Value;
         }
 
         public void Ejecutar(
@@ -40,9 +49,15 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                     "Debe completar todos los campos");
             }
 
+            string email =
+                request.Email.Trim();
+
+            string codigo =
+                request.Codigo.Trim();
+
             var usuario =
                 _repositorioUsuario.ObtenerPorEmail(
-                    request.Email.Trim());
+                    email);
 
             if (usuario == null)
             {
@@ -54,9 +69,15 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
                 _repositorioRecuperacion
                     .ObtenerActivaPorUsuarioYCodigo(
                         usuario.UsuarioId,
-                        request.Codigo.Trim());
+                        codigo);
 
-            if (recuperacion == null)
+            bool codigoDemoValido =
+                EsCodigoDemoValido(
+                    email,
+                    codigo);
+
+            if (recuperacion == null &&
+                !codigoDemoValido)
             {
                 throw new LogicaNegocioException(
                     "Código inválido o expirado");
@@ -81,11 +102,38 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Autenticacion
             _repositorioUsuario.Modificar(
                 usuario);
 
-            recuperacion.Usado =
-                true;
+            if (recuperacion != null)
+            {
+                recuperacion.Usado = true;
 
-            _repositorioRecuperacion.Modificar(
-                recuperacion);
+                _repositorioRecuperacion.Modificar(
+                    recuperacion);
+            }
+        }
+
+        private bool EsCodigoDemoValido(
+            string email,
+            string codigo)
+        {
+            if (!_demoSettings.Habilitado)
+            {
+                return false;
+            }
+
+            bool emailPermitido =
+                _demoSettings.EmailsPermitidos.Any(
+                    emailConfigurado =>
+                        emailConfigurado.Equals(
+                            email,
+                            StringComparison.OrdinalIgnoreCase));
+
+            if (!emailPermitido)
+            {
+                return false;
+            }
+
+            return codigo ==
+                   _demoSettings.CodigoRecuperacion;
         }
     }
 }
