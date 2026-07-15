@@ -5,7 +5,10 @@ import AlumnoLayout from "../components/layout/DashboardLayout";
 
 import { obtenerMiPerfil } from "../services/Perfil.service";
 import { obtenerMisBeneficios } from "../services/Beneficio.Service";
-
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
+import CardGiftcardRoundedIcon from "@mui/icons-material/CardGiftcardRounded";
+import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import type { Perfil, Beneficio } from "../types";
 import FullPageLoader from "../components/FullScreenSpinner";
 
@@ -131,9 +134,20 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">Beneficios activos</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Beneficios activos</p>
 
-            <h2 className="text-3xl font-bold mt-2">{beneficiosActivos}</h2>
+                <h2 className="text-3xl font-bold mt-2">{beneficiosActivos}</h2>
+              </div>
+
+              <WorkspacePremiumRoundedIcon
+                sx={{
+                  color: "#4adea8",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
 
           <div
@@ -145,9 +159,20 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">Descuentos</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Descuentos</p>
 
-            <h2 className="text-3xl font-bold mt-2">{descuentos}</h2>
+                <h2 className="text-3xl font-bold mt-2">{descuentos}</h2>
+              </div>
+
+              <LocalOfferRoundedIcon
+                sx={{
+                  color: "#60a5fa",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
 
           <div
@@ -159,9 +184,20 @@ export default function BeneficiosPage() {
               p-5
             "
           >
-            <p className="text-gray-400 text-sm">Cuotas gratis</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Cuotas gratis</p>
 
-            <h2 className="text-3xl font-bold mt-2">{cuotasGratis}</h2>
+                <h2 className="text-3xl font-bold mt-2">{cuotasGratis}</h2>
+              </div>
+
+              <CardGiftcardRoundedIcon
+                sx={{
+                  color: "#c084fc",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -204,9 +240,27 @@ export default function BeneficiosPage() {
                           gap-2
                         "
                     >
-                      {beneficio.cuotaGratis
-                        ? "🎁 Cuota Gratis"
-                        : `💰 ${beneficio.porcentajeDescuento}% de Descuento`}
+                      <h3 className="text-xl font-bold flex items-center gap-3">
+                        {beneficio.cuotaGratis ? (
+                          <CardGiftcardRoundedIcon
+                            sx={{
+                              color: "#c084fc",
+                              fontSize: 28,
+                            }}
+                          />
+                        ) : (
+                          <PaidRoundedIcon
+                            sx={{
+                              color: "#4adea8",
+                              fontSize: 28,
+                            }}
+                          />
+                        )}
+
+                        {beneficio.cuotaGratis
+                          ? "Cuota Gratis"
+                          : `${beneficio.porcentajeDescuento}% de Descuento`}
+                      </h3>
                     </h3>
 
                     <p className="text-gray-400 mt-2">

@@ -11,7 +11,10 @@ import { desinscribirseClase } from "../services/Inscripciones.Service";
 import { obtenerProximaClase } from "../utils/proximaClaseUtils";
 import toast from "react-hot-toast";
 import FullScreenLoading from "../components/FullScreenSpinner";
-
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import type { Perfil } from "../types";
 
 export default function GruposPage() {
@@ -97,9 +100,19 @@ export default function GruposPage() {
       p-5
     "
           >
-            <p className="text-gray-400 text-sm">Clases activas</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Clases activas</p>
+                <h2 className="text-3xl font-bold mt-2">{misClases.length}</h2>
+              </div>
 
-            <h2 className="text-3xl font-bold mt-2">{misClases.length}</h2>
+              <CalendarMonthRoundedIcon
+                sx={{
+                  color: "#4adea8",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
 
           <div
@@ -111,11 +124,22 @@ export default function GruposPage() {
       p-5
     "
           >
-            <p className="text-gray-400 text-sm">Racha actual</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Racha actual</p>
 
-            <h2 className="text-3xl font-bold mt-2">
-              🔥 {perfil?.rachaAsistenciaMensual ?? 0}
-            </h2>
+                <h2 className="text-3xl font-bold mt-2">
+                  {perfil?.rachaAsistenciaMensual ?? 0}
+                </h2>
+              </div>
+
+              <LocalFireDepartmentRoundedIcon
+                sx={{
+                  color: "#fb923c",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
 
           <div
@@ -127,9 +151,20 @@ export default function GruposPage() {
       p-5
     "
           >
-            <p className="text-gray-400 text-sm">Grupos disponibles</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 text-sm">Grupos disponibles</p>
 
-            <h2 className="text-3xl font-bold mt-2">{grupos.length}</h2>
+                <h2 className="text-3xl font-bold mt-2">{grupos.length}</h2>
+              </div>
+
+              <GroupsRoundedIcon
+                sx={{
+                  color: "#4adea8",
+                  fontSize: 34,
+                }}
+              />
+            </div>
           </div>
         </div>
         {perfil?.bloqueadoPorInasistencias && (
@@ -164,7 +199,16 @@ export default function GruposPage() {
   "
         >
           <div className="flex justify-between">
-            <h3 className="font-bold">🎯 Objetivo semanal</h3>
+            <div className="flex items-center gap-2">
+              <EmojiEventsRoundedIcon
+                sx={{
+                  color: "#facc15",
+                  fontSize: 24,
+                }}
+              />
+
+              <h3 className="font-bold">Objetivo semanal</h3>
+            </div>
 
             <span>{misClases.length}/3</span>
           </div>
@@ -232,10 +276,6 @@ export default function GruposPage() {
             <>
               <p className="text-gray-300 mt-3">
                 Grupo: {obtenerNombreGrupo(proximaClase.grupoId)}
-              </p>
-
-              <p className="text-gray-500">
-                📍 {proximaClase.codigoPostal ?? "Sin ubicación"}
               </p>
             </>
           )}
@@ -319,15 +359,19 @@ export default function GruposPage() {
 
                         <span
                           className="
-                    px-3
-                    py-1
-                    rounded-full
-                    text-xs
-                    font-semibold
-                    bg-[#4adea8]/10
-                    text-[#4adea8]
-                  "
+    flex
+    items-center
+    gap-1
+    px-3
+    py-1
+    rounded-full
+    bg-[#4adea8]/10
+    text-[#4adea8]
+    text-xs
+    font-semibold
+  "
                         >
+                          <CalendarMonthRoundedIcon sx={{ fontSize: 15 }} />
                           Activa
                         </span>
                         <button

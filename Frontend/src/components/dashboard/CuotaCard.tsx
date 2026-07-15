@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
 import Card from "../ui/Card";
 import type { Cuota } from "../../types";
 
@@ -23,6 +23,8 @@ const meses = [
   "Diciembre",
 ];
 
+
+
 export default function CuotaCard({ cuota }: Props) {
   const navigate = useNavigate();
 
@@ -36,6 +38,14 @@ export default function CuotaCard({ cuota }: Props) {
     estado === "BONIFICADA" || (monto !== undefined && monto === 0);
   const estaPendiente = estado === "PENDIENTE" || estado === "VENCIDA";
   const sinCuota = estado === "SIN CUOTA";
+
+  const colorIcono = estaPagada
+  ? "#4adea8"
+  : estaBonificada
+  ? "#c084fc"
+  : estado === "VENCIDA"
+  ? "#ef4444"
+  : "#facc15";
 
   const formatearDinero = (valor?: number) => {
     if (valor === undefined || valor === null) return null;
@@ -57,8 +67,7 @@ export default function CuotaCard({ cuota }: Props) {
     if (estaPagada) {
       return {
         texto: "Pagada",
-        clases:
-          "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30",
+        clases: "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30",
         descripcion: "Tu cuota está al día.",
       };
     }
@@ -66,8 +75,7 @@ export default function CuotaCard({ cuota }: Props) {
     if (estaBonificada) {
       return {
         texto: "Bonificada",
-        clases:
-          "bg-purple-500/10 text-purple-300 border-purple-500/30",
+        clases: "bg-purple-500/10 text-purple-300 border-purple-500/30",
         descripcion: "Esta cuota no requiere pago.",
       };
     }
@@ -83,8 +91,7 @@ export default function CuotaCard({ cuota }: Props) {
     if (estaPendiente) {
       return {
         texto: "Pendiente",
-        clases:
-          "bg-yellow-500/10 text-yellow-300 border-yellow-500/30",
+        clases: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30",
         descripcion: "Tenés una cuota pendiente de pago.",
       };
     }
@@ -126,9 +133,7 @@ export default function CuotaCard({ cuota }: Props) {
             </p>
           )}
 
-          <p className="text-gray-400 mt-3">
-            {estadoVisual.descripcion}
-          </p>
+          <p className="text-gray-400 mt-3">{estadoVisual.descripcion}</p>
 
           {cuota?.fechaVencimiento && !estaPagada && !estaBonificada && (
             <p className="text-sm text-gray-500 mt-2">
@@ -157,8 +162,13 @@ export default function CuotaCard({ cuota }: Props) {
           </button>
         </div>
 
-        <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/30 flex items-center justify-center text-2xl">
-          💳
+        <div className="w-14 h-14 shrink-0 rounded-2xl bg-[#4adea8]/10 border border-[#4adea8]/30 flex items-center justify-center">
+          <CreditCardRoundedIcon
+            sx={{
+              color: colorIcono,
+              fontSize: 32,
+            }}
+          />
         </div>
       </div>
     </Card>
