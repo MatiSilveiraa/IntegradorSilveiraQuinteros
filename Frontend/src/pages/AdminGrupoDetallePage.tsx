@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import ClearOutlinedIcon from "@mui/icons-material/ClearOutlined";
 
 import TopBar from "../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../components/FullScreenSpinner";
@@ -17,6 +19,20 @@ import {
 } from "../services/Clase.Service";
 
 import type { Clase, Grupo, EstadoClaseValor } from "../types";
+
+type FiltroEstadoClase =
+  | "todos"
+  | "programada"
+  | "realizada"
+  | "cancelada"
+  | "suspendida";
+
+type FiltroTipoClase = "todas" | "fijas" | "puntuales";
+
+type FiltroOcupacion =
+  | "todas"
+  | "con-cupo"
+  | "completas";
 
 const diasSemana = [
   { valor: 1, texto: "Lunes" },
@@ -66,6 +82,14 @@ export default function AdminGrupoDetallePage() {
     useState<EstadoClaseValor>(0);
 
   const [motivoEstado, setMotivoEstado] = useState("");
+
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] =
+    useState<FiltroEstadoClase>("todos");
+  const [filtroTipo, setFiltroTipo] =
+    useState<FiltroTipoClase>("todas");
+  const [filtroOcupacion, setFiltroOcupacion] =
+    useState<FiltroOcupacion>("todas");
 
   const cargarDatos = async () => {
     try {
@@ -166,6 +190,80 @@ export default function AdminGrupoDetallePage() {
       return a.id - b.id;
     });
   }, [grupo]);
+
+  const clasesFiltradas = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase();
+
+    return clases.filter((clase) => {
+      const estado = clase.estado?.toUpperCase() ?? "";
+      const dia = formatearDia(clase.diaSemana).toLowerCase();
+      const horario = `${formatearHora(
+        clase.horaInicio,
+      )} ${formatearHora(clase.horaFin)}`.toLowerCase();
+
+      if (
+        filtroEstado !== "todos" &&
+        estado !== filtroEstado.toUpperCase()
+      ) {
+        return false;
+      }
+
+      if (filtroTipo === "fijas" && !clase.esFija) {
+        return false;
+      }
+
+      if (filtroTipo === "puntuales" && clase.esFija) {
+        return false;
+      }
+
+      const ocupados = clase.cantidadInscriptos ?? 0;
+      const cupo = clase.cupoMaximo ?? 0;
+
+      if (
+        filtroOcupacion === "con-cupo" &&
+        cupo > 0 &&
+        ocupados >= cupo
+      ) {
+        return false;
+      }
+
+      if (
+        filtroOcupacion === "completas" &&
+        (cupo === 0 || ocupados < cupo)
+      ) {
+        return false;
+      }
+
+      if (!termino) {
+        return true;
+      }
+
+      return [dia, horario, clase.estado, clase.esFija ? "fija" : "puntual"]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(termino);
+    });
+  }, [
+    clases,
+    busqueda,
+    filtroEstado,
+    filtroTipo,
+    filtroOcupacion,
+  ]);
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroEstado("todos");
+    setFiltroTipo("todas");
+    setFiltroOcupacion("todas");
+  };
+
+  const hayFiltrosActivos =
+    Boolean(busqueda.trim()) ||
+    filtroEstado !== "todos" ||
+    filtroTipo !== "todas" ||
+    filtroOcupacion !== "todas";
 
   const resumen = useMemo(() => {
     const alumnosInscriptos = clases.reduce(
@@ -315,6 +413,127 @@ export default function AdminGrupoDetallePage() {
           <ResumenCard titulo="Inscriptos" valor={resumen.alumnosInscriptos} />
         </div>
 
+        {clases.length > 0 && (
+          <section className="mb-8 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4 sm:p-5">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px_220px]">
+              <div className="relative">
+                <SearchOutlinedIcon
+                  sx={{
+                    color: "#9ca3af",
+                    position: "absolute",
+                    left: 16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                />
+
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(event) =>
+                    setBusqueda(event.target.value)
+                  }
+                  placeholder="Buscar por día, horario, estado o tipo..."
+                  className="h-12 w-full rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-12 outline-none transition-all focus:border-[#4adea8]"
+                />
+
+                {busqueda && (
+                  <button
+                    type="button"
+                    onClick={() => setBusqueda("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    aria-label="Limpiar búsqueda"
+                  >
+                    <ClearOutlinedIcon fontSize="small" />
+                  </button>
+                )}
+              </div>
+
+              <select
+                value={filtroTipo}
+                onChange={(event) =>
+                  setFiltroTipo(
+                    event.target.value as FiltroTipoClase,
+                  )
+                }
+                className="h-12 rounded-2xl border border-[#2d463b] bg-[#12201b] px-4 outline-none transition-all focus:border-[#4adea8]"
+              >
+                <option value="todas">Todos los tipos</option>
+                <option value="fijas">Clases fijas</option>
+                <option value="puntuales">Clases puntuales</option>
+              </select>
+
+              <select
+                value={filtroOcupacion}
+                onChange={(event) =>
+                  setFiltroOcupacion(
+                    event.target.value as FiltroOcupacion,
+                  )
+                }
+                className="h-12 rounded-2xl border border-[#2d463b] bg-[#12201b] px-4 outline-none transition-all focus:border-[#4adea8]"
+              >
+                <option value="todas">Cualquier ocupación</option>
+                <option value="con-cupo">Con lugares disponibles</option>
+                <option value="completas">Clases completas</option>
+              </select>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-4 border-t border-[#2d463b] pt-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <FiltroEstadoBoton
+                  activo={filtroEstado === "todos"}
+                  texto="Todas"
+                  onClick={() => setFiltroEstado("todos")}
+                />
+
+                <FiltroEstadoBoton
+                  activo={filtroEstado === "programada"}
+                  texto="Programadas"
+                  onClick={() => setFiltroEstado("programada")}
+                />
+
+                <FiltroEstadoBoton
+                  activo={filtroEstado === "realizada"}
+                  texto="Realizadas"
+                  onClick={() => setFiltroEstado("realizada")}
+                />
+
+                <FiltroEstadoBoton
+                  activo={filtroEstado === "suspendida"}
+                  texto="Suspendidas"
+                  onClick={() => setFiltroEstado("suspendida")}
+                />
+
+                <FiltroEstadoBoton
+                  activo={filtroEstado === "cancelada"}
+                  texto="Canceladas"
+                  onClick={() => setFiltroEstado("cancelada")}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm text-gray-400">
+                  {clasesFiltradas.length}{" "}
+                  {clasesFiltradas.length === 1
+                    ? "clase encontrada"
+                    : "clases encontradas"}
+                </span>
+
+                {hayFiltrosActivos && (
+                  <button
+                    type="button"
+                    onClick={limpiarFiltros}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#2d463b] bg-[#12201b] px-4 text-sm font-semibold text-[#4adea8] hover:border-[#4adea8]"
+                  >
+                    <ClearOutlinedIcon fontSize="small" />
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
         {clases.length === 0 ? (
           <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-10 text-center">
             <h2 className="text-2xl font-bold mb-2">
@@ -334,9 +553,27 @@ export default function AdminGrupoDetallePage() {
               Crear clase
             </button>
           </div>
+        ) : clasesFiltradas.length === 0 ? (
+          <div className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-10 text-center">
+            <h2 className="text-2xl font-bold">
+              No hay clases que coincidan
+            </h2>
+
+            <p className="mt-2 text-gray-400">
+              Probá cambiar la búsqueda o alguno de los filtros.
+            </p>
+
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              className="mt-6 rounded-xl bg-[#4adea8] px-5 py-3 font-bold text-[#12201b]"
+            >
+              Limpiar filtros
+            </button>
+          </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {clases.map((clase) => {
+            {clasesFiltradas.map((clase) => {
               const ocupados =
                 clase.cantidadInscriptos ?? 0;
 
@@ -346,7 +583,7 @@ export default function AdminGrupoDetallePage() {
               return (
                 <div
                   key={clase.id}
-                  className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6 hover:border-[#4adea8]/40 transition-all"
+                  className="flex h-full flex-col bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 hover:border-[#4adea8]/40 transition-all"
                 >
                   <span
                     className={`inline-block px-3 py-1 rounded-full border text-xs font-bold mb-4 ${obtenerEstadoClase(
@@ -360,7 +597,7 @@ export default function AdminGrupoDetallePage() {
                     Clase del día
                   </p>
 
-                  <h2 className="text-3xl font-bold">
+                  <h2 className="text-2xl font-bold">
                     {formatearDia(clase.diaSemana)}
                   </h2>
 
@@ -369,12 +606,12 @@ export default function AdminGrupoDetallePage() {
                     {formatearHora(clase.horaFin)}
                   </p>
 
-                  <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 my-5">
+                  <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 my-4">
                     <p className="text-sm text-gray-400">
                       Alumnos inscriptos
                     </p>
 
-                    <p className="text-4xl font-bold text-[#4adea8] mt-3">
+                    <p className="text-3xl font-bold text-[#4adea8] mt-2">
                       {ocupados}/{clase.cupoMaximo}
                     </p>
 
@@ -384,11 +621,6 @@ export default function AdminGrupoDetallePage() {
                   </div>
 
                   <div className="space-y-3 mb-5">
-                    <DetalleLinea
-                      icono="📍"
-                      titulo="Punto de encuentro"
-                      valor="Ubicación marcada en el mapa"
-                    />
 
                     <DetalleLinea
                       icono="📅"
@@ -409,7 +641,7 @@ export default function AdminGrupoDetallePage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="mt-auto grid grid-cols-1 gap-3 pt-1">
                     <button
                       onClick={() =>
                         navigate(`/admin/clases/${clase.id}`)
@@ -493,6 +725,31 @@ export default function AdminGrupoDetallePage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+function FiltroEstadoBoton({
+  activo,
+  texto,
+  onClick,
+}: {
+  activo: boolean;
+  texto: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-10 rounded-xl border px-4 text-sm font-semibold transition-all ${
+        activo
+          ? "border-[#4adea8] bg-[#4adea8] text-[#12201b]"
+          : "border-[#2d463b] bg-[#12201b] text-gray-300 hover:border-[#4adea8]"
+      }`}
+    >
+      {texto}
+    </button>
   );
 }
 

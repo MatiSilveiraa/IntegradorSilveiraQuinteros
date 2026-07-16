@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import FitnessCenterOutlinedIcon from "@mui/icons-material/FitnessCenterOutlined";
+import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
+import LockClockOutlinedIcon from "@mui/icons-material/LockClockOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
@@ -34,6 +36,7 @@ export default function ClaseDetallePage() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [clase, setClase] = useState<ClaseDetalle | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [ahora, setAhora] = useState(() => new Date());
 
   useEffect(() => {
     let componenteActivo = true;
@@ -82,6 +85,14 @@ export default function ClaseDetallePage() {
     };
   }, [claseId]);
 
+  useEffect(() => {
+    const intervalo = window.setInterval(() => {
+      setAhora(new Date());
+    }, 30_000);
+
+    return () => window.clearInterval(intervalo);
+  }, []);
+
   const alumnosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
 
@@ -104,6 +115,15 @@ export default function ClaseDetallePage() {
     clase !== null &&
     Number.isFinite(clase.latitud) &&
     Number.isFinite(clase.longitud);
+
+  const disponibilidadAsistencia = clase
+    ? obtenerDisponibilidadAsistencia(
+        clase.diaSemana,
+        clase.horaInicio,
+        clase.horaFin,
+        ahora,
+      )
+    : null;
 
   if (loading) {
     return <FullScreenLoading />;
@@ -134,6 +154,15 @@ export default function ClaseDetallePage() {
       <TopBar nombre={perfil?.nombre} />
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
+        >
+          <ArrowBackOutlinedIcon fontSize="small" />
+          Volver a mis clases
+        </button>
+
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
@@ -171,18 +200,45 @@ export default function ClaseDetallePage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  `/entrenador/clases/${clase.id}/asistencia`,
-                )
-              }
-              className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4adea8] px-5 font-bold text-[#12201b] transition-all hover:brightness-110"
-            >
-              <FactCheckOutlinedIcon fontSize="small" />
-              Tomar asistencia
-            </button>
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              <button
+                type="button"
+                disabled={!disponibilidadAsistencia?.habilitada}
+                onClick={() =>
+                  navigate(
+                    `/entrenador/clases/${clase.id}/asistencia`,
+                  )
+                }
+                title={
+                  !disponibilidadAsistencia?.habilitada
+                    ? disponibilidadAsistencia?.mensaje
+                    : undefined
+                }
+                className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4adea8] px-5 font-bold text-[#12201b] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400 disabled:hover:brightness-100"
+              >
+                {disponibilidadAsistencia?.habilitada ? (
+                  <FactCheckOutlinedIcon fontSize="small" />
+                ) : (
+                  <LockClockOutlinedIcon fontSize="small" />
+                )}
+
+                {disponibilidadAsistencia?.habilitada
+                  ? "Tomar asistencia"
+                  : "Asistencia no disponible"}
+              </button>
+
+              {disponibilidadAsistencia && (
+                <p
+                  className={`max-w-sm text-right text-xs ${
+                    disponibilidadAsistencia.habilitada
+                      ? "text-[#4adea8]"
+                      : "text-yellow-300"
+                  }`}
+                >
+                  {disponibilidadAsistencia.mensaje}
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
@@ -329,29 +385,8 @@ export default function ClaseDetallePage() {
                 </div>
               )}
 
-              <div className="mt-4 rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
-                <p className="text-xs text-gray-500">
-                  Código postal
-                </p>
-
-                <p className="mt-1 font-semibold">
-                  {clase.codigoPostal || "No informado"}
-                </p>
-              </div>
             </section>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  `/entrenador/clases/${clase.id}/asistencia`,
-                )
-              }
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#4adea8] font-bold text-[#12201b] transition-all hover:brightness-110"
-            >
-              <FactCheckOutlinedIcon fontSize="small" />
-              Tomar asistencia
-            </button>
           </aside>
         </div>
       </main>
@@ -433,6 +468,193 @@ function ResumenDato({
       </p>
     </div>
   );
+}
+
+
+type DisponibilidadAsistencia = {
+  habilitada: boolean;
+  mensaje: string;
+};
+
+function obtenerDisponibilidadAsistencia(
+  diaSemana: string,
+  horaInicio: string,
+  horaFin: string,
+  fechaActual: Date,
+): DisponibilidadAsistencia {
+  const MINUTOS_ANTES = 15;
+  const MINUTOS_DESPUES = 30;
+  const MINUTOS_SEMANA = 7 * 24 * 60;
+
+  const diaClase = obtenerNumeroDiaSemana(diaSemana);
+  const inicioMinutos = obtenerMinutosHora(horaInicio);
+  const finMinutos = obtenerMinutosHora(horaFin);
+
+  if (
+    diaClase === null ||
+    inicioMinutos === null ||
+    finMinutos === null
+  ) {
+    return {
+      habilitada: false,
+      mensaje: "No se pudo validar el horario de la clase.",
+    };
+  }
+
+  const ahoraUruguay = obtenerFechaUruguay(fechaActual);
+
+  const minutoActualSemana =
+    (ahoraUruguay.diaSemana - 1) * 1440 +
+    ahoraUruguay.hora * 60 +
+    ahoraUruguay.minuto;
+
+  const inicioClaseSemana =
+    (diaClase - 1) * 1440 + inicioMinutos;
+
+  let finClaseSemana =
+    (diaClase - 1) * 1440 + finMinutos;
+
+  if (finClaseSemana <= inicioClaseSemana) {
+    finClaseSemana += 1440;
+  }
+
+  const inicioVentana =
+    inicioClaseSemana - MINUTOS_ANTES;
+  const finVentana =
+    finClaseSemana + MINUTOS_DESPUES;
+
+  const candidatos = [
+    minutoActualSemana,
+    minutoActualSemana + MINUTOS_SEMANA,
+    minutoActualSemana - MINUTOS_SEMANA,
+  ];
+
+  const habilitada = candidatos.some(
+    (actual) =>
+      actual >= inicioVentana &&
+      actual <= finVentana,
+  );
+
+  if (habilitada) {
+    return {
+      habilitada: true,
+      mensaje: "Registro habilitado dentro de la ventana permitida.",
+    };
+  }
+
+  return {
+    habilitada: false,
+    mensaje: `Disponible el ${normalizarDiaTexto(
+      diaSemana,
+    )} de ${formatearMinutosDia(
+      inicioMinutos - MINUTOS_ANTES,
+    )} a ${formatearMinutosDia(
+      finMinutos + MINUTOS_DESPUES,
+    )}.`,
+  };
+}
+
+function obtenerFechaUruguay(fecha: Date) {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Montevideo",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(fecha);
+
+  const valor = (tipo: Intl.DateTimeFormatPartTypes) =>
+    partes.find((parte) => parte.type === tipo)?.value ?? "";
+
+  const mapaDias: Record<string, number> = {
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+    Sun: 7,
+  };
+
+  return {
+    diaSemana: mapaDias[valor("weekday")] ?? 1,
+    hora: Number(valor("hour")),
+    minuto: Number(valor("minute")),
+  };
+}
+
+function obtenerNumeroDiaSemana(dia: string) {
+  const normalizado = dia
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+  const mapa: Record<string, number> = {
+    lunes: 1,
+    martes: 2,
+    miercoles: 3,
+    jueves: 4,
+    viernes: 5,
+    sabado: 6,
+    domingo: 7,
+  };
+
+  return mapa[normalizado] ?? null;
+}
+
+function obtenerMinutosHora(hora: string) {
+  const coincidencia = hora?.match(
+    /^(\d{1,2}):(\d{2})/,
+  );
+
+  if (!coincidencia) return null;
+
+  const horas = Number(coincidencia[1]);
+  const minutos = Number(coincidencia[2]);
+
+  if (
+    horas < 0 ||
+    horas > 23 ||
+    minutos < 0 ||
+    minutos > 59
+  ) {
+    return null;
+  }
+
+  return horas * 60 + minutos;
+}
+
+function formatearMinutosDia(minutosTotales: number) {
+  const normalizado =
+    ((minutosTotales % 1440) + 1440) % 1440;
+
+  const horas = Math.floor(normalizado / 60);
+  const minutos = normalizado % 60;
+
+  return `${String(horas).padStart(2, "0")}:${String(
+    minutos,
+  ).padStart(2, "0")}`;
+}
+
+function normalizarDiaTexto(dia: string) {
+  const normalizado = dia
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+  const mapa: Record<string, string> = {
+    lunes: "lunes",
+    martes: "martes",
+    miercoles: "miércoles",
+    jueves: "jueves",
+    viernes: "viernes",
+    sabado: "sábado",
+    domingo: "domingo",
+  };
+
+  return mapa[normalizado] ?? dia;
 }
 
 function formatearHora(value: string) {
