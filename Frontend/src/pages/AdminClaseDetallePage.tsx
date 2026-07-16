@@ -63,7 +63,11 @@ const [busquedaInscriptos, setBusquedaInscriptos] = useState("");
       const inscriptosData = await obtenerInscriptosClase(Number(id));
 setInscriptos(inscriptosData);
 
-      const actual = estados.find((x) => x.label === data.estado);
+      const actual = estados.find(
+        (x) =>
+          x.label.toUpperCase() ===
+          data.estado?.toUpperCase(),
+      );
 
       setEstado((actual?.value ?? 0) as EstadoClaseValor);
     } catch (error) {
@@ -141,20 +145,41 @@ setInscriptos(inscriptosData);
     });
   };
 
-  const obtenerColorEstado = (estadoClase: string) => {
-    if (estadoClase === "Programada") {
+  const formatearHora = (hora?: string | null) => {
+    if (!hora) return "--:--";
+
+    const coincidencia = hora.match(/^(\d{1,2}):(\d{2})/);
+
+    if (!coincidencia) {
+      return "--:--";
+    }
+
+    return `${coincidencia[1].padStart(
+      2,
+      "0",
+    )}:${coincidencia[2]}`;
+  };
+
+  const obtenerColorEstado = (estadoClase?: string) => {
+    const normalizado = estadoClase?.toUpperCase();
+
+    if (normalizado === "PROGRAMADA") {
       return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
     }
 
-    if (estadoClase === "Realizada") {
+    if (normalizado === "REALIZADA") {
       return "bg-blue-500/10 text-blue-300 border-blue-500/30";
     }
 
-    if (estadoClase === "Cancelada") {
+    if (normalizado === "CANCELADA") {
       return "bg-red-500/10 text-red-400 border-red-500/30";
     }
 
-    return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+    if (normalizado === "SUSPENDIDA") {
+      return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+    }
+
+    return "bg-[#12201b] text-gray-300 border-[#2d463b]";
   };
 
   const tabs = [
@@ -185,30 +210,62 @@ setInscriptos(inscriptosData);
           ← Volver
         </button>
 
-        <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-8 mb-8">
-          <span
-            className={`inline-block px-3 py-1 rounded-full border text-xs font-bold mb-4 ${obtenerColorEstado(
-              clase.estado
-            )}`}
-          >
-            {clase.estado}
-          </span>
-
-          <h1 className="text-4xl font-bold">{clase.diaSemana}</h1>
-
-          <p className="text-gray-400 mt-2">
-            {clase.horaInicio} - {clase.horaFin}
-          </p>
-
-          {clase.grupoNombre && (
-            <p className="text-gray-400 mt-2">
-              Grupo{" "}
-              <span className="text-white font-semibold">
-                {clase.grupoNombre}
+        <section className="mb-8 rounded-3xl border border-[#2d463b] bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 sm:p-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <span
+                className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${obtenerColorEstado(
+                  clase.estado,
+                )}`}
+              >
+                {clase.estado}
               </span>
-            </p>
-          )}
-        </div>
+
+              <p className="mt-5 text-xs font-bold uppercase tracking-wide text-[#4adea8]">
+                Clase
+              </p>
+
+              <h1 className="mt-1 break-words text-3xl font-bold sm:text-4xl">
+                {clase.grupoNombre ?? "Clase sin grupo"}
+              </h1>
+
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-gray-300">
+                <span className="font-semibold">
+                  {clase.diaSemana}
+                </span>
+
+                <span className="text-gray-600">•</span>
+
+                <span>
+                  {formatearHora(clase.horaInicio)} -{" "}
+                  {formatearHora(clase.horaFin)}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid min-w-[220px] grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
+                <p className="text-xs text-gray-500">
+                  Tipo
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  {clase.esFija ? "Clase fija" : "Clase puntual"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
+                <p className="text-xs text-gray-500">
+                  Cupo
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  {clase.cantidadInscriptos ?? 0}/{clase.cupoMaximo}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="grid md:grid-cols-3 gap-5 mb-8">
           <ResumenCard titulo="Cupos" valor={resumen.cupos} />
@@ -251,7 +308,11 @@ setInscriptos(inscriptosData);
 
                   <Info
                     titulo="Horario"
-                    valor={`${clase.horaInicio} - ${clase.horaFin}`}
+                    valor={`${formatearHora(
+                      clase.horaInicio,
+                    )} - ${formatearHora(
+                      clase.horaFin,
+                    )}`}
                   />
 
                   <Info
