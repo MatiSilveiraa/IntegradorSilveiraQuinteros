@@ -4,12 +4,17 @@ export const registrarAsistencia = async (
   alumnoId: number,
   claseId: number,
   presente: boolean,
+  fechaOcurrencia: string,
 ) => {
-  const response = await axiosInstance.post("/api/Asistencia", {
-    alumnoId,
-    claseId,
-    presente,
-  });
+  const response = await axiosInstance.post(
+    "/api/Asistencia",
+    {
+      alumnoId,
+      claseId,
+      presente,
+      fechaOcurrencia,
+    },
+  );
 
   return response.data;
 };

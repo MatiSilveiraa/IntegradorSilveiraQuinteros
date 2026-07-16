@@ -34,14 +34,21 @@ export const obtenerDetalleGrupo = async (
 
 export const obtenerDetalleClase = async (
   id: number,
+ fecha?: string,
 ) => {
   const response = await axiosInstance.get(
     `/api/Entrenador/clases/${id}`,
+    {
+      params: fecha
+        ? {
+            fecha,
+          }
+        : undefined,
+    },
   );
 
   return response.data;
 };
-
 export const obtenerMisClasesEntrenador =
   async (): Promise<ClaseAsignadaEntrenador[]> => {
     const response = await axiosInstance.get(

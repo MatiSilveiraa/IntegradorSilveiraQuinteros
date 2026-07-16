@@ -12,7 +12,7 @@ import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
-
+import { useSearchParams } from "react-router-dom";
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 import ClassLocationMap from "../../components/maps/ClassLocationMap";
@@ -28,6 +28,11 @@ import type {
 
 export default function ClaseDetallePage() {
   const { id } = useParams();
+
+const [searchParams] = useSearchParams();
+
+const fechaOcurrencia =
+  searchParams.get("fecha") ?? undefined;
   const navigate = useNavigate();
 
   const claseId = Number(id);
@@ -53,7 +58,10 @@ export default function ClaseDetallePage() {
 
         const [perfilData, claseData] = await Promise.all([
           obtenerMiPerfil(),
-          obtenerDetalleClase(claseId),
+          obtenerDetalleClase(
+    claseId,
+    fechaOcurrencia,
+),
         ]);
 
         if (!componenteActivo) return;
@@ -156,11 +164,11 @@ export default function ClaseDetallePage() {
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/entrenador/agenda")}
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
         >
           <ArrowBackOutlinedIcon fontSize="small" />
-          Volver a mis clases
+          Volver a mi agenda
         </button>
 
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
@@ -205,10 +213,14 @@ export default function ClaseDetallePage() {
                 type="button"
                 disabled={!disponibilidadAsistencia?.habilitada}
                 onClick={() =>
-                  navigate(
-                    `/entrenador/clases/${clase.id}/asistencia`,
-                  )
-                }
+  navigate(
+    `/entrenador/clases/${clase.id}/asistencia${
+      fechaOcurrencia
+        ? `?fecha=${fechaOcurrencia}`
+        : ""
+    }`,
+  )
+}
                 title={
                   !disponibilidadAsistencia?.habilitada
                     ? disponibilidadAsistencia?.mensaje

@@ -11,7 +11,7 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import LockClockOutlinedIcon from "@mui/icons-material/LockClockOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
-
+import { useSearchParams } from "react-router-dom";
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 import { obtenerDetalleClase } from "../../services/Entrenador.Service";
@@ -20,6 +20,10 @@ import type { AlumnoClase, ClaseDetalle } from "../../types/claseDetalle";
 
 export default function AsistenciaClasePage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+
+const fechaOcurrencia =
+    searchParams.get("fecha") ?? undefined;
   const navigate = useNavigate();
 
   const claseId = Number(id);
@@ -43,7 +47,11 @@ export default function AsistenciaClasePage() {
 
       try {
         setLoading(true);
-        const detalle = await obtenerDetalleClase(claseId);
+        const detalle =
+    await obtenerDetalleClase(
+        claseId,
+        fechaOcurrencia,
+    );
         if (activo) setClase(detalle);
       } catch (error: any) {
         if (!activo) return;
@@ -73,30 +81,39 @@ export default function AsistenciaClasePage() {
   }, []);
 
   const handleRegistrarAsistencia = async (
-    alumnoId: number,
-    presente: boolean,
-  ) => {
-    if (!clase) return;
+  alumnoId: number,
+  presente: boolean,
+) => {
+  if (!clase) return;
 
-    const disponibilidad = obtenerDisponibilidadAsistencia(
+  if (!fechaOcurrencia) {
+    toast.error(
+      "No se pudo determinar la fecha de la ocurrencia.",
+    );
+    return;
+  }
+
+  const disponibilidad =
+    obtenerDisponibilidadAsistencia(
       clase.diaSemana,
       clase.horaInicio,
       clase.horaFin,
       ahora,
     );
 
-    if (!disponibilidad.habilitada) {
-      toast.error(disponibilidad.mensaje);
-      return;
-    }
+  if (!disponibilidad.habilitada) {
+    toast.error(disponibilidad.mensaje);
+    return;
+  }
 
-    try {
-      setRegistrandoAlumnoId(alumnoId);
+  try {
+    setRegistrandoAlumnoId(alumnoId);
 
     await registrarAsistencia(
       alumnoId,
       claseId,
       presente,
+      fechaOcurrencia,
     );
 
     setClase((prev) => {
@@ -131,10 +148,10 @@ export default function AsistenciaClasePage() {
       error?.response?.data?.mensaje ??
         "No se pudo registrar la asistencia",
     );
-    } finally {
-      setRegistrandoAlumnoId(null);
-    }
-  };
+  } finally {
+    setRegistrandoAlumnoId(null);
+  }
+};
 
   const alumnosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
