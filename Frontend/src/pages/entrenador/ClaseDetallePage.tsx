@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import FitnessCenterOutlinedIcon from "@mui/icons-material/FitnessCenterOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -125,14 +123,6 @@ export default function ClaseDetallePage() {
             <p className="mt-2 text-gray-400">
               La clase puede haber sido eliminada o ya no estar disponible.
             </p>
-
-            <button
-              type="button"
-              onClick={() => navigate("/entrenador/mis-clases")}
-              className="mt-6 rounded-xl bg-[#4adea8] px-5 py-3 font-bold text-[#12201b]"
-            >
-              Volver a mis clases
-            </button>
           </section>
         </main>
       </div>
@@ -144,15 +134,6 @@ export default function ClaseDetallePage() {
       <TopBar nombre={perfil?.nombre} />
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() => navigate("/entrenador/mis-clases")}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
-        >
-          <ArrowBackOutlinedIcon fontSize="small" />
-          Volver a mis clases
-        </button>
-
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">

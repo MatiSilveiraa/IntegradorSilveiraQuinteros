@@ -55,21 +55,29 @@ export default function ClasesPage() {
     cargarClases();
   }, []);
 
+  const formatearFechaTitulo = (fecha: string) => {
+    if (!fecha) return "Sin fecha";
+
+    const [anio, mes, dia] = fecha.substring(0, 10).split("-").map(Number);
+
+    const fechaLocal = new Date(anio, mes - 1, dia);
+
+    const nombreDia = fechaLocal.toLocaleDateString("es-UY", {
+      weekday: "long",
+    });
+
+    const fechaCompleta = fechaLocal.toLocaleDateString("es-UY", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    return `${nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1)} — ${fechaCompleta}`;
+  };
+
   const formatearHora = (hora: string) => {
     if (!hora) return "-";
     return hora.substring(0, 5);
-  };
-
-  const ordenDias: Record<string, number> = {
-    Domingo: 0,
-    Lunes: 1,
-    Martes: 2,
-    Miércoles: 3,
-    Miercoles: 3,
-    Jueves: 4,
-    Viernes: 5,
-    Sábado: 6,
-    Sabado: 6,
   };
 
   const obtenerNombreGrupo = (clase: Clase) => {
@@ -152,24 +160,130 @@ export default function ClasesPage() {
       setCambiandoEstado(false);
     }
   };
+  const obtenerProximaFechaClase = (clase: Clase) => {
+    if (!clase.fechaInicio) return "";
+
+    const diasSemana: Record<string, number> = {
+      Domingo: 0,
+      Lunes: 1,
+      Martes: 2,
+      Miércoles: 3,
+      Miercoles: 3,
+      Jueves: 4,
+      Viernes: 5,
+      Sábado: 6,
+      Sabado: 6,
+    };
+
+    const diaObjetivo = diasSemana[clase.diaSemana];
+
+    if (diaObjetivo === undefined) return "";
+
+    // Clase puntual: su fecha es FechaInicio.
+    if (!clase.esFija) {
+      return obtenerFechaSinHora(clase.fechaInicio);
+    }
+
+    const ahora = new Date();
+
+    const [anioInicio, mesInicio, diaInicio] = obtenerFechaSinHora(
+      clase.fechaInicio,
+    )
+      .split("-")
+      .map(Number);
+
+    const fechaInicio = new Date(anioInicio, mesInicio - 1, diaInicio);
+
+    // Empezamos desde hoy o desde FechaInicio si todavía no comenzó.
+    const fechaBase =
+      fechaInicio > ahora
+        ? new Date(fechaInicio)
+        : new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+
+    const diasHastaClase = (diaObjetivo - fechaBase.getDay() + 7) % 7;
+
+    const proximaFecha = new Date(fechaBase);
+
+    proximaFecha.setDate(fechaBase.getDate() + diasHastaClase);
+
+    // Si es hoy pero la hora ya pasó,
+    // la próxima ocurrencia es la semana siguiente.
+    if (diasHastaClase === 0) {
+      const [hora, minutos] = clase.horaInicio
+        .substring(0, 5)
+        .split(":")
+        .map(Number);
+
+      const fechaHoraClase = new Date(proximaFecha);
+
+      fechaHoraClase.setHours(hora, minutos, 0, 0);
+
+      if (fechaHoraClase <= ahora) {
+        proximaFecha.setDate(proximaFecha.getDate() + 7);
+      }
+    }
+
+    // Verificamos FechaFin.
+    if (clase.fechaFin) {
+      const [anioFin, mesFin, diaFin] = obtenerFechaSinHora(clase.fechaFin)
+        .split("-")
+        .map(Number);
+
+      const fechaFin = new Date(anioFin, mesFin - 1, diaFin, 23, 59, 59);
+
+      if (proximaFecha > fechaFin) {
+        return "";
+      }
+    }
+
+    const anio = proximaFecha.getFullYear();
+
+    const mes = String(proximaFecha.getMonth() + 1).padStart(2, "0");
+
+    const dia = String(proximaFecha.getDate()).padStart(2, "0");
+
+    return `${anio}-${mes}-${dia}`;
+  };
+
+  const obtenerFechaSinHora = (fecha: string) => {
+    return fecha?.substring(0, 10) ?? "";
+  };
 
   const clasesFiltradas = useMemo(() => {
     return clases
       .filter((clase) => {
-        if (filtroTipo === "fijas" && !clase.esFija) return false;
-        if (filtroTipo === "eventuales" && clase.esFija) return false;
+        if (filtroTipo === "fijas" && !clase.esFija) {
+          return false;
+        }
 
-        const texto = `${obtenerNombreGrupo(clase)} ${clase.diaSemana} ${
-          clase.estado ?? ""
-        }`.toLowerCase();
+        if (filtroTipo === "eventuales" && clase.esFija) {
+          return false;
+        }
+
+        const texto = `
+        ${obtenerNombreGrupo(clase)}
+        ${clase.diaSemana}
+        ${clase.fechaInicio ?? ""}
+        ${clase.estado ?? ""}
+      `.toLowerCase();
 
         return texto.includes(busqueda.toLowerCase());
       })
       .sort((a, b) => {
-        const diaA = ordenDias[a.diaSemana] ?? 99;
-        const diaB = ordenDias[b.diaSemana] ?? 99;
+        const fechaA = obtenerProximaFechaClase(a);
 
-        if (diaA !== diaB) return diaA - diaB;
+        const fechaB = obtenerProximaFechaClase(b);
+
+        // Las clases sin próxima ocurrencia
+        // quedan al final.
+        if (!fechaA && fechaB) return 1;
+        if (fechaA && !fechaB) return -1;
+
+        const comparacionFecha = fechaA.localeCompare(fechaB);
+
+        if (comparacionFecha !== 0) {
+          return comparacionFecha;
+        }
 
         return formatearHora(a.horaInicio).localeCompare(
           formatearHora(b.horaInicio),
@@ -179,11 +293,19 @@ export default function ClasesPage() {
 
   const clasesAgrupadas = useMemo(() => {
     return clasesFiltradas.reduce<Record<string, Clase[]>>((acc, clase) => {
-      const dia = clase.diaSemana || "Sin día";
+      const fecha = obtenerProximaFechaClase(clase);
 
-      if (!acc[dia]) acc[dia] = [];
+      // No mostramos clases recurrentes
+      // cuya vigencia ya terminó.
+      if (!fecha) {
+        return acc;
+      }
 
-      acc[dia].push(clase);
+      if (!acc[fecha]) {
+        acc[fecha] = [];
+      }
+
+      acc[fecha].push(clase);
 
       return acc;
     }, {});
@@ -330,17 +452,19 @@ export default function ClasesPage() {
         ) : (
           <div className="space-y-8">
             {Object.entries(clasesAgrupadas)
-              .sort(([diaA], [diaB]) => {
-                return (ordenDias[diaA] ?? 99) - (ordenDias[diaB] ?? 99);
-              })
-              .map(([dia, clasesDia]) => (
+              .sort(([fechaA], [fechaB]) => fechaA.localeCompare(fechaB))
+              .map(([fecha, clasesDia]) => (
                 <section
-                  key={dia}
+                  key={fecha}
                   className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl overflow-hidden"
                 >
                   <div className="px-6 py-5 border-b border-[#2d463b] flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold">{dia}</h2>
+                      <h2 className="text-2xl font-bold">
+                        {fecha === "sin-fecha"
+                          ? "Sin fecha"
+                          : formatearFechaTitulo(fecha)}
+                      </h2>
 
                       <p className="text-sm text-gray-400 mt-1">
                         {clasesDia.length} clase

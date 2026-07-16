@@ -8,17 +8,21 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 import { obtenerDetalleClase } from "../../services/Entrenador.Service";
+import { registrarAsistencia } from "../../services/Asistencia.Service";
 import type { AlumnoClase, ClaseDetalle } from "../../types/claseDetalle";
 
 export default function AsistenciaClasePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const claseId = Number(id);
+  const [registrandoAlumnoId, setRegistrandoAlumnoId] = useState<number | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
   const [clase, setClase] = useState<ClaseDetalle | null>(null);
@@ -26,7 +30,6 @@ export default function AsistenciaClasePage() {
 
   useEffect(() => {
     let activo = true;
-
     const cargar = async () => {
       if (!Number.isFinite(claseId) || claseId <= 0) {
         toast.error("La clase seleccionada no es válida.");
@@ -44,8 +47,7 @@ export default function AsistenciaClasePage() {
           console.error("[Tomar asistencia]", error);
         }
         toast.error(
-          error?.response?.data?.mensaje ??
-            "No fue posible cargar la clase.",
+          error?.response?.data?.mensaje ?? "No fue posible cargar la clase.",
         );
       } finally {
         if (activo) setLoading(false);
@@ -58,16 +60,66 @@ export default function AsistenciaClasePage() {
     };
   }, [claseId]);
 
+  const handleRegistrarAsistencia = async (
+  alumnoId: number,
+  presente: boolean,
+) => {
+  try {
+    setRegistrandoAlumnoId(alumnoId);
+
+    await registrarAsistencia(
+      alumnoId,
+      claseId,
+      presente,
+    );
+
+    setClase((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        alumnos: prev.alumnos.map((alumno) =>
+          alumno.id === alumnoId
+            ? {
+                ...alumno,
+                asistenciaRegistrada: true,
+                presente,
+              }
+            : alumno,
+        ),
+      };
+    });
+
+    toast.success(
+      presente
+        ? "Asistencia registrada"
+        : "Inasistencia registrada",
+    );
+  } catch (error: any) {
+    console.error(
+      "[Registrar asistencia]",
+      error,
+    );
+
+    toast.error(
+      error?.response?.data?.mensaje ??
+        "No se pudo registrar la asistencia",
+    );
+  } finally {
+    setRegistrandoAlumnoId(null);
+  }
+};
+
   const alumnosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
     return (clase?.alumnos ?? []).filter((alumno) =>
-      `${alumno.nombre} ${alumno.apellido}`
-        .toLowerCase()
-        .includes(termino),
+      `${alumno.nombre} ${alumno.apellido}`.toLowerCase().includes(termino),
     );
   }, [clase, busqueda]);
 
-  const registradas = clase?.alumnos.filter((a) => a.presente).length ?? 0;
+  const registradas =
+    clase?.alumnos.filter((alumno) => alumno.asistenciaRegistrada).length ?? 0;
+
   const pendientes = (clase?.alumnos.length ?? 0) - registradas;
 
   if (loading) return <FullScreenLoading />;
@@ -76,15 +128,7 @@ export default function AsistenciaClasePage() {
     return (
       <div className="min-h-screen bg-[#12201b] text-white">
         <TopBar />
-        <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 pt-16">
-          <button
-            type="button"
-            onClick={() => navigate("/entrenador/mis-clases")}
-            className="rounded-xl bg-[#4adea8] px-5 py-3 font-bold text-[#12201b]"
-          >
-            Volver a mis clases
-          </button>
-        </main>
+        <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 pt-16"></main>
       </div>
     );
   }
@@ -107,12 +151,12 @@ export default function AsistenciaClasePage() {
           <span className="inline-flex rounded-full bg-[#4adea8] px-3 py-1 text-[11px] font-bold text-[#12201b]">
             REGISTRAR ASISTENCIA
           </span>
-          <h1 className="mt-4 text-3xl font-bold md:text-4xl">
-            {clase.grupo}
-          </h1>
+          <h1 className="mt-4 text-3xl font-bold md:text-4xl">{clase.grupo}</h1>
           <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm text-gray-300">
             <span className="inline-flex items-center gap-2">
-              <CalendarMonthOutlinedIcon sx={{ color: "#4adea8", fontSize: 19 }} />
+              <CalendarMonthOutlinedIcon
+                sx={{ color: "#4adea8", fontSize: 19 }}
+              />
               {clase.diaSemana}
             </span>
             <span className="inline-flex items-center gap-2">
@@ -120,7 +164,9 @@ export default function AsistenciaClasePage() {
               {hora(clase.horaInicio)} - {hora(clase.horaFin)}
             </span>
             <span className="inline-flex items-center gap-2">
-              <PeopleOutlineOutlinedIcon sx={{ color: "#4adea8", fontSize: 19 }} />
+              <PeopleOutlineOutlinedIcon
+                sx={{ color: "#4adea8", fontSize: 19 }}
+              />
               {clase.inscriptos} / {clase.cupoMaximo} alumnos
             </span>
           </div>
@@ -147,7 +193,13 @@ export default function AsistenciaClasePage() {
 
           <div className="relative mt-6">
             <SearchOutlinedIcon
-              sx={{ color: "#9ca3af", position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }}
+              sx={{
+                color: "#9ca3af",
+                position: "absolute",
+                left: 14,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
             />
             <input
               value={busqueda}
@@ -168,7 +220,15 @@ export default function AsistenciaClasePage() {
           ) : (
             <div className="mt-6 space-y-3">
               {alumnosFiltrados.map((alumno) => (
-                <AlumnoEstado key={alumno.id} alumno={alumno} />
+                <AlumnoEstado
+  key={alumno.id}
+  alumno={alumno}
+  registrado={alumno.asistenciaRegistrada}
+  registrando={registrandoAlumnoId === alumno.id}
+  onRegistrar={(presente) =>
+    handleRegistrarAsistencia(alumno.id, presente)
+  }
+/>
               ))}
             </div>
           )}
@@ -178,38 +238,65 @@ export default function AsistenciaClasePage() {
   );
 }
 
-function AlumnoEstado({ alumno }: { alumno: AlumnoClase }) {
+function AlumnoEstado({
+  alumno,
+  registrado,
+  registrando,
+  onRegistrar,
+}: {
+  alumno: AlumnoClase;
+  registrado: boolean;
+  registrando: boolean;
+  onRegistrar: (presente: boolean) => void;
+}) {
   return (
     <article className="flex flex-col gap-4 rounded-2xl border border-[#2d463b] bg-[#20362d] p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#12201b] text-[#4adea8]">
           <PeopleOutlineOutlinedIcon fontSize="small" />
         </div>
+
         <div>
           <h3 className="font-bold">
             {alumno.nombre} {alumno.apellido}
           </h3>
+
           <p className="mt-1 text-sm text-gray-400">Alumno inscripto</p>
         </div>
       </div>
 
-      <div className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${
-        alumno.presente
-          ? "border-[#4adea8]/30 bg-[#4adea8]/10 text-[#4adea8]"
-          : "border-amber-500/30 bg-amber-500/10 text-amber-300"
-      }`}>
-        {alumno.presente ? (
-          <>
+      {registrado ? (
+        alumno.presente ? (
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 px-3 py-2 text-xs font-semibold text-[#4adea8]">
             <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 17 }} />
-            Asistencia registrada
-          </>
+            Presente
+          </div>
         ) : (
-          <>
-            <PendingActionsOutlinedIcon sx={{ fontSize: 17 }} />
-            Pendiente de registrar
-          </>
-        )}
-      </div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+            ✕ Ausente
+          </div>
+        )
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={registrando}
+            onClick={() => onRegistrar(true)}
+            className="rounded-xl bg-[#4adea8] px-4 py-2 text-sm font-bold text-[#12201b] disabled:opacity-50"
+          >
+            {registrando ? "Registrando..." : "Presente"}
+          </button>
+
+          <button
+            type="button"
+            disabled={registrando}
+            onClick={() => onRegistrar(false)}
+            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 disabled:opacity-50"
+          >
+            {registrando ? "Registrando..." : "Ausente"}
+          </button>
+        </div>
+      )}
     </article>
   );
 }

@@ -107,15 +107,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(c => c.Inscripciones)
                         .ThenInclude(i => i.Alumno)
                     .Include(c => c.Entrenadores)
-                    .Where(c =>
-                        c.Grupo.EntrenadorId ==
-                            entrenadorId &&
-                        c.Grupo.Estado ==
-                            EstadoGrupo.ACTIVO &&
-                        c.Estado ==
-                            EstadoClase.Programada &&
-                        c.DiaSemana ==
-                            diaSemana)
+                   .Where(c =>
+                            c.Entrenadores.Any(e =>
+                            e.EntrenadorId == entrenadorId) &&
+                            c.Grupo.Estado == EstadoGrupo.ACTIVO &&
+                            c.Estado == EstadoClase.Programada &&
+                            c.DiaSemana == diaSemana)
                     .ToList();
 
             return clases
@@ -181,10 +178,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(c => c.Grupo)
                     .Include(c => c.Inscripciones)
                     .Include(c => c.Entrenadores)
-                    .Where(c =>
-                        c.Grupo.EntrenadorId == entrenadorId &&
-                        c.Grupo.Estado == EstadoGrupo.ACTIVO &&
-                        c.Estado == EstadoClase.Programada)
+                   .Where(c =>
+                            c.Entrenadores.Any(e =>
+                            e.EntrenadorId == entrenadorId) &&
+                            c.Grupo.Estado == EstadoGrupo.ACTIVO &&
+                            c.Estado == EstadoClase.Programada)
                     .ToList();
 
             Console.WriteLine(

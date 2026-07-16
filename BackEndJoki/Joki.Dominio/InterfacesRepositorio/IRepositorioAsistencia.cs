@@ -11,5 +11,10 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
         List<Asistencia> ObtenerUltimasAsistencias(int alumnoId, int cantidad);
 
         IEnumerable<Asistencia> ObtenerPorAlumno(int alumnoId);
+
+        Asistencia? ObtenerAsistencia(
+    int alumnoId,
+    int claseId,
+    DateTime fecha);
     }
 }

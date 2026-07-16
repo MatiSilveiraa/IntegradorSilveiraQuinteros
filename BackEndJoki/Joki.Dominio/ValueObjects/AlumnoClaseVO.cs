@@ -8,6 +8,8 @@
 
         public string Apellido { get; set; } = "";
 
+        public bool AsistenciaRegistrada { get; set; }
+
         public bool Presente { get; set; }
     }
 }

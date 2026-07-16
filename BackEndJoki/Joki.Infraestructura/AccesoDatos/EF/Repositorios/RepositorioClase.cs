@@ -210,34 +210,40 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     clase.RadioGeolocalizacion,
 
                 Alumnos = clase.Inscripciones
-                    .Where(i => i.Alumno != null)
-                    .OrderBy(i =>
-                        i.Alumno.Nombre?.Valor
-                        ?? string.Empty)
-                    .ThenBy(i =>
-                        i.Alumno.Apellido?.Valor
-                        ?? string.Empty)
-                    .Select(i => new AlumnoClaseVO
-                    {
-                        Id =
-                            i.Alumno.UsuarioId,
+    .Where(i => i.Alumno != null)
+    .OrderBy(i =>
+        i.Alumno.Nombre?.Valor
+        ?? string.Empty)
+    .ThenBy(i =>
+        i.Alumno.Apellido?.Valor
+        ?? string.Empty)
+    .Select(i =>
+    {
+        var asistencia = clase.Asistencias
+            .FirstOrDefault(a =>
+                a.AlumnoId == i.Alumno.UsuarioId &&
+                a.Fecha.Date == hoyUruguay);
 
-                        Nombre =
-                            i.Alumno.Nombre?.Valor
-                            ?? string.Empty,
+        return new AlumnoClaseVO
+        {
+            Id = i.Alumno.UsuarioId,
 
-                        Apellido =
-                            i.Alumno.Apellido?.Valor
-                            ?? string.Empty,
+            Nombre =
+                i.Alumno.Nombre?.Valor
+                ?? string.Empty,
 
-                        Presente = clase.Asistencias.Any(a =>
-                            a.AlumnoId ==
-                                i.Alumno.UsuarioId &&
-                            a.Presente &&
-                            a.Fecha.Date ==
-                                hoyUruguay)
-                    })
-                    .ToList()
+            Apellido =
+                i.Alumno.Apellido?.Valor
+                ?? string.Empty,
+
+            AsistenciaRegistrada =
+                asistencia != null,
+
+            Presente =
+                asistencia?.Presente ?? false
+        };
+    })
+    .ToList()
             };
         }
 

@@ -3,6 +3,7 @@ export interface AlumnoClase {
   nombre: string;
   apellido: string;
   presente: boolean;
+    asistenciaRegistrada: boolean;
 }
 
 export interface ClaseDetalle {

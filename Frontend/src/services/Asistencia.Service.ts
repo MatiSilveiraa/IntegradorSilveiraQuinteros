@@ -1,5 +1,19 @@
 import axiosInstance from "../api/axios";
 
+export const registrarAsistencia = async (
+  alumnoId: number,
+  claseId: number,
+  presente: boolean,
+) => {
+  const response = await axiosInstance.post("/api/Asistencia", {
+    alumnoId,
+    claseId,
+    presente,
+  });
+
+  return response.data;
+};
+
 export const registrarAsistenciaGeolocalizacion = async (
   claseId: number,
   latitud: number,
@@ -11,11 +25,6 @@ export const registrarAsistenciaGeolocalizacion = async (
       claseId,
       latitud,
       longitud,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
     },
   );
 

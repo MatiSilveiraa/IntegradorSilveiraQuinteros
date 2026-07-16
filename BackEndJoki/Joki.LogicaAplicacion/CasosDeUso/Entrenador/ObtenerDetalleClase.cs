@@ -57,14 +57,15 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                 Radio = vo.Radio,
 
                 Alumnos = vo.Alumnos
-                    .Select(a => new AlumnoClaseDTO
-                    {
-                        Id = a.Id,
-                        Nombre = a.Nombre,
-                        Apellido = a.Apellido,
-                        Presente = a.Presente
-                    })
-                    .ToList()
+    .Select(a => new AlumnoClaseDTO
+    {
+        Id = a.Id,
+        Nombre = a.Nombre,
+        Apellido = a.Apellido,
+        AsistenciaRegistrada = a.AsistenciaRegistrada,
+        Presente = a.Presente
+    })
+    .ToList()
             };
         }
     }
