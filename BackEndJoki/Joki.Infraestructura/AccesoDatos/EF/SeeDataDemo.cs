@@ -41,6 +41,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
             CrearClases();
 
+            CrearAsignacionesEntrenadoresClases();
+
             CrearInscripciones();
 
             CrearAsistencias();
@@ -251,9 +253,9 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         }
 
         private static Grupo CrearGrupo(
-            string nombre,
-            string nivel,
-            int entrenadorId)
+      string nombre,
+      string nivel,
+      int entrenadorId)
         {
             return new Grupo
             {
@@ -266,50 +268,187 @@ namespace Joki.Infraestructura.AccesoDatos.EF
 
         private void CrearClases()
         {
-            var grupos = _context.Grupos
-                .Where(g => g.Nombre != "Grupo Demo Sin Clases")
-                .OrderBy(g => g.Id)
-                .ToList();
+            var grupos =
+                _context.Grupos
+                    .Where(g =>
+                        g.Nombre != "Grupo Demo Sin Clases")
+                    .OrderBy(g => g.Id)
+                    .ToList();
 
-            var clases = new List<Clase>();
-
-            for (int indice = 0; indice < grupos.Count; indice++)
+            if (!grupos.Any())
             {
-                int horaBase = indice % 2 == 0 ? 8 : 18;
-
-                clases.Add(CrearClase(
-                    grupos[indice].Id, DiaSemana.Lunes, horaBase, indice));
-
-                clases.Add(CrearClase(
-                    grupos[indice].Id, DiaSemana.Miercoles, horaBase, indice));
-
-                clases.Add(CrearClase(
-                    grupos[indice].Id, DiaSemana.Viernes, horaBase, indice));
+                return;
             }
 
-            clases.Add(new Clase
-            {
-                GrupoId = grupos.First().Id,
-                DiaSemana = ConvertirDiaSemana(DateTime.Today.DayOfWeek),
-                HoraInicio = DateTime.Now.TimeOfDay.Subtract(
-                    TimeSpan.FromMinutes(10)),
-                HoraFin = DateTime.Now.TimeOfDay.Add(
-                    TimeSpan.FromMinutes(50)),
-                Ubicacion = new Ubicacion
-                {
-                    Latitud = -34.900000m,
-                    Longitud = -56.160000m,
-                    CodigoPostal = "11000"
-                },
-                RadioGeolocalizacion = 500m,
-                EsFija = true,
-                FechaInicio = DateTime.Today.AddMonths(-1),
-                FechaFin = DateTime.Today.AddMonths(3),
-                CupoMaximo = 20,
-                Estado = EstadoClase.Programada
-            });
+            var clases =
+                new List<Clase>();
 
-            _context.Clases.AddRange(clases);
+            for (int indice = 0;
+                 indice < grupos.Count;
+                 indice++)
+            {
+                Grupo grupo =
+                    grupos[indice];
+
+                int horaBase =
+                    indice % 2 == 0
+                        ? 8
+                        : 18;
+
+                clases.Add(
+                    CrearClase(
+                        grupo.Id,
+                        DiaSemana.Lunes,
+                        horaBase,
+                        indice));
+
+                clases.Add(
+                    CrearClase(
+                        grupo.Id,
+                        DiaSemana.Miercoles,
+                        horaBase,
+                        indice));
+
+                clases.Add(
+                    CrearClase(
+                        grupo.Id,
+                        DiaSemana.Viernes,
+                        horaBase,
+                        indice));
+            }
+
+            /*
+             * Clase especial para probar asistencia
+             * por geolocalización durante la demo.
+             */
+            clases.Add(
+                new Clase
+                {
+                    GrupoId =
+                        grupos.First().Id,
+
+                    DiaSemana =
+                        ConvertirDiaSemana(
+                            DateTime.Today.DayOfWeek),
+
+                    HoraInicio =
+                        DateTime.Now.TimeOfDay.Subtract(
+                            TimeSpan.FromMinutes(10)),
+
+                    HoraFin =
+                        DateTime.Now.TimeOfDay.Add(
+                            TimeSpan.FromMinutes(50)),
+
+                    Ubicacion =
+                        new Ubicacion
+                        {
+                            Latitud =
+                                -34.900000m,
+
+                            Longitud =
+                                -56.160000m,
+
+                            CodigoPostal =
+                                "11000"
+                        },
+
+                    RadioGeolocalizacion =
+                        500m,
+
+                    EsFija =
+                        true,
+
+                    FechaInicio =
+                        DateTime.Today.AddMonths(-1),
+
+                    FechaFin =
+                        DateTime.Today.AddMonths(3),
+
+                    CupoMaximo =
+                        20,
+
+                    Estado =
+                        EstadoClase.Programada
+                });
+
+            _context.Clases.AddRange(
+                clases);
+
+            _context.SaveChanges();
+        }
+
+        // =====================================================
+        // ENTRENADORES ASIGNADOS A CLASES
+        // =====================================================
+
+        private void CrearAsignacionesEntrenadoresClases()
+        {
+            var clases =
+                _context.Clases
+                    .OrderBy(c => c.Id)
+                    .ToList();
+
+            var grupos =
+                _context.Grupos
+                    .OrderBy(g => g.Id)
+                    .ToDictionary(
+                        g => g.Id);
+
+            if (!clases.Any() ||
+                !grupos.Any())
+            {
+                return;
+            }
+
+            var asignaciones =
+                new List<ClaseEntrenador>();
+
+            foreach (Clase clase in clases)
+            {
+                if (!grupos.TryGetValue(
+                        clase.GrupoId,
+                        out Grupo? grupo))
+                {
+                    continue;
+                }
+
+                bool yaExiste =
+                    _context.ClaseEntrenadores.Any(
+                        ce =>
+                            ce.ClaseId == clase.Id &&
+                            ce.EntrenadorId ==
+                                grupo.EntrenadorId);
+
+                if (yaExiste)
+                {
+                    continue;
+                }
+
+                asignaciones.Add(
+                    new ClaseEntrenador
+                    {
+                        ClaseId =
+                            clase.Id,
+
+                        EntrenadorId =
+                            grupo.EntrenadorId,
+
+                        EsPrincipal =
+                            true,
+
+                        FechaAsignacion =
+                            DateTime.UtcNow
+                    });
+            }
+
+            if (!asignaciones.Any())
+            {
+                return;
+            }
+
+            _context.ClaseEntrenadores.AddRange(
+                asignaciones);
+
             _context.SaveChanges();
         }
 
@@ -321,22 +460,56 @@ namespace Joki.Infraestructura.AccesoDatos.EF
         {
             return new Clase
             {
-                GrupoId = grupoId,
-                DiaSemana = dia,
-                HoraInicio = new TimeSpan(horaInicio, 0, 0),
-                HoraFin = new TimeSpan(horaInicio + 1, 0, 0),
-                Ubicacion = new Ubicacion
-                {
-                    Latitud = -34.900000m + indiceGrupo * 0.001000m,
-                    Longitud = -56.160000m + indiceGrupo * 0.001000m,
-                    CodigoPostal = "11000"
-                },
-                RadioGeolocalizacion = 150m,
-                EsFija = true,
-                FechaInicio = DateTime.Today.AddMonths(-2),
-                FechaFin = DateTime.Today.AddMonths(4),
-                CupoMaximo = 20,
-                Estado = EstadoClase.Programada
+                GrupoId =
+                    grupoId,
+
+                DiaSemana =
+                    dia,
+
+                HoraInicio =
+                    new TimeSpan(
+                        horaInicio,
+                        0,
+                        0),
+
+                HoraFin =
+                    new TimeSpan(
+                        horaInicio + 1,
+                        0,
+                        0),
+
+                Ubicacion =
+                    new Ubicacion
+                    {
+                        Latitud =
+                            -34.900000m +
+                            indiceGrupo * 0.001000m,
+
+                        Longitud =
+                            -56.160000m +
+                            indiceGrupo * 0.001000m,
+
+                        CodigoPostal =
+                            "11000"
+                    },
+
+                RadioGeolocalizacion =
+                    150m,
+
+                EsFija =
+                    true,
+
+                FechaInicio =
+                    DateTime.Today.AddMonths(-2),
+
+                FechaFin =
+                    DateTime.Today.AddMonths(4),
+
+                CupoMaximo =
+                    20,
+
+                Estado =
+                    EstadoClase.Programada
             };
         }
 
