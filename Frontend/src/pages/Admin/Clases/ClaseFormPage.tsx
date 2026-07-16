@@ -534,12 +534,12 @@ export default function ClaseFormPage() {
   ): CrearClaseRequest => ({
     ...form,
 
-  entrenadoresIds: [
-    form.entrenadorPrincipalId,
-    ...form.entrenadoresIds.filter(
-        id => id !== 0 && id !== form.entrenadorPrincipalId
-    ),
-],
+    entrenadoresIds: [
+      form.entrenadorPrincipalId,
+      ...form.entrenadoresIds.filter(
+        (id) => id !== 0 && id !== form.entrenadorPrincipalId,
+      ),
+    ],
     entrenadorPrincipalId: form.entrenadorPrincipalId,
 
     diaSemana,
@@ -1136,13 +1136,22 @@ export default function ClaseFormPage() {
               <select
                 value={form.entrenadorPrincipalId}
                 onChange={(e) => {
-  const principal = Number(e.target.value);
+                  const principal = Number(e.target.value);
 
-  setForm((prev) => ({
-    ...prev,
-    entrenadorPrincipalId: principal,
-  }));
-}}
+                  setForm((prev) => ({
+                    ...prev,
+                    entrenadorPrincipalId: principal,
+                    entrenadoresIds:
+                      principal === 0
+                        ? prev.entrenadoresIds
+                        : [
+                            principal,
+                            ...prev.entrenadoresIds.filter(
+                              (id) => id !== 0 && id !== principal,
+                            ),
+                          ],
+                  }));
+                }}
                 className={inputClass}
               >
                 <option value={0}>Seleccionar entrenador</option>
@@ -1154,8 +1163,6 @@ export default function ClaseFormPage() {
                 ))}
               </select>
             </div>
-
-          
           </div>
 
           <button
