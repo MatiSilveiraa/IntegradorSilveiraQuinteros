@@ -28,6 +28,18 @@ const diasSemana = [
   { valor: 7, texto: "Domingo" },
 ];
 
+const ordenDias: Record<string, number> = {
+  Lunes: 1,
+  Martes: 2,
+  Miércoles: 3,
+  Miercoles: 3,
+  Jueves: 4,
+  Viernes: 5,
+  Sábado: 6,
+  Sabado: 6,
+  Domingo: 7,
+};
+
 const estadosClase = [
   { valor: 0, texto: "Programada" },
   { valor: 1, texto: "Realizada" },
@@ -80,27 +92,6 @@ export default function AdminGrupoDetallePage() {
     cargarDatos();
   }, [grupoId]);
 
-  const clases = grupo?.clases ?? [];
-
-  const resumen = useMemo(() => {
-    const alumnosInscriptos = clases.reduce(
-      (total, clase) =>
-        total + (clase.cantidadInscriptos ?? 0),
-      0
-    );
-
-    return {
-      total: clases.length,
-      programadas: clases.filter(
-        (c) => c.estado === "Programada"
-      ).length,
-      suspendidas: clases.filter(
-        (c) => c.estado === "Suspendida"
-      ).length,
-      alumnosInscriptos,
-    };
-  }, [clases]);
-
   const formatearDia = (dia: string | number) => {
     const numero = Number(dia);
 
@@ -121,28 +112,111 @@ export default function AdminGrupoDetallePage() {
     });
   };
 
-  const obtenerEstadoClase = (estado: string) => {
-    if (estado === "Programada") {
+  const formatearHora = (hora?: string) => {
+    if (!hora) return "--:--";
+
+    const coincidencia = hora.match(/^(\d{1,2}):(\d{2})/);
+
+    if (!coincidencia) {
+      return "--:--";
+    }
+
+    return `${coincidencia[1].padStart(
+      2,
+      "0",
+    )}:${coincidencia[2]}`;
+  };
+
+  const convertirHoraAMinutos = (hora?: string) => {
+    if (!hora) return Number.MAX_SAFE_INTEGER;
+
+    const coincidencia = hora.match(/^(\d{1,2}):(\d{2})/);
+
+    if (!coincidencia) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    return (
+      Number(coincidencia[1]) * 60 +
+      Number(coincidencia[2])
+    );
+  };
+
+  const clases = useMemo(() => {
+    return [...(grupo?.clases ?? [])].sort((a, b) => {
+      const diaA =
+        ordenDias[formatearDia(a.diaSemana)] ??
+        Number(a.diaSemana);
+
+      const diaB =
+        ordenDias[formatearDia(b.diaSemana)] ??
+        Number(b.diaSemana);
+
+      if (diaA !== diaB) {
+        return diaA - diaB;
+      }
+
+      const horaA = convertirHoraAMinutos(a.horaInicio);
+      const horaB = convertirHoraAMinutos(b.horaInicio);
+
+      if (horaA !== horaB) {
+        return horaA - horaB;
+      }
+
+      return a.id - b.id;
+    });
+  }, [grupo]);
+
+  const resumen = useMemo(() => {
+    const alumnosInscriptos = clases.reduce(
+      (total, clase) =>
+        total + (clase.cantidadInscriptos ?? 0),
+      0
+    );
+
+    return {
+      total: clases.length,
+      programadas: clases.filter(
+        (c) => c.estado?.toUpperCase() === "PROGRAMADA"
+      ).length,
+      suspendidas: clases.filter(
+        (c) => c.estado?.toUpperCase() === "SUSPENDIDA"
+      ).length,
+      alumnosInscriptos,
+    };
+  }, [clases]);
+
+  const obtenerEstadoClase = (estado?: string) => {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado === "PROGRAMADA") {
       return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
     }
 
-    if (estado === "Realizada") {
+    if (normalizado === "REALIZADA") {
       return "bg-blue-500/10 text-blue-300 border-blue-500/30";
     }
 
-    if (estado === "Cancelada") {
+    if (normalizado === "CANCELADA") {
       return "bg-red-500/10 text-red-400 border-red-500/30";
     }
 
-    return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+    if (normalizado === "SUSPENDIDA") {
+      return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+    }
+
+    return "bg-[#12201b] text-gray-300 border-[#2d463b]";
   };
 
   const abrirCambioEstado = (clase: Clase) => {
     setClaseCambioEstado(clase);
 
     const estadoActual =
-      estadosClase.find((e) => e.texto === clase.estado)
-        ?.valor ?? 0;
+      estadosClase.find(
+        (e) =>
+          e.texto.toUpperCase() ===
+          clase.estado?.toUpperCase(),
+      )?.valor ?? 0;
 
     setEstadoNuevo(estadoActual as EstadoClaseValor);
     setMotivoEstado("");
@@ -291,7 +365,8 @@ export default function AdminGrupoDetallePage() {
                   </h2>
 
                   <p className="text-gray-400 mt-2">
-                    {clase.horaInicio} - {clase.horaFin}
+                    {formatearHora(clase.horaInicio)} -{" "}
+                    {formatearHora(clase.horaFin)}
                   </p>
 
                   <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 my-5">
@@ -394,8 +469,8 @@ export default function AdminGrupoDetallePage() {
 
               <p className="font-bold mt-1">
                 {formatearDia(claseAEliminar.diaSemana)}{" "}
-                {claseAEliminar.horaInicio} -{" "}
-                {claseAEliminar.horaFin}
+                {formatearHora(claseAEliminar.horaInicio)} -{" "}
+                {formatearHora(claseAEliminar.horaFin)}
               </p>
             </div>
 

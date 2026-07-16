@@ -2,112 +2,119 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
+import ClearOutlinedIcon from "@mui/icons-material/ClearOutlined";
+import NavigateBeforeOutlinedIcon from "@mui/icons-material/NavigateBeforeOutlined";
+import NavigateNextOutlinedIcon from "@mui/icons-material/NavigateNextOutlined";
+import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
+import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+
 import {
-  obtenerAlumnos,
-  obtenerAlumno,
   eliminarAlumno,
+  obtenerAlumno,
+  obtenerAlumnos,
 } from "../services/AdminAlumno.Service";
 
 import type { Alumno } from "../types";
+
 import FullScreenLoading from "../components/FullScreenSpinner";
 import TopBar from "../components/navigation/DashboardTopBar";
+import AlumnoDetalleModal from "../components/admin/Alumnos/AlumnoDetalleModal";
+
+type FiltroAlumnos =
+  | "todos"
+  | "estado-activo"
+  | "estado-inactivo"
+  | "estado-bloqueado"
+  | "bloqueados-inasistencias"
+  | "bloqueados-deuda"
+  | "cuotas-pendientes"
+  | "racha-alta";
+
+const OPCIONES_POR_PAGINA = [10, 20, 50];
 
 export default function AdminAlumnosPage() {
+  const [searchParams] = useSearchParams();
+
   const [alumnos, setAlumnos] = useState<Alumno[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [detalle, setDetalle] = useState<Alumno | null>(null);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
-
   const [alumnoAEliminar, setAlumnoAEliminar] = useState<Alumno | null>(null);
   const [eliminando, setEliminando] = useState(false);
-
   const [busqueda, setBusqueda] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
-  const [filtroEspecial, setFiltroEspecial] = useState("todos");
+  const [filtro, setFiltro] = useState<FiltroAlumnos>("todos");
   const [menuAbiertoId, setMenuAbiertoId] = useState<number | null>(null);
-
-  const [searchParams] = useSearchParams();
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
       const data = await obtenerAlumnos();
-      setAlumnos(data);
-    } catch (error) {
-      console.error(error);
-      toast.error("No fue posible cargar los alumnos");
+      setAlumnos(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      if (!error?.response || error.response.status >= 500) {
+        console.error("[Cargar alumnos]", error);
+      }
+
+      toast.error(
+        error?.response?.data?.mensaje ??
+          "No fue posible cargar los alumnos",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    cargarDatos();
+    void cargarDatos();
   }, []);
 
   useEffect(() => {
-    const filtro = searchParams.get("filtro");
+    const filtroUrl = searchParams.get("filtro");
 
-    if (!filtro) return;
-
-    switch (filtro) {
+    switch (filtroUrl) {
       case "cuotas-pendientes":
-        setFiltroEspecial("cuotas-pendientes");
+        setFiltro("cuotas-pendientes");
         break;
-
       case "bloqueados":
-        setFiltroEspecial("bloqueados-inasistencias");
+        setFiltro("bloqueados-inasistencias");
         break;
-
       case "deuda":
-        setFiltroEspecial("bloqueados-deuda");
+        setFiltro("bloqueados-deuda");
         break;
-
       case "racha":
-        setFiltroEspecial("racha-alta");
+        setFiltro("racha-alta");
         break;
-
       default:
-        setFiltroEspecial("todos");
         break;
     }
   }, [searchParams]);
 
-  const obtenerTextoFiltroEspecial = () => {
-    if (filtroEspecial === "cuotas-pendientes") {
-      return "Mostrando alumnos con cuotas pendientes";
-    }
-
-    if (filtroEspecial === "bloqueados-inasistencias") {
-      return "Mostrando alumnos bloqueados por inasistencias";
-    }
-
-    if (filtroEspecial === "bloqueados-deuda") {
-      return "Mostrando alumnos bloqueados por deuda";
-    }
-
-    if (filtroEspecial === "racha-alta") {
-      return "Mostrando alumnos con racha alta";
-    }
-
-    return "";
-  };
-
-  const limpiarFiltroEspecial = () => {
-    setFiltroEspecial("todos");
-  };
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtro, porPagina]);
 
   const verDetalle = async (alumnoId: number) => {
     try {
       setCargandoDetalle(true);
       setMenuAbiertoId(null);
-
       const data = await obtenerAlumno(alumnoId);
       setDetalle(data);
-    } catch (error) {
-      console.error(error);
-      toast.error("No fue posible obtener el detalle del alumno");
+    } catch (error: any) {
+      if (!error?.response || error.response.status >= 500) {
+        console.error("[Detalle alumno]", error);
+      }
+
+      toast.error(
+        error?.response?.data?.mensaje ??
+          "No fue posible obtener el detalle del alumno",
+      );
     } finally {
       setCargandoDetalle(false);
     }
@@ -121,384 +128,317 @@ export default function AdminAlumnosPage() {
       await eliminarAlumno(alumnoAEliminar.id);
       toast.success("Alumno eliminado correctamente");
       setAlumnoAEliminar(null);
-      cargarDatos();
-    } catch (error) {
-      console.error(error);
-      toast.error("No fue posible eliminar el alumno");
+      await cargarDatos();
+    } catch (error: any) {
+      if (!error?.response || error.response.status >= 500) {
+        console.error("[Eliminar alumno]", error);
+      }
+
+      toast.error(
+        error?.response?.data?.mensaje ??
+          "No fue posible eliminar el alumno",
+      );
     } finally {
       setEliminando(false);
     }
   };
 
-  const obtenerEstadoClase = (estado?: string) => {
-    const normalizado = estado?.toUpperCase();
-
-    if (normalizado === "ACTIVO") {
-      return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
-    }
-
-    if (normalizado === "BLOQUEADO") {
-      return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
-    }
-
-    if (normalizado === "INACTIVO") {
-      return "bg-gray-500/10 text-gray-300 border-gray-500/30";
-    }
-
-    return "bg-[#12201b] text-gray-300 border-[#2d463b]";
-  };
-
-  const obtenerGeneroTexto = (genero?: number) => {
-    if (genero === 0) return "Masculino";
-    if (genero === 1) return "Femenino";
-    if (genero === 2) return "Otro";
-
-    return "No especificado";
-  };
-
-  const formatearFecha = (fecha?: string) => {
-    if (!fecha) return "No registrado";
-    return new Date(fecha).toLocaleDateString("es-UY");
-  };
-
-  const formatearNumero = (valor?: number, decimales = 1) => {
-    if (valor === undefined || valor === null) return "No registrado";
-    return valor.toFixed(decimales);
-  };
-
-  const iniciales = (alumno: Alumno) => {
-    return `${alumno.nombre?.charAt(0) ?? ""}${
-      alumno.apellido?.charAt(0) ?? ""
-    }`.toUpperCase();
-  };
-
-  const obtenerRacha = (alumno: Alumno) => {
-    return alumno.rachaAsistenciaMensual ?? alumno.rachaMensual ?? 0;
-  };
-
-  const obtenerClases = (alumno: Alumno) => {
-    return alumno.clasesInscriptas ?? alumno.cantidadClasesInscripto ?? 0;
-  };
-
-  const obtenerCuotasPendientes = (alumno: Alumno) => {
-    return alumno.cuotasPendientes ?? 0;
-  };
-
   const alumnosFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase();
+
     return alumnos
       .filter((alumno) => {
-        if (
-          filtroEstado !== "todos" &&
-          alumno.estado?.toUpperCase() !== filtroEstado
-        ) {
-          return false;
-        }
+        if (!coincideFiltro(alumno, filtro)) return false;
+        if (!termino) return true;
 
-        if (
-          filtroEspecial === "bloqueados-inasistencias" &&
-          !alumno.bloqueadoPorInasistencias
-        ) {
-          return false;
-        }
-
-        if (
-          filtroEspecial === "bloqueados-deuda" &&
-          !alumno.bloqueadoPorDeuda
-        ) {
-          return false;
-        }
-
-        if (
-          filtroEspecial === "cuotas-pendientes" &&
-          !(obtenerCuotasPendientes(alumno) > 0)
-        ) {
-          return false;
-        }
-
-        if (filtroEspecial === "racha-alta" && !(obtenerRacha(alumno) >= 5)) {
-          return false;
-        }
-
-        const texto = `${alumno.nombre} ${alumno.apellido} ${alumno.email} ${
-          alumno.estado ?? ""
-        }`.toLowerCase();
-
-        return texto.includes(busqueda.toLowerCase());
+        return [
+          alumno.nombre,
+          alumno.apellido,
+          alumno.email,
+          alumno.estado,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(termino);
       })
-      .sort((a, b) => {
-        const nombreA = `${a.nombre} ${a.apellido}`.toLowerCase();
-        const nombreB = `${b.nombre} ${b.apellido}`.toLowerCase();
+      .sort((a, b) =>
+        `${a.nombre ?? ""} ${a.apellido ?? ""}`.localeCompare(
+          `${b.nombre ?? ""} ${b.apellido ?? ""}`,
+          "es",
+        ),
+      );
+  }, [alumnos, busqueda, filtro]);
 
-        return nombreA.localeCompare(nombreB);
-      });
-  }, [alumnos, busqueda, filtroEstado, filtroEspecial]);
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(alumnosFiltrados.length / porPagina),
+  );
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const inicio = (paginaSegura - 1) * porPagina;
+  const fin = Math.min(inicio + porPagina, alumnosFiltrados.length);
+  const alumnosPagina = alumnosFiltrados.slice(inicio, fin);
 
-  const totalActivos = alumnos.filter(
-    (a) => a.estado?.toUpperCase() === "ACTIVO"
-  ).length;
+  const resumen = useMemo(() => {
+    const activos = alumnos.filter(
+      (alumno) => alumno.estado?.toUpperCase() === "ACTIVO",
+    ).length;
 
-  const totalBloqueados = alumnos.filter(
-    (a) => a.bloqueadoPorInasistencias || a.bloqueadoPorDeuda
-  ).length;
+    const bloqueados = alumnos.filter(
+      (alumno) =>
+        alumno.bloqueadoPorDeuda ||
+        alumno.bloqueadoPorInasistencias,
+    ).length;
 
-  const totalCuotasPendientes = alumnos.filter(
-    (a) => obtenerCuotasPendientes(a) > 0
-  ).length;
+    const cuotasPendientes = alumnos.filter(
+      (alumno) => obtenerCuotasPendientes(alumno) > 0,
+    ).length;
 
-  const totalRachaAlta = alumnos.filter((a) => obtenerRacha(a) >= 5).length;
+    const promedioRacha =
+      alumnos.length === 0
+        ? 0
+        : Math.round(
+            alumnos.reduce(
+              (total, alumno) => total + obtenerRacha(alumno),
+              0,
+            ) / alumnos.length,
+          );
 
-  const promedioRacha =
-    alumnos.length === 0
-      ? 0
-      : Math.round(
-          alumnos.reduce((total, alumno) => total + obtenerRacha(alumno), 0) /
-            alumnos.length
-        );
+    return {
+      total: alumnos.length,
+      activos,
+      bloqueados,
+      cuotasPendientes,
+      promedioRacha,
+    };
+  }, [alumnos]);
 
-  if (loading) {
-    return <FullScreenLoading />;
-  }
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltro("todos");
+  };
+
+  if (loading) return <FullScreenLoading />;
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
       <TopBar />
 
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-10">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold">Alumnos</h1>
-
-          <p className="text-gray-400 mt-2">
-            Gestión de alumnos registrados en Joki.
+      <main className="mx-auto max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+        <section className="mb-8 rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
+            Administración
           </p>
-        </div>
+          <h1 className="mt-2 text-3xl font-bold md:text-4xl">
+            Alumnos
+          </h1>
+          <p className="mt-2 max-w-2xl text-gray-300">
+            Gestioná alumnos, bloqueos, cuotas y actividad desde una
+            vista preparada para crecer.
+          </p>
+        </section>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-            <p className="text-sm text-gray-400">Total de alumnos</p>
-            <h2 className="text-4xl font-bold mt-3">{alumnos.length}</h2>
-            <p className="text-xs text-gray-500 mt-2">
-              Alumnos registrados en el sistema
-            </p>
-          </div>
+        <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <ResumenCard
+            titulo="Total"
+            valor={resumen.total}
+            descripcion="Alumnos registrados"
+            icono={<PeopleOutlineOutlinedIcon />}
+          />
+          <ResumenCard
+            titulo="Activos"
+            valor={resumen.activos}
+            descripcion="Acceso habilitado"
+            icono={<CheckCircleOutlineOutlinedIcon />}
+          />
+          <ResumenCard
+            titulo="Bloqueados"
+            valor={resumen.bloqueados}
+            descripcion="Deuda o inasistencias"
+            icono={<WarningAmberOutlinedIcon />}
+          />
+          <ResumenCard
+            titulo="Con deuda"
+            valor={resumen.cuotasPendientes}
+            descripcion="Cuotas pendientes"
+            icono={<PaymentsOutlinedIcon />}
+          />
+          <ResumenCard
+            titulo="Promedio racha"
+            valor={resumen.promedioRacha}
+            descripcion="Asistencias mensuales"
+            icono={<LocalFireDepartmentOutlinedIcon />}
+          />
+        </section>
 
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-            <p className="text-sm text-gray-400">🟢 Activos</p>
-            <h2 className="text-4xl font-bold mt-3 text-[#4adea8]">
-              {totalActivos}
-            </h2>
-            <p className="text-xs text-gray-500 mt-2">
-              Pueden usar la plataforma
-            </p>
-          </div>
+        <section className="mb-8 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4 sm:p-5">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px_auto] lg:items-center">
+            <div className="relative">
+              <SearchOutlinedIcon
+                sx={{
+                  color: "#9ca3af",
+                  position: "absolute",
+                  left: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}
+              />
 
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-            <p className="text-sm text-gray-400">⚠️ Bloqueos</p>
-            <h2 className="text-4xl font-bold mt-3 text-yellow-300">
-              {totalBloqueados}
-            </h2>
-            <p className="text-xs text-gray-500 mt-2">
-              Por deuda o inasistencias
-            </p>
-          </div>
+              <input
+                value={busqueda}
+                onChange={(event) => setBusqueda(event.target.value)}
+                placeholder="Buscar por nombre, apellido, email o estado..."
+                className="h-12 w-full rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-12 outline-none transition-all focus:border-[#4adea8]"
+              />
 
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-            <p className="text-sm text-gray-400">🔥 Promedio racha</p>
-            <h2 className="text-4xl font-bold mt-3 text-orange-300">
-              {promedioRacha}
-            </h2>
-            <p className="text-xs text-gray-500 mt-2">
-              Asistencias mensuales promedio
-            </p>
-          </div>
-        </div>
-
-        {(totalCuotasPendientes > 0 ||
-          totalBloqueados > 0 ||
-          totalRachaAlta > 0) && (
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 mb-8">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <h2 className="text-xl font-bold">Centro de alertas</h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  Indicadores rápidos para revisar alumnos que requieren atención.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <button
-                type="button"
-                onClick={() => setFiltroEspecial("cuotas-pendientes")}
-                className="text-left bg-[#12201b] border border-red-500/30 rounded-2xl p-4 hover:border-red-400 transition-all"
-              >
-                <p className="text-red-400 font-bold">💰 Cuotas pendientes</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {totalCuotasPendientes} alumno
-                  {totalCuotasPendientes === 1 ? "" : "s"} con deuda.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFiltroEspecial("bloqueados-inasistencias")}
-                className="text-left bg-[#12201b] border border-yellow-500/30 rounded-2xl p-4 hover:border-yellow-300 transition-all"
-              >
-                <p className="text-yellow-300 font-bold">⚠️ Bloqueos</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {totalBloqueados} alumno{totalBloqueados === 1 ? "" : "s"}{" "}
-                  con bloqueo.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFiltroEspecial("racha-alta")}
-                className="text-left bg-[#12201b] border border-orange-500/30 rounded-2xl p-4 hover:border-orange-300 transition-all"
-              >
-                <p className="text-orange-300 font-bold">🔥 Racha alta</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {totalRachaAlta} alumno{totalRachaAlta === 1 ? "" : "s"} con
-                  racha de 5 o más.
-                </p>
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 mb-8">
-          <div className="grid lg:grid-cols-[1fr_auto_auto] gap-4">
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por nombre, apellido, email o estado..."
-              className="w-full p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-            />
-
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-            >
-              <option value="todos">Todos los estados</option>
-              <option value="ACTIVO">Activos</option>
-              <option value="BLOQUEADO">Bloqueados</option>
-              <option value="INACTIVO">Inactivos</option>
-            </select>
-
-            <select
-              value={filtroEspecial}
-              onChange={(e) => setFiltroEspecial(e.target.value)}
-              className="p-3 rounded-xl bg-[#12201b] border border-[#2d463b] focus:outline-none focus:border-[#4adea8]"
-            >
-              <option value="todos">Todos</option>
-              <option value="bloqueados-inasistencias">
-                Bloqueados por inasistencias
-              </option>
-              <option value="bloqueados-deuda">Bloqueados por deuda</option>
-              <option value="cuotas-pendientes">Con cuotas pendientes</option>
-              <option value="racha-alta">Racha alta</option>
-            </select>
-          </div>
-        </div>
-
-        {filtroEspecial !== "todos" && (
-          <div className="mb-8 rounded-3xl border border-[#4adea8]/30 bg-[#4adea8]/10 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <p className="text-[#4adea8] font-bold">
-                {obtenerTextoFiltroEspecial()}
-              </p>
-
-              <p className="text-sm text-gray-400 mt-1">
-                Se muestran {alumnosFiltrados.length} alumno
-                {alumnosFiltrados.length === 1 ? "" : "s"} según el filtro aplicado.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={limpiarFiltroEspecial}
-              className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] text-[#4adea8] hover:border-[#4adea8]"
-            >
-              Quitar filtro
-            </button>
-          </div>
-        )}
-
-        {alumnos.length === 0 ? (
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-10 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              No hay alumnos registrados
-            </h2>
-            <p className="text-gray-400">
-              Cuando se registren alumnos, aparecerán en esta pantalla.
-            </p>
-          </div>
-        ) : alumnosFiltrados.length === 0 ? (
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-10 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              No se encontraron alumnos
-            </h2>
-            <p className="text-gray-400">
-              Probá cambiar la búsqueda o el filtro seleccionado.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl overflow-visible">
-            <div className="px-6 py-5 border-b border-[#2d463b] flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-bold">Listado de alumnos</h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  {alumnosFiltrados.length} alumno
-                  {alumnosFiltrados.length === 1 ? "" : "s"} encontrado
-                  {alumnosFiltrados.length === 1 ? "" : "s"}
-                </p>
-              </div>
-
-              {filtroEspecial !== "todos" && (
+              {busqueda && (
                 <button
                   type="button"
-                  onClick={limpiarFiltroEspecial}
-                  className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] text-[#4adea8] hover:border-[#4adea8]"
+                  onClick={() => setBusqueda("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  aria-label="Limpiar búsqueda"
                 >
-                  Limpiar alerta
+                  <ClearOutlinedIcon fontSize="small" />
                 </button>
               )}
             </div>
 
+            <div className="relative">
+              <FilterAltOutlinedIcon
+                sx={{
+                  color: "#9ca3af",
+                  position: "absolute",
+                  left: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                }}
+              />
+
+              <select
+                value={filtro}
+                onChange={(event) =>
+                  setFiltro(event.target.value as FiltroAlumnos)
+                }
+                className="h-12 w-full appearance-none rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-4 outline-none transition-all focus:border-[#4adea8]"
+              >
+                <option value="todos">Todos los alumnos</option>
+                <optgroup label="Estado">
+                  <option value="estado-activo">Activos</option>
+                  <option value="estado-inactivo">Inactivos</option>
+                  <option value="estado-bloqueado">Bloqueados</option>
+                </optgroup>
+                <optgroup label="Situación">
+                  <option value="cuotas-pendientes">
+                    Con cuotas pendientes
+                  </option>
+                  <option value="bloqueados-deuda">
+                    Bloqueados por deuda
+                  </option>
+                  <option value="bloqueados-inasistencias">
+                    Bloqueados por inasistencias
+                  </option>
+                  <option value="racha-alta">Racha alta</option>
+                </optgroup>
+              </select>
+            </div>
+
+            {(busqueda || filtro !== "todos") && (
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#2d463b] bg-[#12201b] px-4 font-semibold text-[#4adea8] hover:border-[#4adea8]"
+              >
+                <ClearOutlinedIcon fontSize="small" />
+                Limpiar
+              </button>
+            )}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 border-t border-[#2d463b] pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-400">
+              {alumnosFiltrados.length === 0
+                ? "No hay resultados"
+                : `Mostrando ${inicio + 1}–${fin} de ${
+                    alumnosFiltrados.length
+                  } alumnos`}
+            </p>
+
+            <label className="flex items-center gap-2 text-sm text-gray-400">
+              Mostrar
+              <select
+                value={porPagina}
+                onChange={(event) =>
+                  setPorPagina(Number(event.target.value))
+                }
+                className="rounded-lg border border-[#2d463b] bg-[#12201b] px-3 py-2 text-white outline-none focus:border-[#4adea8]"
+              >
+                {OPCIONES_POR_PAGINA.map((opcion) => (
+                  <option key={opcion} value={opcion}>
+                    {opcion}
+                  </option>
+                ))}
+              </select>
+              por página
+            </label>
+          </div>
+        </section>
+
+        {alumnos.length === 0 ? (
+          <EstadoVacio
+            titulo="No hay alumnos registrados"
+            descripcion="Cuando se registren alumnos, aparecerán en esta pantalla."
+          />
+        ) : alumnosFiltrados.length === 0 ? (
+          <EstadoVacio
+            titulo="No se encontraron alumnos"
+            descripcion="Probá cambiar la búsqueda o el filtro seleccionado."
+          />
+        ) : (
+          <section className="overflow-visible rounded-3xl border border-[#2d463b] bg-[#1a2b24]">
+            <header className="border-b border-[#2d463b] px-5 py-5 sm:px-6">
+              <h2 className="text-2xl font-bold">
+                Listado de alumnos
+              </h2>
+              <p className="mt-1 text-sm text-gray-400">
+                Página {paginaSegura} de {totalPaginas}
+              </p>
+            </header>
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#12201b] text-gray-400 text-sm">
+              <table className="w-full min-w-[1050px] text-left">
+                <thead className="bg-[#12201b] text-sm text-gray-400">
                   <tr>
-                    <th className="px-6 py-4">👤 Alumno</th>
-                    <th className="px-6 py-4">📈 Actividad</th>
-                    <th className="px-6 py-4">💰 Situación</th>
-                    <th className="px-6 py-4">🚫 Bloqueos</th>
-                    <th className="px-6 py-4">Estado</th>
-                    <th className="px-6 py-4 text-right">Acciones</th>
+                    <th className="px-6 py-4">Alumno</th>
+                    <th className="px-6 py-4">
+                      Situación financiera
+                    </th>
+                    <th className="px-6 py-4">Actividad</th>
+                    <th className="px-6 py-4">
+                      Estado y bloqueos
+                    </th>
+                    <th className="px-6 py-4 text-right">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {alumnosFiltrados.map((alumno) => {
+                  {alumnosPagina.map((alumno) => {
                     const racha = obtenerRacha(alumno);
-                    const clases = obtenerClases(alumno);
                     const cuotas = obtenerCuotasPendientes(alumno);
-                    const tieneBloqueos =
-                      alumno.bloqueadoPorDeuda ||
-                      alumno.bloqueadoPorInasistencias;
+                    const clases = obtenerClasesConfiables(alumno);
 
                     return (
                       <tr
                         key={alumno.id}
-                        className="border-t border-[#2d463b] hover:bg-[#4adea8]/5 transition-all"
+                        className="border-t border-[#2d463b] transition-all hover:bg-[#4adea8]/5"
                       >
-                        <td className="px-6 py-4 min-w-[280px]">
+                        <td className="min-w-[280px] px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] flex items-center justify-center font-bold">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 font-bold text-[#4adea8]">
                               {iniciales(alumno)}
                             </div>
-
                             <div>
                               <p className="font-bold text-white">
                                 {alumno.nombre} {alumno.apellido}
@@ -506,99 +446,103 @@ export default function AdminAlumnosPage() {
                               <p className="text-sm text-gray-400">
                                 {alumno.email}
                               </p>
-                              <p className="text-xs text-[#4adea8] mt-1">
-                                Alumno registrado
-                              </p>
                             </div>
                           </div>
                         </td>
 
-                        <td className="px-6 py-4 min-w-[190px]">
-                          <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-300 border border-orange-500/30 text-xs font-semibold">
-                              🔥 Racha {racha}
-                            </span>
-
-                            <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30 text-xs font-semibold">
-                              📚 {clases} clase{clases === 1 ? "" : "s"}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4 min-w-[150px]">
+                        <td className="min-w-[190px] px-6 py-4">
                           {cuotas > 0 ? (
-                            <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-semibold">
-                              💳 {cuotas} pendiente{cuotas === 1 ? "" : "s"}
+                            <span className="inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                              {cuotas} cuota
+                              {cuotas === 1 ? "" : "s"} pendiente
+                              {cuotas === 1 ? "" : "s"}
                             </span>
                           ) : (
-                            <span className="px-3 py-1 rounded-full bg-[#4adea8]/10 text-[#4adea8] border border-[#4adea8]/30 text-xs font-semibold">
-                              💰 Al día
+                            <span className="inline-flex rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 px-3 py-1 text-xs font-semibold text-[#4adea8]">
+                              Al día
                             </span>
                           )}
                         </td>
 
-                        <td className="px-6 py-4 min-w-[170px]">
-                          {tieneBloqueos ? (
-                            <div className="flex flex-wrap gap-2">
-                              {alumno.bloqueadoPorDeuda && (
-                                <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-semibold">
-                                  Deuda
-                                </span>
-                              )}
-
-                              {alumno.bloqueadoPorInasistencias && (
-                                <span className="px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 text-xs font-semibold">
-                                  Inasistencias
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-gray-500">
-                              Sin bloqueos
+                        <td className="min-w-[190px] px-6 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-300">
+                              Racha {racha}
                             </span>
-                          )}
+
+                            {clases !== null && (
+                              <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
+                                {clases} clase
+                                {clases === 1 ? "" : "s"}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
-                        <td className="px-6 py-4 min-w-[120px]">
-                          <span
-                            className={`px-3 py-1 rounded-full border text-xs font-semibold ${obtenerEstadoClase(
-                              alumno.estado
-                            )}`}
-                          >
-                            {alumno.estado ?? "Sin estado"}
-                          </span>
+                        <td className="min-w-[230px] px-6 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <span
+                              className={`rounded-full border px-3 py-1 text-xs font-semibold ${obtenerEstadoClase(
+                                alumno.estado,
+                              )}`}
+                            >
+                              {alumno.estado ?? "Sin estado"}
+                            </span>
+
+                            {alumno.bloqueadoPorDeuda && (
+                              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                                Bloqueado por deuda
+                              </span>
+                            )}
+
+                            {alumno.bloqueadoPorInasistencias && (
+                              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-300">
+                                Bloqueado por inasistencias
+                              </span>
+                            )}
+
+                            {!alumno.bloqueadoPorDeuda &&
+                              !alumno.bloqueadoPorInasistencias && (
+                                <span className="text-xs text-gray-500">
+                                  Sin bloqueos
+                                </span>
+                              )}
+                          </div>
                         </td>
 
-                        <td className="px-6 py-4 text-right relative min-w-[90px]">
+                        <td className="relative min-w-[100px] px-6 py-4 text-right">
                           <button
                             type="button"
                             onClick={() =>
-                              setMenuAbiertoId((prev) =>
-                                prev === alumno.id ? null : alumno.id
+                              setMenuAbiertoId((actual) =>
+                                actual === alumno.id
+                                  ? null
+                                  : alumno.id,
                               )
                             }
-                            className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] transition-all text-xl leading-none"
+                            className="rounded-xl border border-[#2d463b] bg-[#12201b] px-4 py-2 text-xl leading-none hover:border-[#4adea8]"
                           >
                             ⋮
                           </button>
 
                           {menuAbiertoId === alumno.id && (
-                            <div className="absolute right-6 top-14 z-20 w-52 bg-[#12201b] border border-[#2d463b] rounded-2xl shadow-2xl overflow-hidden text-left">
+                            <div className="absolute right-6 top-14 z-30 w-52 overflow-hidden rounded-2xl border border-[#2d463b] bg-[#12201b] text-left shadow-2xl">
                               <button
                                 type="button"
-                                onClick={() => verDetalle(alumno.id)}
-                                className="w-full px-4 py-3 text-sm hover:bg-[#4adea8]/10 text-white"
+                                onClick={() =>
+                                  void verDetalle(alumno.id)
+                                }
+                                className="w-full px-4 py-3 text-sm text-white hover:bg-[#4adea8]/10"
                               >
                                 Ver detalle
                               </button>
-
                               <button
                                 type="button"
                                 onClick={() => {
                                   setAlumnoAEliminar(alumno);
                                   setMenuAbiertoId(null);
                                 }}
-                                className="w-full px-4 py-3 text-sm hover:bg-red-500/10 text-red-400 border-t border-[#2d463b]"
+                                className="w-full border-t border-[#2d463b] px-4 py-3 text-sm text-red-400 hover:bg-red-500/10"
                               >
                                 Eliminar alumno
                               </button>
@@ -611,246 +555,295 @@ export default function AdminAlumnosPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+
+            <Paginacion
+              paginaActual={paginaSegura}
+              totalPaginas={totalPaginas}
+              onCambiar={setPaginaActual}
+            />
+          </section>
         )}
       </main>
 
       {cargandoDetalle && <FullScreenLoading />}
 
-      {detalle && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 shadow-2xl">
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] flex items-center justify-center text-2xl font-bold">
-                  {iniciales(detalle)}
-                </div>
-
-                <div>
-                  <h2 className="text-3xl font-bold">
-                    {detalle.nombre} {detalle.apellido}
-                  </h2>
-
-                  <p className="text-gray-400 mt-1">{detalle.email}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setDetalle(null)}
-                className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8]"
-              >
-                Cerrar
-              </button>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <p className="text-gray-400 text-sm">🔥 Racha mensual</p>
-
-                <h3 className="text-3xl font-bold mt-2 text-orange-300">
-                  {obtenerRacha(detalle)}
-                </h3>
-              </div>
-
-              <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <p className="text-gray-400 text-sm">📚 Clases inscripto</p>
-
-                <h3 className="text-3xl font-bold mt-2">
-                  {obtenerClases(detalle)}
-                </h3>
-              </div>
-
-              <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <p className="text-gray-400 text-sm">💰 Cuotas pendientes</p>
-
-                <h3
-                  className={`text-3xl font-bold mt-2 ${
-                    obtenerCuotasPendientes(detalle) > 0
-                      ? "text-red-400"
-                      : "text-[#4adea8]"
-                  }`}
-                >
-                  {obtenerCuotasPendientes(detalle)}
-                </h3>
-              </div>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-5">
-              <section className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <h3 className="text-xl font-bold mb-4">
-                  Información personal
-                </h3>
-
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <span className="text-gray-400">Nombre:</span>{" "}
-                    <strong>{detalle.nombre}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Apellido:</span>{" "}
-                    <strong>{detalle.apellido}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Email:</span>{" "}
-                    <strong>{detalle.email}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Celular:</span>{" "}
-                    <strong>{detalle.celular ?? "No registrado"}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Fecha nacimiento:</span>{" "}
-                    <strong>{formatearFecha(detalle.fechaNacimiento)}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Género:</span>{" "}
-                    <strong>{obtenerGeneroTexto(detalle.genero)}</strong>
-                  </p>
-                </div>
-              </section>
-
-              <section className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <h3 className="text-xl font-bold mb-4">Salud</h3>
-
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <span className="text-gray-400">Sociedad médica:</span>{" "}
-                    <strong>
-                      {detalle.sociedadMedica ?? "No registrada"}
-                    </strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Peso:</span>{" "}
-                    <strong>
-                      {detalle.peso
-                        ? `${formatearNumero(detalle.peso)} kg`
-                        : "No registrado"}
-                    </strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Estatura:</span>{" "}
-                    <strong>
-                      {detalle.estatura
-                        ? `${formatearNumero(detalle.estatura, 2)} m`
-                        : "No registrada"}
-                    </strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">IMC:</span>{" "}
-                    <strong>{formatearNumero(detalle.imc)}</strong>
-                  </p>
-                </div>
-              </section>
-
-              <section className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <h3 className="text-xl font-bold mb-4">Estado y bloqueos</h3>
-
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <span className="text-gray-400">Estado:</span>{" "}
-                    <span
-                      className={`px-3 py-1 rounded-full border text-xs font-semibold ${obtenerEstadoClase(
-                        detalle.estado
-                      )}`}
-                    >
-                      {detalle.estado ?? "Sin estado"}
-                    </span>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">Bloqueo por deuda:</span>{" "}
-                    <strong>{detalle.bloqueadoPorDeuda ? "Sí" : "No"}</strong>
-                  </p>
-
-                  <p>
-                    <span className="text-gray-400">
-                      Bloqueo por inasistencias:
-                    </span>{" "}
-                    <strong>
-                      {detalle.bloqueadoPorInasistencias ? "Sí" : "No"}
-                    </strong>
-                  </p>
-                </div>
-              </section>
-
-              <section className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5">
-                <h3 className="text-xl font-bold mb-4">Seguridad</h3>
-
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <span className="text-gray-400">2FA:</span>{" "}
-                    <strong>
-                      {detalle.twoFactorEnabled ? "Activado" : "Desactivado"}
-                    </strong>
-                  </p>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlumnoDetalleModal
+        alumno={detalle}
+        onCerrar={() => setDetalle(null)}
+      />
 
       {alumnoAEliminar && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">
-          <div className="w-full max-w-lg bg-[#1a2b24] border border-red-500/30 rounded-3xl p-7 shadow-2xl">
-            <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-3xl mb-5">
-              🗑️
-            </div>
-
-            <h2 className="text-2xl font-bold mb-2">Eliminar alumno</h2>
-
-            <p className="text-gray-400 mb-6">
-              ¿Estás seguro de que querés eliminar este alumno? Esta acción no
-              se puede deshacer.
-            </p>
-
-            <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl p-5 mb-6 space-y-2">
-              <p>
-                <span className="text-gray-400">Alumno:</span>{" "}
-                <strong>
-                  {alumnoAEliminar.nombre} {alumnoAEliminar.apellido}
-                </strong>
-              </p>
-
-              <p>
-                <span className="text-gray-400">Email:</span>{" "}
-                <strong>{alumnoAEliminar.email}</strong>
-              </p>
-
-              <p>
-                <span className="text-gray-400">Estado:</span>{" "}
-                <strong>{alumnoAEliminar.estado}</strong>
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setAlumnoAEliminar(null)}
-                disabled={eliminando}
-                className="px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] disabled:opacity-60"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={confirmarEliminar}
-                disabled={eliminando}
-                className="px-5 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 disabled:opacity-60"
-              >
-                {eliminando ? "Eliminando..." : "Eliminar alumno"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <EliminarAlumnoModal
+          alumno={alumnoAEliminar}
+          eliminando={eliminando}
+          onCancelar={() => setAlumnoAEliminar(null)}
+          onConfirmar={confirmarEliminar}
+        />
       )}
     </div>
   );
+}
+
+function ResumenCard({
+  titulo,
+  valor,
+  descripcion,
+  icono,
+}: {
+  titulo: string;
+  valor: number;
+  descripcion: string;
+  icono: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5">
+      <div className="text-[#4adea8]">{icono}</div>
+      <p className="mt-4 text-sm text-gray-400">{titulo}</p>
+      <p className="mt-1 text-3xl font-bold">{valor}</p>
+      <p className="mt-2 text-xs text-gray-500">{descripcion}</p>
+    </article>
+  );
+}
+
+function Paginacion({
+  paginaActual,
+  totalPaginas,
+  onCambiar,
+}: {
+  paginaActual: number;
+  totalPaginas: number;
+  onCambiar: (pagina: number) => void;
+}) {
+  const paginas = obtenerPaginasVisibles(
+    paginaActual,
+    totalPaginas,
+  );
+
+  return (
+    <footer className="flex flex-col gap-4 border-t border-[#2d463b] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <p className="text-sm text-gray-400">
+        Página {paginaActual} de {totalPaginas}
+      </p>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={paginaActual === 1}
+          onClick={() => onCambiar(paginaActual - 1)}
+          className="flex h-10 items-center gap-1 rounded-xl border border-[#2d463b] bg-[#12201b] px-3 text-sm font-semibold disabled:opacity-40"
+        >
+          <NavigateBeforeOutlinedIcon fontSize="small" />
+          Anterior
+        </button>
+
+        {paginas.map((pagina, indice) =>
+          pagina === "..." ? (
+            <span
+              key={`ellipsis-${indice}`}
+              className="px-2 text-gray-500"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={pagina}
+              type="button"
+              onClick={() => onCambiar(pagina)}
+              className={`h-10 min-w-10 rounded-xl border px-3 text-sm font-semibold ${
+                paginaActual === pagina
+                  ? "border-[#4adea8] bg-[#4adea8] text-[#12201b]"
+                  : "border-[#2d463b] bg-[#12201b] text-gray-300"
+              }`}
+            >
+              {pagina}
+            </button>
+          ),
+        )}
+
+        <button
+          type="button"
+          disabled={paginaActual === totalPaginas}
+          onClick={() => onCambiar(paginaActual + 1)}
+          className="flex h-10 items-center gap-1 rounded-xl border border-[#2d463b] bg-[#12201b] px-3 text-sm font-semibold disabled:opacity-40"
+        >
+          Siguiente
+          <NavigateNextOutlinedIcon fontSize="small" />
+        </button>
+      </div>
+    </footer>
+  );
+}
+
+function EliminarAlumnoModal({
+  alumno,
+  eliminando,
+  onCancelar,
+  onConfirmar,
+}: {
+  alumno: Alumno;
+  eliminando: boolean;
+  onCancelar: () => void;
+  onConfirmar: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4">
+      <section className="w-full max-w-lg rounded-3xl border border-red-500/30 bg-[#1a2b24] p-7 shadow-2xl">
+        <h2 className="text-2xl font-bold">
+          Eliminar alumno
+        </h2>
+        <p className="mt-2 text-gray-400">
+          ¿Seguro que querés eliminar a{" "}
+          <strong className="text-white">
+            {alumno.nombre} {alumno.apellido}
+          </strong>
+          ? Esta acción no se puede deshacer.
+        </p>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancelar}
+            disabled={eliminando}
+            className="rounded-xl border border-[#2d463b] bg-[#12201b] px-5 py-3 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirmar}
+            disabled={eliminando}
+            className="rounded-xl bg-red-500 px-5 py-3 font-bold text-white disabled:opacity-50"
+          >
+            {eliminando ? "Eliminando..." : "Eliminar"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function EstadoVacio({
+  titulo,
+  descripcion,
+}: {
+  titulo: string;
+  descripcion: string;
+}) {
+  return (
+    <section className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-10 text-center">
+      <h2 className="text-2xl font-bold">{titulo}</h2>
+      <p className="mt-2 text-gray-400">{descripcion}</p>
+    </section>
+  );
+}
+
+function coincideFiltro(
+  alumno: Alumno,
+  filtro: FiltroAlumnos,
+) {
+  const estado = alumno.estado?.toUpperCase();
+
+  switch (filtro) {
+    case "estado-activo":
+      return estado === "ACTIVO";
+    case "estado-inactivo":
+      return estado === "INACTIVO";
+    case "estado-bloqueado":
+      return (
+        estado === "BLOQUEADO" ||
+        Boolean(
+          alumno.bloqueadoPorDeuda ||
+            alumno.bloqueadoPorInasistencias,
+        )
+      );
+    case "bloqueados-inasistencias":
+      return Boolean(alumno.bloqueadoPorInasistencias);
+    case "bloqueados-deuda":
+      return Boolean(alumno.bloqueadoPorDeuda);
+    case "cuotas-pendientes":
+      return obtenerCuotasPendientes(alumno) > 0;
+    case "racha-alta":
+      return obtenerRacha(alumno) >= 5;
+    default:
+      return true;
+  }
+}
+
+function obtenerRacha(alumno: Alumno) {
+  return alumno.rachaAsistenciaMensual ?? alumno.rachaMensual ?? 0;
+}
+
+function obtenerClasesConfiables(alumno: Alumno) {
+  if (typeof alumno.clasesInscriptas === "number") {
+    return alumno.clasesInscriptas;
+  }
+
+  if (typeof alumno.cantidadClasesInscripto === "number") {
+    return alumno.cantidadClasesInscripto;
+  }
+
+  return null;
+}
+
+function obtenerCuotasPendientes(alumno: Alumno) {
+  return alumno.cuotasPendientes ?? 0;
+}
+
+function obtenerEstadoClase(estado?: string) {
+  switch (estado?.toUpperCase()) {
+    case "ACTIVO":
+      return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
+    case "BLOQUEADO":
+      return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+    case "INACTIVO":
+      return "bg-gray-500/10 text-gray-300 border-gray-500/30";
+    default:
+      return "bg-[#12201b] text-gray-300 border-[#2d463b]";
+  }
+}
+
+function iniciales(alumno: Alumno) {
+  return `${alumno.nombre?.charAt(0) ?? ""}${
+    alumno.apellido?.charAt(0) ?? ""
+  }`.toUpperCase();
+}
+
+
+function obtenerPaginasVisibles(
+  paginaActual: number,
+  totalPaginas: number,
+): Array<number | "..."> {
+  if (totalPaginas <= 7) {
+    return Array.from(
+      { length: totalPaginas },
+      (_, indice) => indice + 1,
+    );
+  }
+
+  if (paginaActual <= 4) {
+    return [1, 2, 3, 4, 5, "...", totalPaginas];
+  }
+
+  if (paginaActual >= totalPaginas - 3) {
+    return [
+      1,
+      "...",
+      totalPaginas - 4,
+      totalPaginas - 3,
+      totalPaginas - 2,
+      totalPaginas - 1,
+      totalPaginas,
+    ];
+  }
+
+  return [
+    1,
+    "...",
+    paginaActual - 1,
+    paginaActual,
+    paginaActual + 1,
+    "...",
+    totalPaginas,
+  ];
 }

@@ -6,14 +6,16 @@ import TopBar from "../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../components/FullScreenSpinner";
 import ResumenCard from "../components/ui/ResumenCard";
 import ClassLocationMap from "../components/maps/ClassLocationMap";
+import AlumnoDetalleModal from "../components/admin/Alumnos/AlumnoDetalleModal";
 
 import {
   obtenerClasePorId,
   cambiarEstadoClase,
   obtenerInscriptosClase,
 } from "../services/Clase.Service";
+import { obtenerAlumno } from "../services/AdminAlumno.Service";
 
-import type { Clase, EstadoClaseValor, InscriptoClase, } from "../types";
+import type { Alumno, Clase, EstadoClaseValor, InscriptoClase } from "../types";
 
 type TabClase =
   | "informacion"
@@ -39,6 +41,8 @@ export default function AdminClaseDetallePage() {
 
   const [inscriptos, setInscriptos] = useState<InscriptoClase[]>([]);
 const [busquedaInscriptos, setBusquedaInscriptos] = useState("");
+  const [detalleAlumno, setDetalleAlumno] = useState<Alumno | null>(null);
+  const [cargandoDetalleAlumno, setCargandoDetalleAlumno] = useState(false);
 
 
   const [modalEstado, setModalEstado] = useState(false);
@@ -88,6 +92,27 @@ setInscriptos(inscriptosData);
         (clase?.cupoMaximo ?? 0) - (clase?.cantidadInscriptos ?? 0),
     };
   }, [clase]);
+
+  const abrirDetalleAlumno = async (alumnoId: number) => {
+    try {
+      setCargandoDetalleAlumno(true);
+
+      const data = await obtenerAlumno(alumnoId);
+
+      setDetalleAlumno(data);
+    } catch (error: any) {
+      if (!error?.response || error.response.status >= 500) {
+        console.error("[Detalle alumno desde clase]", error);
+      }
+
+      toast.error(
+        error?.response?.data?.mensaje ??
+          "No fue posible obtener el detalle del alumno.",
+      );
+    } finally {
+      setCargandoDetalleAlumno(false);
+    }
+  };
 
   const guardarEstado = async () => {
     try {
@@ -351,7 +376,7 @@ setInscriptos(inscriptosData);
             </div>
 
             <button
-              onClick={() => navigate(`/admin/alumnos/${alumno.alumnoId}`)}
+              onClick={() => void abrirDetalleAlumno(alumno.alumnoId)}
               className="w-full mt-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
             >
               Ver alumno
@@ -384,6 +409,13 @@ setInscriptos(inscriptosData);
           />
         )}
       </main>
+
+      {cargandoDetalleAlumno && <FullScreenLoading />}
+
+      <AlumnoDetalleModal
+        alumno={detalleAlumno}
+        onCerrar={() => setDetalleAlumno(null)}
+      />
 
       {modalEstado && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-4">

@@ -1,11 +1,12 @@
 import axiosInstance from "../api/axios";
 
-export const obtenerAlumnos =
-  async () => {
+import type { Alumno } from "../types";
 
+export const obtenerAlumnos =
+  async (): Promise<Alumno[]> => {
     const response =
-      await axiosInstance.get(
-        "/api/Alumno"
+      await axiosInstance.get<Alumno[]>(
+        "/api/Alumno",
       );
 
     return response.data;
@@ -13,12 +14,11 @@ export const obtenerAlumnos =
 
 export const obtenerAlumno =
   async (
-    id: number
-  ) => {
-
+    id: number,
+  ): Promise<Alumno> => {
     const response =
-      await axiosInstance.get(
-        `/api/Alumno/${id}`
+      await axiosInstance.get<Alumno>(
+        `/api/Alumno/${id}`,
       );
 
     return response.data;
@@ -26,12 +26,11 @@ export const obtenerAlumno =
 
 export const eliminarAlumno =
   async (
-    id: number
+    id: number,
   ) => {
-
     const response =
       await axiosInstance.delete(
-        `/api/Alumno/${id}`
+        `/api/Alumno/${id}`,
       );
 
     return response.data;
