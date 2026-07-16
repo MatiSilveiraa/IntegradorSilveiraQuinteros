@@ -26,8 +26,13 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
         public void Actualizar(Clase clase)
         {
-            _context.Clases.Update(clase);
+            if (clase == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(clase));
+            }
 
+    
             _context.SaveChanges();
         }
 
@@ -79,10 +84,9 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public Clase? ObtenerPorId(
-            int id)
+          int id)
         {
             return _context.Clases
-                .AsNoTracking()
                 .Include(c => c.Grupo)
                 .Include(c => c.Inscripciones)
                 .Include(c => c.Asistencias)
@@ -90,6 +94,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 .Include(c => c.Entrenadores)
                     .ThenInclude(ce =>
                         ce.Entrenador)
+                .AsSplitQuery()
                 .FirstOrDefault(c =>
                     c.Id == id);
         }

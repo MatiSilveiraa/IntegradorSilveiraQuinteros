@@ -85,9 +85,10 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
             }
 
             var entrenadoresIds =
-                request.EntrenadoresIds
-                    .Distinct()
-                    .ToList();
+     (request.EntrenadoresIds ??
+      new List<int>())
+         .Distinct()
+         .ToList();
 
             ValidarEntrenadores(
                 entrenadoresIds);
@@ -160,8 +161,11 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                 $"{clase.HoraInicio}-{clase.HoraFin}";
 
             MapperClase.UpdateEntity(
-                clase,
-                request);
+     clase,
+     request);
+
+            clase.Grupo =
+                grupo;
 
             _repositorioClase.Actualizar(
                 clase);
@@ -174,6 +178,11 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Clase
                 clase.Id,
                 entrenadoresIds,
                 request.EntrenadorPrincipalId);
+
+            clase.Entrenadores =
+    _repositorioClaseEntrenador
+        .ObtenerPorClase(
+            clase.Id);
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad

@@ -232,14 +232,15 @@ namespace Joki.WebApi.Controllers
                     mensaje = e.Message
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     new
                     {
-                        mensaje =
-                            "Ocurrió un error al actualizar la clase."
+                        mensaje = ex.Message,
+                        detalle = ex.InnerException?.Message,
+                        stack = ex.StackTrace
                     });
             }
         }
