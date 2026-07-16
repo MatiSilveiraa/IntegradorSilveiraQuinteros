@@ -21,14 +21,17 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
             int alumnoId,
             Clase nuevaClase);
 
+        ClaseDetalleVO? ObtenerDetalleClase(
+     int claseId,
+     int entrenadorId,
+     DateTime? fecha = null);
+
         List<ClaseDetalleVO> ObtenerClasesPorEntrenador(
             int entrenadorId);
 
         List<Clase> ObtenerDisponiblesParaEntrenador(
     int entrenadorId);
 
-        ClaseDetalleVO? ObtenerDetalleClase(
-            int claseId,
-            int entrenadorId);
+
     }
 }

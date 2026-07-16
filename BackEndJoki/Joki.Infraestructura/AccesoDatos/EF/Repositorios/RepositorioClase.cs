@@ -49,20 +49,16 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public List<Clase> ObtenerDisponiblesParaEntrenador(
-            int entrenadorId)
+        int entrenadorId)
         {
             DateTime hoyUruguay =
                 ObtenerFechaHoraUruguay().Date;
 
             return _context.Clases
                 .AsNoTracking()
-
                 .Include(c => c.Grupo)
-
                 .Include(c => c.Inscripciones)
-
                 .Include(c => c.Entrenadores)
-
                 .Where(c =>
                     c.Estado == EstadoClase.Programada &&
                     c.Grupo.Estado == EstadoGrupo.ACTIVO &&
@@ -73,13 +69,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     ) &&
                     !c.Entrenadores.Any(e =>
                         e.EntrenadorId == entrenadorId))
-
-                .OrderBy(c =>
-                    c.DiaSemana)
-
-                .ThenBy(c =>
-                    c.HoraInicio)
-
+                .OrderBy(c => c.DiaSemana)
+                .ThenBy(c => c.HoraInicio)
                 .ToList();
         }
 
@@ -138,12 +129,10 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public ClaseDetalleVO? ObtenerDetalleClase(
-           int claseId,
-           int entrenadorId)
+     int claseId,
+     int entrenadorId,
+     DateTime? fecha = null)
         {
-            DateTime hoyUruguay =
-                ObtenerFechaHoraUruguay().Date;
-
             var clase = _context.Clases
                 .AsNoTracking()
                 .Include(c => c.Grupo)
@@ -162,6 +151,12 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 return null;
             }
 
+            DateTime fechaConsulta =
+                fecha?.Date
+                ?? CalcularProximaOcurrencia(
+                    clase.DiaSemana,
+                    ObtenerFechaHoraUruguay().Date);
+
             int cantidadInscriptos =
                 clase.Inscripciones.Count(i =>
                     i.Alumno != null);
@@ -172,7 +167,8 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 
                 GrupoId = clase.GrupoId,
 
-                Grupo = clase.Grupo?.Nombre
+                Grupo =
+                    clase.Grupo?.Nombre
                     ?? string.Empty,
 
                 DiaSemana =
@@ -209,42 +205,92 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                 Radio =
                     clase.RadioGeolocalizacion,
 
-                Alumnos = clase.Inscripciones
-    .Where(i => i.Alumno != null)
-    .OrderBy(i =>
-        i.Alumno.Nombre?.Valor
-        ?? string.Empty)
-    .ThenBy(i =>
-        i.Alumno.Apellido?.Valor
-        ?? string.Empty)
-    .Select(i =>
-    {
-        var asistencia = clase.Asistencias
-            .FirstOrDefault(a =>
-                a.AlumnoId == i.Alumno.UsuarioId &&
-                a.Fecha.Date == hoyUruguay);
+                Alumnos =
+                    clase.Inscripciones
+                        .Where(i =>
+                            i.Alumno != null)
+                        .OrderBy(i =>
+                            i.Alumno.Nombre?.Valor
+                            ?? string.Empty)
+                        .ThenBy(i =>
+                            i.Alumno.Apellido?.Valor
+                            ?? string.Empty)
+                        .Select(i =>
+                        {
+                            var asistencia =
+                                clase.Asistencias
+                                    .FirstOrDefault(a =>
+                                        a.AlumnoId ==
+                                            i.Alumno.UsuarioId &&
+                                        a.Fecha.Date ==
+                                            fechaConsulta);
 
-        return new AlumnoClaseVO
-        {
-            Id = i.Alumno.UsuarioId,
+                            return new AlumnoClaseVO
+                            {
+                                Id =
+                                    i.Alumno.UsuarioId,
 
-            Nombre =
-                i.Alumno.Nombre?.Valor
-                ?? string.Empty,
+                                Nombre =
+                                    i.Alumno.Nombre?.Valor
+                                    ?? string.Empty,
 
-            Apellido =
-                i.Alumno.Apellido?.Valor
-                ?? string.Empty,
+                                Apellido =
+                                    i.Alumno.Apellido?.Valor
+                                    ?? string.Empty,
 
-            AsistenciaRegistrada =
-                asistencia != null,
+                                AsistenciaRegistrada =
+                                    asistencia != null,
 
-            Presente =
-                asistencia?.Presente ?? false
-        };
-    })
-    .ToList()
+                                Presente =
+                                    asistencia?.Presente
+                                    ?? false
+                            };
+                        })
+                        .ToList()
             };
+        }
+
+        private static DateTime CalcularProximaOcurrencia(
+    DiaSemana diaClase,
+    DateTime fechaBase)
+        {
+            DayOfWeek diaObjetivo =
+                diaClase switch
+                {
+                    DiaSemana.Lunes =>
+                        DayOfWeek.Monday,
+
+                    DiaSemana.Martes =>
+                        DayOfWeek.Tuesday,
+
+                    DiaSemana.Miercoles =>
+                        DayOfWeek.Wednesday,
+
+                    DiaSemana.Jueves =>
+                        DayOfWeek.Thursday,
+
+                    DiaSemana.Viernes =>
+                        DayOfWeek.Friday,
+
+                    DiaSemana.Sabado =>
+                        DayOfWeek.Saturday,
+
+                    DiaSemana.Domingo =>
+                        DayOfWeek.Sunday,
+
+                    _ =>
+                        throw new InvalidOperationException(
+                            "Día de clase inválido.")
+                };
+
+            int diasHastaOcurrencia =
+                ((int)diaObjetivo -
+                 (int)fechaBase.DayOfWeek +
+                 7) % 7;
+
+            return fechaBase
+                .AddDays(diasHastaOcurrencia)
+                .Date;
         }
 
 

@@ -6,6 +6,8 @@
 
         public int ClaseId { get; set; }
 
+        public DateTime FechaOcurrencia { get; set; }
+
         public bool Presente { get; set; }
     }
 }

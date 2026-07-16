@@ -6,6 +6,7 @@ namespace Joki.CasoUsoCompartida.InterfacesCasosUso.Entrenador
     {
         ClaseDetalleDTO? Ejecutar(
             int claseId,
-            int entrenadorId);
+            int entrenadorId,
+            DateTime? fecha = null);
     }
 }

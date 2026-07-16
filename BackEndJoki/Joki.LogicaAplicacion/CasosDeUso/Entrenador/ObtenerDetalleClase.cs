@@ -4,24 +4,30 @@ using Joki.LogicaNegocio.InterfacesRepositorio;
 
 namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 {
-    public class ObtenerDetalleClase : IObtenerDetalleClase
+    public class ObtenerDetalleClase :
+        IObtenerDetalleClase
     {
-        private readonly IRepositorioClase _repositorioClase;
+        private readonly IRepositorioClase
+            _repositorioClase;
 
         public ObtenerDetalleClase(
             IRepositorioClase repositorioClase)
         {
-            _repositorioClase = repositorioClase;
+            _repositorioClase =
+                repositorioClase;
         }
 
         public ClaseDetalleDTO? Ejecutar(
             int claseId,
-            int entrenadorId)
+            int entrenadorId,
+            DateTime? fecha = null)
         {
-            var vo = _repositorioClase
-                .ObtenerDetalleClase(
-                    claseId,
-                    entrenadorId);
+            var vo =
+                _repositorioClase
+                    .ObtenerDetalleClase(
+                        claseId,
+                        entrenadorId,
+                        fecha);
 
             if (vo == null)
             {
@@ -46,26 +52,31 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 
                 Inscriptos = vo.Inscriptos,
 
-                CuposDisponibles = vo.CuposDisponibles,
+                CuposDisponibles =
+                    vo.CuposDisponibles,
 
                 Latitud = vo.Latitud,
 
                 Longitud = vo.Longitud,
 
-                CodigoPostal = vo.CodigoPostal,
+                CodigoPostal =
+                    vo.CodigoPostal,
 
                 Radio = vo.Radio,
 
-                Alumnos = vo.Alumnos
-    .Select(a => new AlumnoClaseDTO
-    {
-        Id = a.Id,
-        Nombre = a.Nombre,
-        Apellido = a.Apellido,
-        AsistenciaRegistrada = a.AsistenciaRegistrada,
-        Presente = a.Presente
-    })
-    .ToList()
+                Alumnos =
+                    vo.Alumnos
+                        .Select(a =>
+                            new AlumnoClaseDTO
+                            {
+                                Id = a.Id,
+                                Nombre = a.Nombre,
+                                Apellido = a.Apellido,
+                                AsistenciaRegistrada =
+                                    a.AsistenciaRegistrada,
+                                Presente = a.Presente
+                            })
+                        .ToList()
             };
         }
     }

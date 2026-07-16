@@ -196,7 +196,8 @@ namespace Joki.WebApi.Controllers
 
         [HttpGet("clases/{id:int}")]
         public IActionResult ObtenerDetalleClase(
-            int id)
+    int id,
+    [FromQuery] DateTime? fecha = null)
         {
             try
             {
@@ -206,7 +207,8 @@ namespace Joki.WebApi.Controllers
                 var clase =
                     _obtenerDetalleClase.Ejecutar(
                         id,
-                        entrenadorId);
+                        entrenadorId,
+                        fecha);
 
                 if (clase == null)
                 {
