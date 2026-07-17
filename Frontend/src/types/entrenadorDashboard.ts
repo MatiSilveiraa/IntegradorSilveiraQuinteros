@@ -18,6 +18,7 @@ export interface AgendaClaseEntrenador {
   diaSemana?: string;
   horaInicio: string;
   horaFin: string;
+  fechaOcurrencia: string;
   cantidadAlumnos: number;
   cupoMaximo?: number;
 }

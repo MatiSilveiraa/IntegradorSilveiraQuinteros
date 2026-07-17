@@ -82,7 +82,7 @@ export default function ClaseDetallePage() {
     return () => {
       componenteActivo = false;
     };
-  }, [claseId]);
+  }, [claseId, fechaOcurrencia]);
 
   useEffect(() => {
     const intervalo = window.setInterval(() => {
@@ -112,9 +112,12 @@ export default function ClaseDetallePage() {
     Number.isFinite(clase.latitud) &&
     Number.isFinite(clase.longitud);
 
+  const fechaEfectiva =
+    fechaOcurrencia ?? clase?.fechaOcurrencia?.substring(0, 10);
+
   const disponibilidadAsistencia = clase
     ? obtenerDisponibilidadAsistencia(
-        clase.diaSemana,
+        fechaEfectiva,
         clase.horaInicio,
         clase.horaFin,
         ahora,
@@ -171,7 +174,9 @@ export default function ClaseDetallePage() {
                     <CalendarMonthOutlinedIcon
                       sx={{ color: "#4adea8", fontSize: 19 }}
                     />
-                    {clase.diaSemana}
+                    {fechaEfectiva
+                      ? formatearFechaOcurrencia(fechaEfectiva)
+                      : clase.diaSemana}
                   </span>
 
                   <span className="inline-flex items-center gap-2">
@@ -200,8 +205,13 @@ export default function ClaseDetallePage() {
                     return;
                   }
 
+                  const params = new URLSearchParams({
+                    fecha: fechaEfectiva,
+                    volver: `/entrenador/clases/${clase.id}?fecha=${fechaEfectiva}`,
+                  });
+
                   navigate(
-                    `/entrenador/clases/${clase.id}/asistencia?fecha=${fechaEfectiva}`,
+                    `/entrenador/clases/${clase.id}/asistencia?${params.toString()}`,
                   );
                 }}
                 title={
@@ -440,122 +450,105 @@ type DisponibilidadAsistencia = {
 };
 
 function obtenerDisponibilidadAsistencia(
-  diaSemana: string,
+  fechaOcurrencia: string | undefined,
   horaInicio: string,
   horaFin: string,
   fechaActual: Date,
 ): DisponibilidadAsistencia {
   const MINUTOS_ANTES = 15;
   const MINUTOS_DESPUES = 30;
-  const MINUTOS_SEMANA = 7 * 24 * 60;
 
-  const diaClase = obtenerNumeroDiaSemana(diaSemana);
-  const inicioMinutos = obtenerMinutosHora(horaInicio);
-  const finMinutos = obtenerMinutosHora(horaFin);
+  const rango = construirRangoOcurrencia(
+    fechaOcurrencia,
+    horaInicio,
+    horaFin,
+  );
 
-  if (diaClase === null || inicioMinutos === null || finMinutos === null) {
+  if (!rango) {
     return {
       habilitada: false,
-      mensaje: "No se pudo validar el horario de la clase.",
+      mensaje: "No se pudo validar la fecha o el horario de la ocurrencia.",
     };
   }
 
-  const ahoraUruguay = obtenerFechaUruguay(fechaActual);
-
-  const minutoActualSemana =
-    (ahoraUruguay.diaSemana - 1) * 1440 +
-    ahoraUruguay.hora * 60 +
-    ahoraUruguay.minuto;
-
-  const inicioClaseSemana = (diaClase - 1) * 1440 + inicioMinutos;
-
-  let finClaseSemana = (diaClase - 1) * 1440 + finMinutos;
-
-  if (finClaseSemana <= inicioClaseSemana) {
-    finClaseSemana += 1440;
-  }
-
-  const inicioVentana = inicioClaseSemana - MINUTOS_ANTES;
-  const finVentana = finClaseSemana + MINUTOS_DESPUES;
-
-  const candidatos = [
-    minutoActualSemana,
-    minutoActualSemana + MINUTOS_SEMANA,
-    minutoActualSemana - MINUTOS_SEMANA,
-  ];
-
-  const habilitada = candidatos.some(
-    (actual) => actual >= inicioVentana && actual <= finVentana,
+  const inicioVentana = new Date(
+    rango.inicio.getTime() - MINUTOS_ANTES * 60_000,
+  );
+  const finVentana = new Date(
+    rango.fin.getTime() + MINUTOS_DESPUES * 60_000,
   );
 
-  if (habilitada) {
+  if (fechaActual >= inicioVentana && fechaActual <= finVentana) {
     return {
       habilitada: true,
       mensaje: "Registro habilitado dentro de la ventana permitida.",
     };
   }
 
+  if (fechaActual < inicioVentana) {
+    return {
+      habilitada: false,
+      mensaje: `Disponible el ${formatearFechaOcurrencia(
+        rango.fecha,
+      )} de ${formatearHoraDesdeFecha(inicioVentana)} a ${formatearHoraDesdeFecha(
+        finVentana,
+      )}.`,
+    };
+  }
+
   return {
     habilitada: false,
-    mensaje: `Disponible el ${normalizarDiaTexto(
-      diaSemana,
-    )} de ${formatearMinutosDia(
-      inicioMinutos - MINUTOS_ANTES,
-    )} a ${formatearMinutosDia(finMinutos + MINUTOS_DESPUES)}.`,
+    mensaje: `La ventana de registro de la ocurrencia del ${formatearFechaOcurrencia(
+      rango.fecha,
+    )} ya finalizó.`,
   };
 }
 
-function obtenerFechaUruguay(fecha: Date) {
-  const partes = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Montevideo",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(fecha);
+function construirRangoOcurrencia(
+  fechaOcurrencia: string | undefined,
+  horaInicio: string,
+  horaFin: string,
+) {
+  const fecha = normalizarFechaOcurrencia(fechaOcurrencia);
+  const inicio = normalizarHora(horaInicio);
+  const fin = normalizarHora(horaFin);
 
-  const valor = (tipo: Intl.DateTimeFormatPartTypes) =>
-    partes.find((parte) => parte.type === tipo)?.value ?? "";
+  if (!fecha || !inicio || !fin) return null;
 
-  const mapaDias: Record<string, number> = {
-    Mon: 1,
-    Tue: 2,
-    Wed: 3,
-    Thu: 4,
-    Fri: 5,
-    Sat: 6,
-    Sun: 7,
-  };
+  const inicioFecha = new Date(`${fecha}T${inicio}:00-03:00`);
+  const finFecha = new Date(`${fecha}T${fin}:00-03:00`);
+
+  if (
+    Number.isNaN(inicioFecha.getTime()) ||
+    Number.isNaN(finFecha.getTime())
+  ) {
+    return null;
+  }
+
+  if (finFecha <= inicioFecha) {
+    finFecha.setDate(finFecha.getDate() + 1);
+  }
 
   return {
-    diaSemana: mapaDias[valor("weekday")] ?? 1,
-    hora: Number(valor("hour")),
-    minuto: Number(valor("minute")),
+    fecha,
+    inicio: inicioFecha,
+    fin: finFecha,
   };
 }
 
-function obtenerNumeroDiaSemana(dia: string) {
-  const normalizado = dia
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
+function normalizarFechaOcurrencia(value: string | undefined) {
+  const coincidencia = value?.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-  const mapa: Record<string, number> = {
-    lunes: 1,
-    martes: 2,
-    miercoles: 3,
-    jueves: 4,
-    viernes: 5,
-    sabado: 6,
-    domingo: 7,
-  };
+  if (!coincidencia) return null;
 
-  return mapa[normalizado] ?? null;
+  const fecha = `${coincidencia[1]}-${coincidencia[2]}-${coincidencia[3]}`;
+  const validacion = new Date(`${fecha}T12:00:00-03:00`);
+
+  return Number.isNaN(validacion.getTime()) ? null : fecha;
 }
 
-function obtenerMinutosHora(hora: string) {
-  const coincidencia = hora?.match(/^(\d{1,2}):(\d{2})/);
+function normalizarHora(value: string) {
+  const coincidencia = value?.match(/^(\d{1,2}):(\d{2})/);
 
   if (!coincidencia) return null;
 
@@ -566,39 +559,35 @@ function obtenerMinutosHora(hora: string) {
     return null;
   }
 
-  return horas * 60 + minutos;
-}
-
-function formatearMinutosDia(minutosTotales: number) {
-  const normalizado = ((minutosTotales % 1440) + 1440) % 1440;
-
-  const horas = Math.floor(normalizado / 60);
-  const minutos = normalizado % 60;
-
   return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
     2,
     "0",
   )}`;
 }
 
-function normalizarDiaTexto(dia: string) {
-  const normalizado = dia
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
+function formatearFechaOcurrencia(value: string) {
+  const fecha = normalizarFechaOcurrencia(value);
 
-  const mapa: Record<string, string> = {
-    lunes: "lunes",
-    martes: "martes",
-    miercoles: "miércoles",
-    jueves: "jueves",
-    viernes: "viernes",
-    sabado: "sábado",
-    domingo: "domingo",
-  };
+  if (!fecha) return value;
 
-  return mapa[normalizado] ?? dia;
+  const [anio, mes, dia] = fecha.split("-").map(Number);
+  const fechaLocal = new Date(anio, mes - 1, dia);
+
+  return new Intl.DateTimeFormat("es-UY", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(fechaLocal);
+}
+
+function formatearHoraDesdeFecha(value: Date) {
+  return new Intl.DateTimeFormat("es-UY", {
+    timeZone: "America/Montevideo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(value);
 }
 
 function formatearHora(value: string) {

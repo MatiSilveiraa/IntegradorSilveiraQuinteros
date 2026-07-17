@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -18,9 +18,11 @@ import type { AlumnoClase, ClaseDetalle } from "../../types/claseDetalle";
 
 export default function AsistenciaClasePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const fechaOcurrencia = searchParams.get("fecha") ?? undefined;
+  const volver = searchParams.get("volver");
 
   const claseId = Number(id);
   const [registrandoAlumnoId, setRegistrandoAlumnoId] = useState<number | null>(
@@ -87,7 +89,7 @@ export default function AsistenciaClasePage() {
     }
 
     const disponibilidad = obtenerDisponibilidadAsistencia(
-      clase.diaSemana,
+      fechaAsistencia,
       clase.horaInicio,
       clase.horaFin,
       ahora,
@@ -103,22 +105,12 @@ export default function AsistenciaClasePage() {
 
       await registrarAsistencia(alumnoId, claseId, presente, fechaAsistencia);
 
-      setClase((prev) => {
-        if (!prev) return prev;
+      const detalleActualizado = await obtenerDetalleClase(
+        claseId,
+        fechaAsistencia,
+      );
 
-        return {
-          ...prev,
-          alumnos: prev.alumnos.map((alumno) =>
-            alumno.id === alumnoId
-              ? {
-                  ...alumno,
-                  asistenciaRegistrada: true,
-                  presente,
-                }
-              : alumno,
-          ),
-        };
-      });
+      setClase(detalleActualizado);
 
       toast.success(
         presente ? "Asistencia registrada" : "Inasistencia registrada",
@@ -146,9 +138,12 @@ export default function AsistenciaClasePage() {
 
   const pendientes = (clase?.alumnos.length ?? 0) - registradas;
 
+  const fechaEfectiva =
+    fechaOcurrencia ?? clase?.fechaOcurrencia?.substring(0, 10);
+
   const disponibilidadAsistencia = clase
     ? obtenerDisponibilidadAsistencia(
-        clase.diaSemana,
+        fechaEfectiva,
         clase.horaInicio,
         clase.horaFin,
         ahora,
@@ -171,6 +166,20 @@ export default function AsistenciaClasePage() {
       <TopBar />
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+        <button
+          type="button"
+          onClick={() =>
+            volver
+              ? navigate(volver)
+              : navigate(
+                  `/entrenador/clases/${clase.id}?fecha=${fechaEfectiva ?? ""}`,
+                )
+          }
+          className="mb-5 inline-flex items-center rounded-xl border border-[#2d463b] bg-[#1a2b24] px-4 py-2 text-sm font-semibold text-gray-300 transition-all hover:border-[#4adea8] hover:text-[#4adea8]"
+        >
+          Volver al detalle
+        </button>
+
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <span className="inline-flex rounded-full bg-[#4adea8] px-3 py-1 text-[11px] font-bold text-[#12201b]">
             REGISTRAR ASISTENCIA
@@ -181,7 +190,9 @@ export default function AsistenciaClasePage() {
               <CalendarMonthOutlinedIcon
                 sx={{ color: "#4adea8", fontSize: 19 }}
               />
-              {clase.diaSemana}
+              {fechaEfectiva
+                ? formatearFechaOcurrencia(fechaEfectiva)
+                : clase.diaSemana}
             </span>
             <span className="inline-flex items-center gap-2">
               <AccessTimeOutlinedIcon sx={{ color: "#4adea8", fontSize: 19 }} />
@@ -405,63 +416,44 @@ function EstadoVentanaAsistencia({
 }
 
 function obtenerDisponibilidadAsistencia(
-  diaSemana: string,
+  fechaOcurrencia: string | undefined,
   horaInicio: string,
   horaFin: string,
   fechaActual: Date,
 ): DisponibilidadAsistencia {
   const MINUTOS_ANTES = 15;
   const MINUTOS_DESPUES = 30;
-  const MINUTOS_SEMANA = 7 * 24 * 60;
 
-  const diaClase = obtenerNumeroDiaSemana(diaSemana);
-  const inicioMinutos = obtenerMinutosHora(horaInicio);
-  const finMinutosBase = obtenerMinutosHora(horaFin);
+  const rango = construirRangoOcurrencia(
+    fechaOcurrencia,
+    horaInicio,
+    horaFin,
+  );
 
-  if (diaClase === null || inicioMinutos === null || finMinutosBase === null) {
+  if (!rango) {
     return {
       habilitada: false,
       estado: "anticipada",
-      titulo: "No se pudo validar el horario",
-      mensaje: "La información de día u horario de la clase no es válida.",
-      ventanaTexto: "Horario no disponible",
+      titulo: "No se pudo validar la ocurrencia",
+      mensaje: "La fecha o el horario de la ocurrencia no es válido.",
+      ventanaTexto: "Fecha u horario no disponible",
     };
   }
 
-  const ahoraUruguay = obtenerFechaUruguay(fechaActual);
-  const minutoSemanaActual =
-    (ahoraUruguay.diaSemana - 1) * 1440 +
-    ahoraUruguay.hora * 60 +
-    ahoraUruguay.minuto;
-
-  const inicioClaseSemana = (diaClase - 1) * 1440 + inicioMinutos;
-
-  let finClaseSemana = (diaClase - 1) * 1440 + finMinutosBase;
-
-  if (finClaseSemana <= inicioClaseSemana) {
-    finClaseSemana += 1440;
-  }
-
-  const inicioVentana = inicioClaseSemana - MINUTOS_ANTES;
-  const finVentana = finClaseSemana + MINUTOS_DESPUES;
-
-  const candidatosActuales = [
-    minutoSemanaActual,
-    minutoSemanaActual + MINUTOS_SEMANA,
-    minutoSemanaActual - MINUTOS_SEMANA,
-  ];
-
-  const habilitada = candidatosActuales.some(
-    (actual) => actual >= inicioVentana && actual <= finVentana,
+  const inicioVentana = new Date(
+    rango.inicio.getTime() - MINUTOS_ANTES * 60_000,
+  );
+  const finVentana = new Date(
+    rango.fin.getTime() + MINUTOS_DESPUES * 60_000,
   );
 
-  const ventanaTexto = `${normalizarDiaTexto(
-    diaSemana,
-  )}, ${formatearMinutoSemana(
-    inicioVentana,
-  )} a ${formatearMinutoSemana(finVentana)}`;
+  const ventanaTexto = `${formatearFechaOcurrencia(
+    rango.fecha,
+  )}, ${formatearHoraDesdeFecha(inicioVentana)} a ${formatearHoraDesdeFecha(
+    finVentana,
+  )}`;
 
-  if (habilitada) {
+  if (fechaActual >= inicioVentana && fechaActual <= finVentana) {
     return {
       habilitada: true,
       estado: "disponible",
@@ -471,25 +463,7 @@ function obtenerDisponibilidadAsistencia(
     };
   }
 
-  const diferenciaHastaInicio = distanciaFuturaSemanal(
-    minutoSemanaActual,
-    inicioVentana,
-    MINUTOS_SEMANA,
-  );
-
-  const diferenciaDesdeFin = distanciaPasadaSemanal(
-    minutoSemanaActual,
-    finVentana,
-    MINUTOS_SEMANA,
-  );
-
-  const esMismoDia = ahoraUruguay.diaSemana === diaClase;
-
-  if (
-    esMismoDia &&
-    minutoSemanaActual > finVentana &&
-    diferenciaDesdeFin < 12 * 60
-  ) {
+  if (fechaActual > finVentana) {
     return {
       habilitada: false,
       estado: "finalizada",
@@ -499,71 +473,70 @@ function obtenerDisponibilidadAsistencia(
     };
   }
 
+  const minutosHastaInicio = Math.max(
+    0,
+    Math.ceil((inicioVentana.getTime() - fechaActual.getTime()) / 60_000),
+  );
+
   return {
     habilitada: false,
     estado: "anticipada",
     titulo: "Registro de asistencia no disponible",
     mensaje:
-      diferenciaHastaInicio < 24 * 60
-        ? `Se habilitará en ${formatearDuracion(diferenciaHastaInicio)}.`
-        : `Solo se habilita el ${normalizarDiaTexto(
-            diaSemana,
-          )} dentro del horario permitido.`,
+      minutosHastaInicio < 24 * 60
+        ? `Se habilitará en ${formatearDuracion(minutosHastaInicio)}.`
+        : `Se habilitará para la ocurrencia del ${formatearFechaOcurrencia(
+            rango.fecha,
+          )}.`,
     ventanaTexto,
   };
 }
 
-function obtenerFechaUruguay(fecha: Date) {
-  const partes = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Montevideo",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(fecha);
+function construirRangoOcurrencia(
+  fechaOcurrencia: string | undefined,
+  horaInicio: string,
+  horaFin: string,
+) {
+  const fecha = normalizarFechaOcurrencia(fechaOcurrencia);
+  const inicio = normalizarHora(horaInicio);
+  const fin = normalizarHora(horaFin);
 
-  const valor = (tipo: Intl.DateTimeFormatPartTypes) =>
-    partes.find((parte) => parte.type === tipo)?.value ?? "";
+  if (!fecha || !inicio || !fin) return null;
 
-  const mapaDias: Record<string, number> = {
-    Mon: 1,
-    Tue: 2,
-    Wed: 3,
-    Thu: 4,
-    Fri: 5,
-    Sat: 6,
-    Sun: 7,
-  };
+  const inicioFecha = new Date(`${fecha}T${inicio}:00-03:00`);
+  const finFecha = new Date(`${fecha}T${fin}:00-03:00`);
+
+  if (
+    Number.isNaN(inicioFecha.getTime()) ||
+    Number.isNaN(finFecha.getTime())
+  ) {
+    return null;
+  }
+
+  if (finFecha <= inicioFecha) {
+    finFecha.setDate(finFecha.getDate() + 1);
+  }
 
   return {
-    diaSemana: mapaDias[valor("weekday")] ?? 1,
-    hora: Number(valor("hour")),
-    minuto: Number(valor("minute")),
+    fecha,
+    inicio: inicioFecha,
+    fin: finFecha,
   };
 }
 
-function obtenerNumeroDiaSemana(dia: string) {
-  const normalizado = dia
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
+function normalizarFechaOcurrencia(value: string | undefined) {
+  const coincidencia = value?.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-  const mapa: Record<string, number> = {
-    lunes: 1,
-    martes: 2,
-    miercoles: 3,
-    jueves: 4,
-    viernes: 5,
-    sabado: 6,
-    domingo: 7,
-  };
+  if (!coincidencia) return null;
 
-  return mapa[normalizado] ?? null;
+  const fecha = `${coincidencia[1]}-${coincidencia[2]}-${coincidencia[3]}`;
+  const validacion = new Date(`${fecha}T12:00:00-03:00`);
+
+  return Number.isNaN(validacion.getTime()) ? null : fecha;
 }
 
-function obtenerMinutosHora(horaValor: string) {
-  const coincidencia = horaValor?.match(/^(\d{1,2}):(\d{2})/);
+function normalizarHora(value: string) {
+  const coincidencia = value?.match(/^(\d{1,2}):(\d{2})/);
 
   if (!coincidencia) return null;
 
@@ -574,42 +547,35 @@ function obtenerMinutosHora(horaValor: string) {
     return null;
   }
 
-  return horas * 60 + minutos;
-}
-
-function formatearMinutoSemana(minutoSemana: number) {
-  const MINUTOS_SEMANA = 7 * 24 * 60;
-  const normalizado =
-    ((minutoSemana % MINUTOS_SEMANA) + MINUTOS_SEMANA) % MINUTOS_SEMANA;
-
-  const minutoDia = normalizado % 1440;
-  const horas = Math.floor(minutoDia / 60);
-  const minutos = minutoDia % 60;
-
   return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
     2,
     "0",
   )}`;
 }
 
-function distanciaFuturaSemanal(
-  actual: number,
-  objetivo: number,
-  minutosSemana: number,
-) {
-  return (
-    (((objetivo - actual) % minutosSemana) + minutosSemana) % minutosSemana
-  );
+function formatearFechaOcurrencia(value: string) {
+  const fecha = normalizarFechaOcurrencia(value);
+
+  if (!fecha) return value;
+
+  const [anio, mes, dia] = fecha.split("-").map(Number);
+  const fechaLocal = new Date(anio, mes - 1, dia);
+
+  return new Intl.DateTimeFormat("es-UY", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(fechaLocal);
 }
 
-function distanciaPasadaSemanal(
-  actual: number,
-  objetivo: number,
-  minutosSemana: number,
-) {
-  return (
-    (((actual - objetivo) % minutosSemana) + minutosSemana) % minutosSemana
-  );
+function formatearHoraDesdeFecha(value: Date) {
+  return new Intl.DateTimeFormat("es-UY", {
+    timeZone: "America/Montevideo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(value);
 }
 
 function formatearDuracion(minutosTotales: number) {
@@ -625,26 +591,6 @@ function formatearDuracion(minutosTotales: number) {
   }
 
   return `${horas} ${horas === 1 ? "hora" : "horas"} y ${minutos} minutos`;
-}
-
-function normalizarDiaTexto(dia: string) {
-  const normalizado = dia
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-
-  const mapa: Record<string, string> = {
-    lunes: "lunes",
-    martes: "martes",
-    miercoles: "miércoles",
-    jueves: "jueves",
-    viernes: "viernes",
-    sabado: "sábado",
-    domingo: "domingo",
-  };
-
-  return mapa[normalizado] ?? dia;
 }
 
 function Resumen({ titulo, valor }: { titulo: string; valor: number }) {

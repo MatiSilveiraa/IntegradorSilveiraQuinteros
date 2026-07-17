@@ -116,11 +116,16 @@ export default function DashboardNextClass({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  `/entrenador/clases/${clase.claseId}`,
-                )
-              }
+              onClick={() => {
+  const fecha = clase.fechaProximaClase.substring(0, 10);
+
+  navigate(
+    `/entrenador/clases/${clase.claseId}?${new URLSearchParams({
+      fecha,
+      volver: "/entrenador",
+    }).toString()}`,
+  );
+}}
               className="flex h-12 items-center justify-center gap-2 rounded-xl border border-[#2d463b] bg-[#12201b] font-semibold transition-all hover:border-[#4adea8]"
             >
               <VisibilityOutlinedIcon fontSize="small" />
@@ -129,11 +134,16 @@ export default function DashboardNextClass({
 
             <button
               type="button"
-              onClick={() =>
-                navigate(
-                  `/entrenador/clases/${clase.claseId}/asistencia`,
-                )
-              }
+              onClick={() => {
+  const fecha = clase.fechaProximaClase.substring(0, 10);
+
+  navigate(
+    `/entrenador/clases/${clase.claseId}/asistencia?${new URLSearchParams({
+      fecha,
+      volver: "/entrenador",
+    }).toString()}`,
+  );
+}}
               className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4adea8] font-bold text-[#12201b] transition-all hover:brightness-110"
             >
               <FactCheckOutlinedIcon fontSize="small" />

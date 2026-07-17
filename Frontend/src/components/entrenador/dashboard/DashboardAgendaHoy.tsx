@@ -5,6 +5,7 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 
 import type { AgendaClaseEntrenador } from "../../../types/entrenadorDashboard";
 
@@ -12,14 +13,36 @@ type Props = {
   agenda: AgendaClaseEntrenador[];
 };
 
-export default function DashboardAgendaHoy({
-  agenda,
-}: Props) {
+export default function DashboardAgendaHoy({ agenda }: Props) {
   const navigate = useNavigate();
 
-  const agendaOrdenada = [...agenda].sort((a, b) =>
-    a.horaInicio.localeCompare(b.horaInicio),
-  );
+  const agendaOrdenada = [...agenda].sort((a, b) => {
+    const fechaA = normalizarFechaApi(a.fechaOcurrencia);
+    const fechaB = normalizarFechaApi(b.fechaOcurrencia);
+
+    if (fechaA !== fechaB) {
+      return fechaA.localeCompare(fechaB);
+    }
+
+    return a.horaInicio.localeCompare(b.horaInicio);
+  });
+
+  const abrirDetalle = (clase: AgendaClaseEntrenador) => {
+    const fecha = normalizarFechaApi(clase.fechaOcurrencia);
+
+    if (!fecha) {
+      return;
+    }
+
+    const params = new URLSearchParams({
+      fecha,
+      volver: "/entrenador",
+    });
+
+    navigate(
+      `/entrenador/clases/${clase.claseId}?${params.toString()}`,
+    );
+  };
 
   return (
     <section className="min-h-[330px] rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-6 sm:p-7">
@@ -32,6 +55,10 @@ export default function DashboardAgendaHoy({
           <h2 className="mt-1 text-2xl font-bold">
             Agenda de hoy
           </h2>
+
+          <p className="mt-1 text-sm text-gray-400">
+            Clases organizadas por ocurrencia.
+          </p>
         </div>
 
         <span className="rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 px-3 py-1 text-sm font-bold text-[#4adea8]">
@@ -43,10 +70,7 @@ export default function DashboardAgendaHoy({
         <div className="flex h-[230px] flex-col items-center justify-center text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#2d463b] bg-[#12201b]">
             <EventAvailableOutlinedIcon
-              sx={{
-                color: "#6b7280",
-                fontSize: 30,
-              }}
+              sx={{ color: "#6b7280", fontSize: 30 }}
             />
           </div>
 
@@ -62,39 +86,27 @@ export default function DashboardAgendaHoy({
         <div className="mt-6 max-h-[330px] space-y-3 overflow-y-auto pr-1">
           {agendaOrdenada.map((clase) => (
             <button
-              key={clase.claseId}
+              key={`${clase.claseId}-${clase.fechaOcurrencia}`}
               type="button"
-              onClick={() =>
-                navigate(
-                  `/entrenador/clases/${clase.claseId}`,
-                )
-              }
+              onClick={() => abrirDetalle(clase)}
               className="flex w-full items-center gap-4 rounded-2xl border border-[#2d463b] bg-[#12201b] p-4 text-left transition-all hover:border-[#4adea8]/50"
             >
               <div className="w-14 shrink-0 text-center">
                 <ScheduleOutlinedIcon
-                  sx={{
-                    color: "#4adea8",
-                    fontSize: 22,
-                  }}
+                  sx={{ color: "#4adea8", fontSize: 22 }}
                 />
 
                 <p className="mt-1 text-sm font-bold">
-                  {formatearHora(
-                    clase.horaInicio,
-                  )}
+                  {formatearHora(clase.horaInicio)}
                 </p>
               </div>
 
-              <div className="self-stretch w-px bg-[#2d463b]" />
+              <div className="h-12 w-px self-stretch bg-[#2d463b]" />
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <GroupsOutlinedIcon
-                    sx={{
-                      color: "#4adea8",
-                      fontSize: 18,
-                    }}
+                    sx={{ color: "#4adea8", fontSize: 18 }}
                   />
 
                   <h3 className="truncate font-bold">
@@ -104,31 +116,26 @@ export default function DashboardAgendaHoy({
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400">
                   <span>
-                    {formatearHora(
-                      clase.horaInicio,
-                    )}{" "}
-                    -{" "}
-                    {formatearHora(
-                      clase.horaFin,
-                    )}
+                    {formatearHora(clase.horaInicio)} -{" "}
+                    {formatearHora(clase.horaFin)}
                   </span>
 
                   <span className="inline-flex items-center gap-1">
-                    <PeopleOutlineOutlinedIcon
-                      sx={{ fontSize: 16 }}
-                    />
-
+                    <PeopleOutlineOutlinedIcon sx={{ fontSize: 16 }} />
                     {clase.cantidadAlumnos}{" "}
                     {clase.cantidadAlumnos === 1
                       ? "alumno"
                       : "alumnos"}
                   </span>
+
+                  <span className="inline-flex items-center gap-1 text-[#4adea8]">
+                    <CalendarMonthOutlinedIcon sx={{ fontSize: 16 }} />
+                    {formatearFechaOcurrencia(clase.fechaOcurrencia)}
+                  </span>
                 </div>
               </div>
 
-              <ChevronRightOutlinedIcon
-                sx={{ color: "#9ca3af" }}
-              />
+              <ChevronRightOutlinedIcon sx={{ color: "#9ca3af" }} />
             </button>
           ))}
         </div>
@@ -137,8 +144,32 @@ export default function DashboardAgendaHoy({
   );
 }
 
-function formatearHora(
-  hora?: string | null,
-) {
+function formatearHora(hora?: string | null) {
   return hora?.substring(0, 5) ?? "--:--";
+}
+
+function normalizarFechaApi(fecha?: string | null) {
+  return fecha?.substring(0, 10) ?? "";
+}
+
+function formatearFechaOcurrencia(fecha?: string | null) {
+  const normalizada = normalizarFechaApi(fecha);
+
+  if (!normalizada) {
+    return "Fecha no disponible";
+  }
+
+  const [anio, mes, dia] = normalizada.split("-").map(Number);
+
+  if (!anio || !mes || !dia) {
+    return normalizada;
+  }
+
+  const fechaLocal = new Date(anio, mes - 1, dia);
+
+  return fechaLocal.toLocaleDateString("es-UY", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
