@@ -113,6 +113,9 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                                 ClaseId =
                                     c.ClaseId,
 
+                                FechaOcurrencia =
+                                    c.FechaOcurrencia,
+
                                 Grupo =
                                     c.Grupo,
 
@@ -130,6 +133,18 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
 
                                 CuposDisponibles =
                                     c.CuposDisponibles,
+
+                                Presentes =
+                                    c.Presentes,
+
+                                Ausentes =
+                                    c.Ausentes,
+
+                                SinRegistrar =
+                                    c.SinRegistrar,
+
+                                EstadoAsistencia =
+                                    c.EstadoAsistencia,
 
                                 Alumnos =
                                     c.Alumnos

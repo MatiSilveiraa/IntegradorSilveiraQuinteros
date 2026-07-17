@@ -90,15 +90,20 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         public List<AgendaClaseVO> ObtenerAgendaHoy(
             int entrenadorId)
         {
-            DateTime ahoraUruguay =
-                ObtenerFechaHoraUruguay();
+            return ObtenerAgenda(
+                entrenadorId,
+                ObtenerFechaHoraUruguay().Date);
+        }
 
-            DateTime hoy =
-                ahoraUruguay.Date;
+        public List<AgendaClaseVO> ObtenerAgenda(
+            int entrenadorId,
+            DateTime fecha)
+        {
+            DateTime fechaOcurrencia = fecha.Date;
 
             DiaSemana diaSemana =
                 ConvertirDiaSemana(
-                    ahoraUruguay.DayOfWeek);
+                    fechaOcurrencia.DayOfWeek);
 
             var clases =
                 _context.Clases
@@ -106,62 +111,122 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                     .Include(c => c.Grupo)
                     .Include(c => c.Inscripciones)
                         .ThenInclude(i => i.Alumno)
+                    .Include(c => c.Asistencias)
                     .Include(c => c.Entrenadores)
-                   .Where(c =>
-                            c.Entrenadores.Any(e =>
+                    .Where(c =>
+                        c.Entrenadores.Any(e =>
                             e.EntrenadorId == entrenadorId) &&
-                            c.Grupo.Estado == EstadoGrupo.ACTIVO &&
-                            c.Estado == EstadoClase.Programada &&
-                            c.DiaSemana == diaSemana)
+                        c.Grupo.Estado == EstadoGrupo.ACTIVO &&
+                        c.Estado == EstadoClase.Programada &&
+                        c.DiaSemana == diaSemana)
                     .ToList();
 
             return clases
-
-
                 .Where(c =>
-                    ClaseVigenteEnFecha(c, hoy))
+                    ClaseVigenteEnFecha(
+                        c,
+                        fechaOcurrencia))
                 .OrderBy(c => c.HoraInicio)
-                .Select(c => new AgendaClaseVO
+                .Select(c =>
                 {
-                    ClaseId = c.Id,
+                    var alumnosInscriptos = c.Inscripciones
+                        .Select(i => i.AlumnoId)
+                        .Distinct()
+                        .ToHashSet();
 
-                    GrupoId = c.GrupoId,
+                    var asistenciasOcurrencia = c.Asistencias
+                        .Where(a =>
+                            a.Fecha.Date == fechaOcurrencia &&
+                            alumnosInscriptos.Contains(a.AlumnoId))
+                        .GroupBy(a => a.AlumnoId)
+                        .Select(g => g
+                            .OrderByDescending(a => a.FechaRegistro)
+                            .First())
+                        .ToList();
 
-                    Grupo = c.Grupo.Nombre,
+                    int cantidadAlumnos =
+                        alumnosInscriptos.Count;
 
-                    HoraInicio = c.HoraInicio,
+                    int presentes =
+                        asistenciasOcurrencia.Count(a => a.Presente);
 
-                    HoraFin = c.HoraFin,
+                    int ausentes =
+                        asistenciasOcurrencia.Count(a => !a.Presente);
 
-                    CantidadAlumnos =
-                        c.Inscripciones.Count,
-
-                    CupoMaximo =
-                        c.CupoMaximo,
-
-                    CuposDisponibles =
+                    int sinRegistrar =
                         Math.Max(
                             0,
-                            c.CupoMaximo -
-                            c.Inscripciones.Count),
+                            cantidadAlumnos -
+                            presentes -
+                            ausentes);
 
-                    Alumnos = c.Inscripciones
-                        .OrderBy(i =>
-                            i.Alumno.Nombre.Valor)
-                        .Select(i =>
-                            new AlumnoAgendaVO
-                            {
-                                Id =
-                                    i.Alumno.UsuarioId,
+                    string estadoAsistencia =
+                        cantidadAlumnos == 0
+                            ? "Sin alumnos"
+                            : presentes + ausentes == 0
+                                ? "Sin registrar"
+                                : sinRegistrar == 0
+                                    ? "Completa"
+                                    : "Parcial";
 
-                                Nombre =
-                                    i.Alumno.Nombre.Valor,
+                    return new AgendaClaseVO
+                    {
+                        ClaseId = c.Id,
 
-                                Apellido =
-                                    i.Alumno.Apellido.Valor
-                            })
-                        .Take(5)
-                        .ToList()
+                        GrupoId = c.GrupoId,
+
+                        FechaOcurrencia =
+                            fechaOcurrencia,
+
+                        Grupo = c.Grupo.Nombre,
+
+                        HoraInicio = c.HoraInicio,
+
+                        HoraFin = c.HoraFin,
+
+                        CantidadAlumnos =
+                            cantidadAlumnos,
+
+                        CupoMaximo =
+                            c.CupoMaximo,
+
+                        CuposDisponibles =
+                            Math.Max(
+                                0,
+                                c.CupoMaximo -
+                                cantidadAlumnos),
+
+                        Presentes = presentes,
+
+                        Ausentes = ausentes,
+
+                        SinRegistrar = sinRegistrar,
+
+                        EstadoAsistencia =
+                            estadoAsistencia,
+
+                        Alumnos = c.Inscripciones
+                            .GroupBy(i => i.AlumnoId)
+                            .Select(g => g.First())
+                            .OrderBy(i =>
+                                i.Alumno.Nombre.Valor)
+                            .ThenBy(i =>
+                                i.Alumno.Apellido.Valor)
+                            .Select(i =>
+                                new AlumnoAgendaVO
+                                {
+                                    Id =
+                                        i.Alumno.UsuarioId,
+
+                                    Nombre =
+                                        i.Alumno.Nombre.Valor,
+
+                                    Apellido =
+                                        i.Alumno.Apellido.Valor
+                                })
+                            .Take(5)
+                            .ToList()
+                    };
                 })
                 .ToList();
         }

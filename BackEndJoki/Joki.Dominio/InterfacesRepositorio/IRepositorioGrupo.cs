@@ -21,6 +21,10 @@ namespace Joki.LogicaNegocio.InterfacesRepositorio
 
         List<AgendaClaseVO> ObtenerAgendaHoy(int entrenadorId);
 
+        List<AgendaClaseVO> ObtenerAgenda(
+            int entrenadorId,
+            DateTime fecha);
+
         ProximaClaseVO? ObtenerProximaClase(int entrenadorId);
 
         List<GrupoEntrenadorVO> ObtenerGruposPorEntrenador(

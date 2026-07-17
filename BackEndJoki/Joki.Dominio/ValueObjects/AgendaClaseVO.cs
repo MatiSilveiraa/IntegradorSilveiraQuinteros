@@ -6,6 +6,8 @@ public class AgendaClaseVO
 
     public int GrupoId { get; set; }
 
+    public DateTime FechaOcurrencia { get; set; }
+
     public string Grupo { get; set; } = string.Empty;
 
     public TimeSpan HoraInicio { get; set; }
@@ -17,6 +19,14 @@ public class AgendaClaseVO
     public int CupoMaximo { get; set; }
 
     public int CuposDisponibles { get; set; }
+
+    public int Presentes { get; set; }
+
+    public int Ausentes { get; set; }
+
+    public int SinRegistrar { get; set; }
+
+    public string EstadoAsistencia { get; set; } = string.Empty;
 
     public List<AlumnoAgendaVO> Alumnos { get; set; } = new();
 }
