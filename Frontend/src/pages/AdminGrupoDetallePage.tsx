@@ -372,12 +372,6 @@ export default function AdminGrupoDetallePage() {
       <TopBar />
 
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-10">
-        <button
-          onClick={() => navigate("/admin/grupos")}
-          className="text-[#4adea8] hover:underline mb-6"
-        >
-          ← Volver a grupos
-        </button>
 
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">

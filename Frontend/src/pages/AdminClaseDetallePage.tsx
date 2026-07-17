@@ -203,12 +203,6 @@ setInscriptos(inscriptosData);
       <TopBar />
 
       <main className="max-w-7xl mx-auto pt-24 px-6 pb-10">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-[#4adea8] hover:underline mb-8"
-        >
-          ← Volver
-        </button>
 
         <section className="mb-8 rounded-3xl border border-[#2d463b] bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">

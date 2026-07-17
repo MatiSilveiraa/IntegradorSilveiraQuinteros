@@ -14,6 +14,8 @@ export interface ClaseDetalle {
   horaInicio: string;
   horaFin: string;
 
+  fechaOcurrencia: string;
+
   cupoMaximo: number;
   inscriptos: number;
   cuposDisponibles: number;

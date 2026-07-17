@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -212,14 +210,6 @@ export default function AdminDesafiosPage() {
       <TopBar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10">
-        <button
-          type="button"
-          onClick={() => navigate("/admin")}
-          className="inline-flex items-center gap-2 mb-6 text-sm font-semibold text-gray-400 hover:text-[#4adea8] transition-colors"
-        >
-          <ArrowBackOutlinedIcon fontSize="small" />
-          Panel de administración
-        </button>
 
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

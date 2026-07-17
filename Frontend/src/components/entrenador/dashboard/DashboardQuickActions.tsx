@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 
@@ -53,14 +52,7 @@ export default function DashboardQuickActions({
       icono: <CalendarMonthOutlinedIcon />,
       onClick: () =>
         navigate("/entrenador/grupos"),
-    },
-    {
-      titulo: "Desafíos",
-      descripcion:
-        "Consultá los desafíos activos del equipo.",
-      icono: <EmojiEventsOutlinedIcon />,
-      onClick: () => navigate("/desafios"),
-    },
+    }
   ];
 
   return (

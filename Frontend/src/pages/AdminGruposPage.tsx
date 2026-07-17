@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -286,15 +285,6 @@ export default function AdminGruposPage() {
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            type="button"
-            onClick={() => navigate("/admin")}
-            className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
-          >
-            <ArrowBackOutlinedIcon fontSize="small" />
-            Volver al panel
-          </button>
-
           <button
             type="button"
             disabled={actualizando}

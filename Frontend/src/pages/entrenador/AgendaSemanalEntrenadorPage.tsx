@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import ViewAgendaOutlinedIcon from "@mui/icons-material/ViewAgendaOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
@@ -124,14 +122,7 @@ export default function AgendaSemanalEntrenadorPage() {
 
       <main className="mx-auto w-full max-w-[1600px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            type="button"
-            onClick={() => navigate("/entrenador")}
-            className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-gray-400 transition-colors hover:text-[#4adea8]"
-          >
-            <ArrowBackOutlinedIcon fontSize="small" />
-            Volver al panel del entrenador
-          </button>
+         
 
           <button
             type="button"

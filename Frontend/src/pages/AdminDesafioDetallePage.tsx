@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
@@ -70,7 +70,6 @@ const porcentajesDisponibles = [
 
 export default function AdminDesafioDetallePage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const desafioId = Number(id);
 
@@ -502,12 +501,6 @@ export default function AdminDesafioDetallePage() {
       <TopBar />
 
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-10">
-        <button
-          onClick={() => navigate("/admin/desafios")}
-          className="text-[#4adea8] hover:underline mb-6"
-        >
-          ← Volver a desafíos
-        </button>
 
         <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-7 mb-8">
           <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">

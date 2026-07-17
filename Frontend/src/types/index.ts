@@ -92,7 +92,7 @@ export interface Clase {
   entrenadoresIds?: number[];
   entrenadorPrincipal?: string | null;
   entrenadorPrincipalId?: number | null;
-
+  fechaOcurrencia?: string | null;
   asistenciaRegistradaHoy?: boolean;
   fechaRegistroAsistencia?: string | null;
   tipoRegistroAsistencia?: "GEOLOCALIZACION" | "MANUAL" | string | null;

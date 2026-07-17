@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-
-import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
@@ -22,9 +20,7 @@ export default function AsistenciaClasePage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
 
-const fechaOcurrencia =
-    searchParams.get("fecha") ?? undefined;
-  const navigate = useNavigate();
+  const fechaOcurrencia = searchParams.get("fecha") ?? undefined;
 
   const claseId = Number(id);
   const [registrandoAlumnoId, setRegistrandoAlumnoId] = useState<number | null>(
@@ -47,11 +43,7 @@ const fechaOcurrencia =
 
       try {
         setLoading(true);
-        const detalle =
-    await obtenerDetalleClase(
-        claseId,
-        fechaOcurrencia,
-    );
+        const detalle = await obtenerDetalleClase(claseId, fechaOcurrencia);
         if (activo) setClase(detalle);
       } catch (error: any) {
         if (!activo) return;
@@ -70,7 +62,7 @@ const fechaOcurrencia =
     return () => {
       activo = false;
     };
-  }, [claseId]);
+  }, [claseId, fechaOcurrencia]);
 
   useEffect(() => {
     const intervalo = window.setInterval(() => {
@@ -81,77 +73,66 @@ const fechaOcurrencia =
   }, []);
 
   const handleRegistrarAsistencia = async (
-  alumnoId: number,
-  presente: boolean,
-) => {
-  if (!clase) return;
+    alumnoId: number,
+    presente: boolean,
+  ) => {
+    if (!clase) return;
 
-  if (!fechaOcurrencia) {
-    toast.error(
-      "No se pudo determinar la fecha de la ocurrencia.",
-    );
-    return;
-  }
+    const fechaAsistencia =
+      fechaOcurrencia ?? clase.fechaOcurrencia?.substring(0, 10);
 
-  const disponibilidad =
-    obtenerDisponibilidadAsistencia(
+    if (!fechaAsistencia) {
+      toast.error("No se pudo determinar la fecha de la ocurrencia.");
+      return;
+    }
+
+    const disponibilidad = obtenerDisponibilidadAsistencia(
       clase.diaSemana,
       clase.horaInicio,
       clase.horaFin,
       ahora,
     );
 
-  if (!disponibilidad.habilitada) {
-    toast.error(disponibilidad.mensaje);
-    return;
-  }
+    if (!disponibilidad.habilitada) {
+      toast.error(disponibilidad.mensaje);
+      return;
+    }
 
-  try {
-    setRegistrandoAlumnoId(alumnoId);
+    try {
+      setRegistrandoAlumnoId(alumnoId);
 
-    await registrarAsistencia(
-      alumnoId,
-      claseId,
-      presente,
-      fechaOcurrencia,
-    );
+      await registrarAsistencia(alumnoId, claseId, presente, fechaAsistencia);
 
-    setClase((prev) => {
-      if (!prev) return prev;
+      setClase((prev) => {
+        if (!prev) return prev;
 
-      return {
-        ...prev,
-        alumnos: prev.alumnos.map((alumno) =>
-          alumno.id === alumnoId
-            ? {
-                ...alumno,
-                asistenciaRegistrada: true,
-                presente,
-              }
-            : alumno,
-        ),
-      };
-    });
+        return {
+          ...prev,
+          alumnos: prev.alumnos.map((alumno) =>
+            alumno.id === alumnoId
+              ? {
+                  ...alumno,
+                  asistenciaRegistrada: true,
+                  presente,
+                }
+              : alumno,
+          ),
+        };
+      });
 
-    toast.success(
-      presente
-        ? "Asistencia registrada"
-        : "Inasistencia registrada",
-    );
-  } catch (error: any) {
-    console.error(
-      "[Registrar asistencia]",
-      error,
-    );
+      toast.success(
+        presente ? "Asistencia registrada" : "Inasistencia registrada",
+      );
+    } catch (error: any) {
+      console.error("[Registrar asistencia]", error);
 
-    toast.error(
-      error?.response?.data?.mensaje ??
-        "No se pudo registrar la asistencia",
-    );
-  } finally {
-    setRegistrandoAlumnoId(null);
-  }
-};
+      toast.error(
+        error?.response?.data?.mensaje ?? "No se pudo registrar la asistencia",
+      );
+    } finally {
+      setRegistrandoAlumnoId(null);
+    }
+  };
 
   const alumnosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
@@ -190,15 +171,6 @@ const fechaOcurrencia =
       <TopBar />
 
       <main className="mx-auto w-full max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() => navigate(`/entrenador/clases/${clase.id}`)}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-[#4adea8]"
-        >
-          <ArrowBackOutlinedIcon fontSize="small" />
-          Volver al detalle de la clase
-        </button>
-
         <section className="rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <span className="inline-flex rounded-full bg-[#4adea8] px-3 py-1 text-[11px] font-bold text-[#12201b]">
             REGISTRAR ASISTENCIA
@@ -225,9 +197,7 @@ const fechaOcurrencia =
         </section>
 
         {disponibilidadAsistencia && (
-          <EstadoVentanaAsistencia
-            disponibilidad={disponibilidadAsistencia}
-          />
+          <EstadoVentanaAsistencia disponibilidad={disponibilidadAsistencia} />
         )}
 
         <section className="mt-6 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5 sm:p-6">
@@ -291,10 +261,7 @@ const fechaOcurrencia =
                     "El registro no está disponible."
                   }
                   onRegistrar={(presente) =>
-                    handleRegistrarAsistencia(
-                      alumno.id,
-                      presente,
-                    )
+                    handleRegistrarAsistencia(alumno.id, presente)
                   }
                 />
               ))}
@@ -357,9 +324,7 @@ function AlumnoEstado({
             title={!registroHabilitado ? mensajeBloqueo : undefined}
             className="rounded-xl bg-[#4adea8] px-4 py-2 text-sm font-bold text-[#12201b] transition-all disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-60"
           >
-            {registrando
-              ? "Registrando..."
-              : "Registrar presente"}
+            {registrando ? "Registrando..." : "Registrar presente"}
           </button>
 
           <button
@@ -369,16 +334,13 @@ function AlumnoEstado({
             title={!registroHabilitado ? mensajeBloqueo : undefined}
             className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition-all disabled:cursor-not-allowed disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500 disabled:opacity-60"
           >
-            {registrando
-              ? "Registrando..."
-              : "Registrar ausencia"}
+            {registrando ? "Registrando..." : "Registrar ausencia"}
           </button>
         </div>
       )}
     </article>
   );
 }
-
 
 type DisponibilidadAsistencia = {
   habilitada: boolean;
@@ -429,13 +391,9 @@ function EstadoVentanaAsistencia({
             Control de horario
           </p>
 
-          <h2 className="mt-1 text-xl font-bold">
-            {disponibilidad.titulo}
-          </h2>
+          <h2 className="mt-1 text-xl font-bold">{disponibilidad.titulo}</h2>
 
-          <p className="mt-2 text-sm text-gray-300">
-            {disponibilidad.mensaje}
-          </p>
+          <p className="mt-2 text-sm text-gray-300">{disponibilidad.mensaje}</p>
 
           <p className="mt-3 text-xs text-gray-400">
             Ventana permitida: {disponibilidad.ventanaTexto}
@@ -460,17 +418,12 @@ function obtenerDisponibilidadAsistencia(
   const inicioMinutos = obtenerMinutosHora(horaInicio);
   const finMinutosBase = obtenerMinutosHora(horaFin);
 
-  if (
-    diaClase === null ||
-    inicioMinutos === null ||
-    finMinutosBase === null
-  ) {
+  if (diaClase === null || inicioMinutos === null || finMinutosBase === null) {
     return {
       habilitada: false,
       estado: "anticipada",
       titulo: "No se pudo validar el horario",
-      mensaje:
-        "La información de día u horario de la clase no es válida.",
+      mensaje: "La información de día u horario de la clase no es válida.",
       ventanaTexto: "Horario no disponible",
     };
   }
@@ -481,20 +434,16 @@ function obtenerDisponibilidadAsistencia(
     ahoraUruguay.hora * 60 +
     ahoraUruguay.minuto;
 
-  const inicioClaseSemana =
-    (diaClase - 1) * 1440 + inicioMinutos;
+  const inicioClaseSemana = (diaClase - 1) * 1440 + inicioMinutos;
 
-  let finClaseSemana =
-    (diaClase - 1) * 1440 + finMinutosBase;
+  let finClaseSemana = (diaClase - 1) * 1440 + finMinutosBase;
 
   if (finClaseSemana <= inicioClaseSemana) {
     finClaseSemana += 1440;
   }
 
-  const inicioVentana =
-    inicioClaseSemana - MINUTOS_ANTES;
-  const finVentana =
-    finClaseSemana + MINUTOS_DESPUES;
+  const inicioVentana = inicioClaseSemana - MINUTOS_ANTES;
+  const finVentana = finClaseSemana + MINUTOS_DESPUES;
 
   const candidatosActuales = [
     minutoSemanaActual,
@@ -503,8 +452,7 @@ function obtenerDisponibilidadAsistencia(
   ];
 
   const habilitada = candidatosActuales.some(
-    (actual) =>
-      actual >= inicioVentana && actual <= finVentana,
+    (actual) => actual >= inicioVentana && actual <= finVentana,
   );
 
   const ventanaTexto = `${normalizarDiaTexto(
@@ -518,8 +466,7 @@ function obtenerDisponibilidadAsistencia(
       habilitada: true,
       estado: "disponible",
       titulo: "Registro de asistencia disponible",
-      mensaje:
-        "Podés registrar presentes y ausencias durante esta ventana.",
+      mensaje: "Podés registrar presentes y ausencias durante esta ventana.",
       ventanaTexto,
     };
   }
@@ -536,8 +483,7 @@ function obtenerDisponibilidadAsistencia(
     MINUTOS_SEMANA,
   );
 
-  const esMismoDia =
-    ahoraUruguay.diaSemana === diaClase;
+  const esMismoDia = ahoraUruguay.diaSemana === diaClase;
 
   if (
     esMismoDia &&
@@ -548,8 +494,7 @@ function obtenerDisponibilidadAsistencia(
       habilitada: false,
       estado: "finalizada",
       titulo: "La ventana de registro finalizó",
-      mensaje:
-        "Ya no se pueden modificar asistencias desde esta pantalla.",
+      mensaje: "Ya no se pueden modificar asistencias desde esta pantalla.",
       ventanaTexto,
     };
   }
@@ -560,9 +505,7 @@ function obtenerDisponibilidadAsistencia(
     titulo: "Registro de asistencia no disponible",
     mensaje:
       diferenciaHastaInicio < 24 * 60
-        ? `Se habilitará en ${formatearDuracion(
-            diferenciaHastaInicio,
-          )}.`
+        ? `Se habilitará en ${formatearDuracion(diferenciaHastaInicio)}.`
         : `Solo se habilita el ${normalizarDiaTexto(
             diaSemana,
           )} dentro del horario permitido.`,
@@ -620,21 +563,14 @@ function obtenerNumeroDiaSemana(dia: string) {
 }
 
 function obtenerMinutosHora(horaValor: string) {
-  const coincidencia = horaValor?.match(
-    /^(\d{1,2}):(\d{2})/,
-  );
+  const coincidencia = horaValor?.match(/^(\d{1,2}):(\d{2})/);
 
   if (!coincidencia) return null;
 
   const horas = Number(coincidencia[1]);
   const minutos = Number(coincidencia[2]);
 
-  if (
-    horas < 0 ||
-    horas > 23 ||
-    minutos < 0 ||
-    minutos > 59
-  ) {
+  if (horas < 0 || horas > 23 || minutos < 0 || minutos > 59) {
     return null;
   }
 
@@ -644,17 +580,16 @@ function obtenerMinutosHora(horaValor: string) {
 function formatearMinutoSemana(minutoSemana: number) {
   const MINUTOS_SEMANA = 7 * 24 * 60;
   const normalizado =
-    ((minutoSemana % MINUTOS_SEMANA) +
-      MINUTOS_SEMANA) %
-    MINUTOS_SEMANA;
+    ((minutoSemana % MINUTOS_SEMANA) + MINUTOS_SEMANA) % MINUTOS_SEMANA;
 
   const minutoDia = normalizado % 1440;
   const horas = Math.floor(minutoDia / 60);
   const minutos = minutoDia % 60;
 
-  return `${String(horas).padStart(2, "0")}:${String(
-    minutos,
-  ).padStart(2, "0")}`;
+  return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
+    2,
+    "0",
+  )}`;
 }
 
 function distanciaFuturaSemanal(
@@ -663,9 +598,8 @@ function distanciaFuturaSemanal(
   minutosSemana: number,
 ) {
   return (
-    ((objetivo - actual) % minutosSemana) +
-    minutosSemana
-  ) % minutosSemana;
+    (((objetivo - actual) % minutosSemana) + minutosSemana) % minutosSemana
+  );
 }
 
 function distanciaPasadaSemanal(
@@ -674,9 +608,8 @@ function distanciaPasadaSemanal(
   minutosSemana: number,
 ) {
   return (
-    ((actual - objetivo) % minutosSemana) +
-    minutosSemana
-  ) % minutosSemana;
+    (((actual - objetivo) % minutosSemana) + minutosSemana) % minutosSemana
+  );
 }
 
 function formatearDuracion(minutosTotales: number) {
@@ -688,14 +621,10 @@ function formatearDuracion(minutosTotales: number) {
   const minutos = minutosTotales % 60;
 
   if (minutos === 0) {
-    return `${horas} ${
-      horas === 1 ? "hora" : "horas"
-    }`;
+    return `${horas} ${horas === 1 ? "hora" : "horas"}`;
   }
 
-  return `${horas} ${
-    horas === 1 ? "hora" : "horas"
-  } y ${minutos} minutos`;
+  return `${horas} ${horas === 1 ? "hora" : "horas"} y ${minutos} minutos`;
 }
 
 function normalizarDiaTexto(dia: string) {
