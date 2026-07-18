@@ -2,6 +2,8 @@ import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
+import mercadoPagoLogo from "../../assets/mercado-pago-logo.png";
+
 
 type Props = {
   descripcion?: string;
@@ -31,7 +33,7 @@ export default function MetodoPagoCard({
           <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-sky-100 opacity-80" />
 
           <img
-            src="/Mercado_Pago.svg.webp"
+            src={mercadoPagoLogo}
             alt="Mercado Pago"
             className="relative z-10 max-h-16 sm:max-h-20 w-full max-w-72 object-contain"
           />
