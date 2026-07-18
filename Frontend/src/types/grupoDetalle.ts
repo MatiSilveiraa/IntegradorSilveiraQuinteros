@@ -2,12 +2,19 @@ export interface AlumnoGrupo {
   id: number;
   nombre: string;
   apellido: string;
-  peso?: number;
-  estatura?: number;
-  imc?: number;
-  bloqueado: boolean;
-}
 
+  bloqueadoPorInasistencias: boolean;
+  bloqueadoPorDeuda: boolean;
+
+  asistenciasPresentes: number;
+  totalClasesEvaluadas: number;
+  porcentajeAsistencia: number;
+
+  ultimaAsistencia?: string | null;
+
+  rachaActual: number;
+  inasistenciasConsecutivas: number;
+}
 export interface ClaseGrupo {
   id: number;
   diaSemana: string;

@@ -48,17 +48,61 @@ axiosInstance.interceptors.response.use(
       });
     }
 
+    // Solo cerrar sesión si el token realmente está vencido
     if (status === 401 && !esEndpointPublico) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("usuario");
+      const token = localStorage.getItem("token");
 
-      if (window.location.pathname !== "/") {
-        window.location.replace("/");
+      if (token && tokenEstaVencido(token)) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuario");
+
+        if (window.location.pathname !== "/") {
+          window.location.replace("/");
+        }
       }
     }
 
     return Promise.reject(error);
   },
 );
+
+function tokenEstaVencido(token: string): boolean {
+  try {
+    const partes = token.split(".");
+
+    if (partes.length !== 3) {
+      return true;
+    }
+
+    const payloadBase64 = partes[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+
+    const payload = JSON.parse(
+      decodeURIComponent(
+        atob(payloadBase64)
+          .split("")
+          .map(
+            (caracter) =>
+              "%" +
+              ("00" + caracter.charCodeAt(0).toString(16)).slice(-2),
+          )
+          .join(""),
+      ),
+    );
+
+    if (!payload.exp) {
+      return false;
+    }
+
+    const ahora = Math.floor(Date.now() / 1000);
+
+    return payload.exp <= ahora;
+  } catch (error) {
+    console.error("No se pudo verificar el vencimiento del token:", error);
+
+    return false;
+  }
+}
 
 export default axiosInstance;

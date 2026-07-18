@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 
@@ -45,14 +44,6 @@ export default function DashboardQuickActions({
             )
           : navigate("/entrenador/grupos"),
     },
-    {
-      titulo: "Mi agenda",
-      descripcion:
-        "Revisá tus clases y horarios programados.",
-      icono: <CalendarMonthOutlinedIcon />,
-      onClick: () =>
-        navigate("/entrenador/grupos"),
-    }
   ];
 
   return (
@@ -67,7 +58,7 @@ export default function DashboardQuickActions({
         </h2>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {acciones.map((accion) => (
           <button
             key={accion.titulo}

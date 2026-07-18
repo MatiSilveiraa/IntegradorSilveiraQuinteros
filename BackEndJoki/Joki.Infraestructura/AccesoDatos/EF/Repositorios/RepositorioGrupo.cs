@@ -313,13 +313,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
     ahoraUruguay);
 
                     int cantidadAlumnos =
-                        grupo.Clases
-                            .SelectMany(c =>
-                                c.Inscripciones)
-                            .Select(i =>
-                                i.AlumnoId)
-                            .Distinct()
-                            .Count();
+     clasesEntrenador
+         .SelectMany(c => c.Inscripciones)
+         .Select(i => i.AlumnoId)
+         .Distinct()
+         .Count();
 
                     return new GrupoEntrenadorVO
                     {
@@ -371,96 +369,162 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
         }
 
         public GrupoDetalleVO? ObtenerDetalleGrupo(
-            int grupoId,
-            int entrenadorId)
+    int grupoId,
+    int entrenadorId)
         {
             var grupo =
                 _context.Grupos
                     .AsNoTracking()
-                   .Include(g => g.Clases)
-    .ThenInclude(c => c.Inscripciones)
-        .ThenInclude(i => i.Alumno)
 
-.Include(g => g.Clases)
-    .ThenInclude(c => c.Entrenadores)
+                    .Include(g => g.Clases)
+                        .ThenInclude(c => c.Inscripciones)
+                            .ThenInclude(i => i.Alumno)
+
+                    .Include(g => g.Clases)
+                        .ThenInclude(c => c.Entrenadores)
+
+                    .Include(g => g.Clases)
+                        .ThenInclude(c => c.Asistencias)
+
                     .FirstOrDefault(g =>
-    g.Id == grupoId &&
-    g.Clases.Any(c =>
-        c.Entrenadores.Any(e =>
-            e.EntrenadorId == entrenadorId)));
+                        g.Id == grupoId &&
+                        g.Clases.Any(c =>
+                            c.Entrenadores.Any(e =>
+                                e.EntrenadorId == entrenadorId)));
 
             if (grupo == null)
             {
                 return null;
             }
-            var clasesEntrenador = grupo.Clases
-    .Where(c =>
-        c.Entrenadores.Any(e =>
-            e.EntrenadorId == entrenadorId))
-    .ToList();
+
+            var clasesEntrenador =
+                grupo.Clases
+                    .Where(c =>
+                        c.Entrenadores.Any(e =>
+                            e.EntrenadorId == entrenadorId))
+                    .ToList();
+
+            var alumnos =
+                clasesEntrenador
+                    .SelectMany(c => c.Inscripciones)
+                    .GroupBy(i => i.AlumnoId)
+                    .Select(grupoInscripciones =>
+                    {
+                        var inscripcion =
+                            grupoInscripciones.First();
+
+                        var alumno =
+                            inscripcion.Alumno;
+
+                        var idsClasesAlumno =
+                            grupoInscripciones
+                                .Select(i => i.ClaseId)
+                                .Distinct()
+                                .ToHashSet();
+
+                        var asistencias =
+                            clasesEntrenador
+                                .Where(c =>
+                                    idsClasesAlumno.Contains(c.Id))
+                                .SelectMany(c => c.Asistencias)
+                                .Where(a =>
+                                    a.AlumnoId == alumno.UsuarioId)
+                                .OrderByDescending(a => a.Fecha)
+                                .ToList();
+
+                        int totalClasesEvaluadas =
+                            asistencias.Count;
+
+                        int asistenciasPresentes =
+                            asistencias.Count(a => a.Presente);
+
+                        decimal porcentajeAsistencia =
+                            totalClasesEvaluadas > 0
+                                ? Math.Round(
+                                    (decimal)asistenciasPresentes /
+                                    totalClasesEvaluadas * 100,
+                                    1)
+                                : 0;
+
+                        DateTime? ultimaAsistencia =
+                            asistencias
+                                .Where(a => a.Presente)
+                                .Select(a => (DateTime?)a.Fecha)
+                                .FirstOrDefault();
+
+                        int rachaActual =
+                            CalcularRachaActual(
+                                asistencias);
+
+                        int inasistenciasConsecutivas =
+                            CalcularInasistenciasConsecutivas(
+                                asistencias);
+
+                        return new AlumnoGrupoVO
+                        {
+                            Id =
+                                alumno.UsuarioId,
+
+                            Nombre =
+                                alumno.Nombre.Valor,
+
+                            Apellido =
+                                alumno.Apellido.Valor,
+
+                            BloqueadoPorInasistencias =
+                                alumno.BloqueadoPorInasistencias,
+
+                            BloqueadoPorDeuda =
+                                alumno.BloqueadoPorDeuda,
+
+                            AsistenciasPresentes =
+                                asistenciasPresentes,
+
+                            TotalClasesEvaluadas =
+                                totalClasesEvaluadas,
+
+                            PorcentajeAsistencia =
+                                porcentajeAsistencia,
+
+                            UltimaAsistencia =
+                                ultimaAsistencia,
+
+                            RachaActual =
+                                rachaActual,
+
+                            InasistenciasConsecutivas =
+                                inasistenciasConsecutivas
+                        };
+                    })
+                    .OrderBy(a => a.Nombre)
+                    .ThenBy(a => a.Apellido)
+                    .ToList();
+
             return new GrupoDetalleVO
             {
-                Id = grupo.Id,
+                Id =
+                    grupo.Id,
 
-                Nombre = grupo.Nombre,
+                Nombre =
+                    grupo.Nombre,
 
-                Nivel = grupo.Nivel,
+                Nivel =
+                    grupo.Nivel,
 
                 Estado =
                     grupo.Estado.ToString(),
 
                 CantidadClases =
-    clasesEntrenador.Count,
+                    clasesEntrenador.Count,
 
                 CantidadAlumnos =
-    clasesEntrenador
-                        .SelectMany(c =>
-                            c.Inscripciones)
-                        .Select(i =>
-                            i.AlumnoId)
-                        .Distinct()
-                        .Count(),
+                    alumnos.Count,
+
                 Alumnos =
-    clasesEntrenador
-                        .SelectMany(c =>
-                            c.Inscripciones)
-                        .GroupBy(i =>
-                            i.AlumnoId)
-                        .Select(g =>
-                            g.First())
-                        .OrderBy(i =>
-                            i.Alumno.Nombre.Valor)
-                        .Select(i =>
-                            new AlumnoGrupoVO
-                            {
-                                Id =
-                                    i.Alumno.UsuarioId,
-
-                                Nombre =
-                                    i.Alumno.Nombre.Valor,
-
-                                Apellido =
-                                    i.Alumno.Apellido.Valor,
-
-                                Peso =
-                                    i.Alumno.Peso,
-
-                                Estatura =
-                                    i.Alumno.Estatura,
-
-                                IMC =
-                                    i.Alumno.IMC,
-
-                                Bloqueado =
-                                    i.Alumno
-                                        .BloqueadoPorDeuda ||
-                                    i.Alumno
-                                        .BloqueadoPorInasistencias
-                            })
-                        .ToList(),
+                    alumnos,
 
                 Clases =
-    clasesEntrenador
+                    clasesEntrenador
                         .OrderBy(c =>
                             ObtenerOrdenDia(
                                 c.DiaSemana))
@@ -469,11 +533,11 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                         .Select(c =>
                             new ClaseGrupoVO
                             {
-                                Id = c.Id,
+                                Id =
+                                    c.Id,
 
                                 DiaSemana =
-                                    c.DiaSemana
-                                        .ToString(),
+                                    c.DiaSemana.ToString(),
 
                                 HoraInicio =
                                     c.HoraInicio,
@@ -485,8 +549,7 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                                     c.CupoMaximo,
 
                                 Inscriptos =
-                                    c.Inscripciones
-                                        .Count,
+                                    c.Inscripciones.Count,
 
                                 Activa =
                                     c.Estado ==
@@ -494,6 +557,44 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
                             })
                         .ToList()
             };
+        }
+
+        private static int CalcularRachaActual(
+    IEnumerable<Asistencia> asistencias)
+        {
+            int racha = 0;
+
+            foreach (var asistencia in
+                asistencias.OrderByDescending(a => a.Fecha))
+            {
+                if (!asistencia.Presente)
+                {
+                    break;
+                }
+
+                racha++;
+            }
+
+            return racha;
+        }
+
+        private static int CalcularInasistenciasConsecutivas(
+            IEnumerable<Asistencia> asistencias)
+        {
+            int cantidad = 0;
+
+            foreach (var asistencia in
+                asistencias.OrderByDescending(a => a.Fecha))
+            {
+                if (asistencia.Presente)
+                {
+                    break;
+                }
+
+                cantidad++;
+            }
+
+            return cantidad;
         }
 
         private static ProximaClaseVO?

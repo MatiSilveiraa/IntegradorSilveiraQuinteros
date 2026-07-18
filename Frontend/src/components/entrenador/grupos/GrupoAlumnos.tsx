@@ -1,10 +1,11 @@
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import MonitorWeightOutlinedIcon from "@mui/icons-material/MonitorWeightOutlined";
-import HeightOutlinedIcon from "@mui/icons-material/HeightOutlined";
-import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
+import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 
 import type { AlumnoGrupo } from "../../../types/grupoDetalle";
 
@@ -17,24 +18,26 @@ export default function GrupoAlumnos({
 }: Props) {
   return (
     <section>
-      <div className="flex items-end justify-between gap-4 mb-5">
+      {/* Cabecera */}
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[#4adea8] text-xs font-bold uppercase tracking-wide">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
             Plantel
           </p>
 
-          <h2 className="text-2xl font-bold mt-1">
+          <h2 className="mt-1 text-2xl font-bold">
             Alumnos inscriptos
           </h2>
         </div>
 
-        <span className="px-3 py-1 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 text-[#4adea8] text-sm font-bold">
+        <span className="rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 px-3 py-1 text-sm font-bold text-[#4adea8]">
           {alumnos.length}
         </span>
       </div>
 
+      {/* Sin alumnos */}
       {alumnos.length === 0 ? (
-        <div className="rounded-3xl bg-[#1a2b24] border border-[#2d463b] p-10 text-center">
+        <div className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-10 text-center">
           <PeopleOutlineOutlinedIcon
             sx={{
               color: "#4adea8",
@@ -42,114 +45,239 @@ export default function GrupoAlumnos({
             }}
           />
 
-          <h3 className="text-xl font-bold mt-4">
+          <h3 className="mt-4 text-xl font-bold">
             Sin alumnos inscriptos
           </h3>
 
-          <p className="text-gray-400 mt-2">
+          <p className="mt-2 text-gray-400">
             Todavía no hay alumnos en este grupo.
           </p>
         </div>
       ) : (
+        /* Lista de alumnos */
         <div className="space-y-4">
-          {alumnos.map((alumno) => (
-            <article
-              key={alumno.id}
-              className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 hover:border-[#4adea8]/40 transition-all"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 shrink-0 rounded-full bg-[#4adea8]/10 border border-[#4adea8]/30 flex items-center justify-center">
-                  <PersonOutlinedIcon
-                    sx={{ color: "#4adea8" }}
-                  />
-                </div>
+          {alumnos.map((alumno) => {
+            const bloqueado =
+              alumno.bloqueadoPorInasistencias ||
+              alumno.bloqueadoPorDeuda;
 
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-bold break-words">
-                    {alumno.nombre} {alumno.apellido}
-                  </h3>
+            return (
+              <article
+  key={alumno.id}
+  className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5 transition-all hover:border-[#4adea8]/40"
+>
+  {/* Información del alumno */}
+  <div className="flex items-start gap-4">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10">
+      <PersonOutlinedIcon
+        sx={{
+          color: "#4adea8",
+        }}
+      />
+    </div>
 
-                  <span
-                    className={`inline-flex items-center gap-1 text-sm mt-1 ${
-                      alumno.bloqueado
-                        ? "text-red-400"
-                        : "text-green-400"
-                    }`}
-                  >
-                    {alumno.bloqueado ? (
-                      <LockOutlinedIcon fontSize="small" />
-                    ) : (
-                      <LockOpenOutlinedIcon fontSize="small" />
-                    )}
+    <div className="min-w-0 flex-1">
+      <h3 className="text-lg font-bold">
+        {alumno.nombre} {alumno.apellido}
+      </h3>
 
-                    {alumno.bloqueado
-                      ? "Bloqueado"
-                      : "Activo"}
-                  </span>
-                </div>
-              </div>
+      <span
+        className={`mt-1 inline-flex items-center gap-1 text-sm ${
+          bloqueado
+            ? "text-red-400"
+            : "text-green-400"
+        }`}
+      >
+        {bloqueado ? (
+          <LockOutlinedIcon fontSize="small" />
+        ) : (
+          <LockOpenOutlinedIcon fontSize="small" />
+        )}
 
-              <div className="grid grid-cols-3 gap-2 mt-5">
-                <DatoAlumno
-                  icono={<MonitorWeightOutlinedIcon />}
-                  titulo="Peso"
-                  valor={
-                    alumno.peso != null
-                      ? `${alumno.peso} kg`
-                      : "Sin dato"
-                  }
-                />
+        {bloqueado ? "Bloqueado" : "Activo"}
+      </span>
 
-                <DatoAlumno
-                  icono={<HeightOutlinedIcon />}
-                  titulo="Estatura"
-                  valor={
-                    alumno.estatura != null
-                      ? `${alumno.estatura} m`
-                      : "Sin dato"
-                  }
-                />
+      {bloqueado && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {alumno.bloqueadoPorInasistencias && (
+            <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-400">
+              Por inasistencias
+            </span>
+          )}
 
-                <DatoAlumno
-                  icono={<FavoriteBorderOutlinedIcon />}
-                  titulo="IMC"
-                  valor={
-                    alumno.imc != null
-                      ? String(alumno.imc)
-                      : "Sin dato"
-                  }
-                />
-              </div>
-            </article>
-          ))}
+          {alumno.bloqueadoPorDeuda && (
+            <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-400">
+              Por deuda
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* Estadísticas */}
+  <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <DatoAlumno
+      icono={<CheckCircleOutlineOutlinedIcon />}
+      titulo="Asistencia"
+      valor={`${alumno.porcentajeAsistencia ?? 0}%`}
+      detalle={`${alumno.asistenciasPresentes ?? 0} de ${
+        alumno.totalClasesEvaluadas ?? 0
+      } clases`}
+      claseValor={obtenerColorAsistencia(
+        alumno.porcentajeAsistencia ?? 0,
+      )}
+    />
+
+    <DatoAlumno
+      icono={<LocalFireDepartmentOutlinedIcon />}
+      titulo="Racha actual"
+      valor={`${alumno.rachaActual ?? 0}`}
+      detalle={
+        (alumno.rachaActual ?? 0) === 1
+          ? "clase consecutiva"
+          : "clases consecutivas"
+      }
+    />
+
+    <DatoAlumno
+      icono={<EventAvailableOutlinedIcon />}
+      titulo="Última asistencia"
+      valor={formatearUltimaAsistencia(
+        alumno.ultimaAsistencia,
+      )}
+    />
+
+    <DatoAlumno
+      icono={<WarningAmberOutlinedIcon />}
+      titulo="Faltas consecutivas"
+      valor={`${alumno.inasistenciasConsecutivas ?? 0}`}
+      detalle={
+        (alumno.inasistenciasConsecutivas ?? 0) === 1
+          ? "inasistencia"
+          : "inasistencias"
+      }
+      claseValor={obtenerColorInasistencias(
+        alumno.inasistenciasConsecutivas ?? 0,
+      )}
+    />
+  </div>
+</article>
+            );
+          })}
         </div>
       )}
     </section>
   );
 }
 
+/* =====================================================
+   TARJETA DE INFORMACIÓN
+===================================================== */
+
 function DatoAlumno({
   icono,
   titulo,
   valor,
+  detalle,
+  claseValor = "text-white",
 }: {
   icono: React.ReactNode;
   titulo: string;
   valor: string;
+  detalle?: string;
+  claseValor?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-3 min-w-0">
-      <div className="text-[#4adea8]">
-        {icono}
+    <div className="min-w-0 rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
+      {/* Título e icono */}
+      <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center text-[#4adea8]">
+          {icono}
+        </div>
+
+        <p className="text-xs font-medium text-gray-400">
+          {titulo}
+        </p>
       </div>
 
-      <p className="text-[11px] text-gray-500 mt-2">
-        {titulo}
-      </p>
-
-      <p className="text-sm font-semibold mt-1 truncate">
+      {/* Valor */}
+      <p
+        className={`mt-3 text-xl font-bold ${claseValor}`}
+      >
         {valor}
       </p>
+
+      {/* Detalle */}
+      {detalle && (
+        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+          {detalle}
+        </p>
+      )}
     </div>
+  );
+}
+
+/* =====================================================
+   COLOR SEGÚN ASISTENCIA
+===================================================== */
+
+function obtenerColorAsistencia(
+  porcentaje: number,
+) {
+  if (porcentaje >= 80) {
+    return "text-[#4adea8]";
+  }
+
+  if (porcentaje >= 60) {
+    return "text-yellow-300";
+  }
+
+  return "text-red-400";
+}
+
+/* =====================================================
+   COLOR SEGÚN INASISTENCIAS
+===================================================== */
+
+function obtenerColorInasistencias(
+  cantidad: number,
+) {
+  if (cantidad >= 3) {
+    return "text-red-400";
+  }
+
+  if (cantidad > 0) {
+    return "text-yellow-300";
+  }
+
+  return "text-[#4adea8]";
+}
+
+/* =====================================================
+   FORMATEAR ÚLTIMA ASISTENCIA
+===================================================== */
+
+function formatearUltimaAsistencia(
+  fecha?: string | null,
+) {
+  if (!fecha) {
+    return "Sin registro";
+  }
+
+  const fechaAsistencia =
+    new Date(fecha);
+
+  if (Number.isNaN(fechaAsistencia.getTime())) {
+    return "Sin registro";
+  }
+
+  return fechaAsistencia.toLocaleDateString(
+    "es-UY",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    },
   );
 }

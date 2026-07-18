@@ -8,12 +8,20 @@
 
         public string Apellido { get; set; } = string.Empty;
 
-        public decimal? Peso { get; set; }
+        public bool BloqueadoPorInasistencias { get; set; }
 
-        public decimal? Estatura { get; set; }
+        public bool BloqueadoPorDeuda { get; set; }
 
-        public decimal? IMC { get; set; }
+        public int AsistenciasPresentes { get; set; }
 
-        public bool Bloqueado { get; set; }
+        public int TotalClasesEvaluadas { get; set; }
+
+        public decimal PorcentajeAsistencia { get; set; }
+
+        public DateTime? UltimaAsistencia { get; set; }
+
+        public int RachaActual { get; set; }
+
+        public int InasistenciasConsecutivas { get; set; }
     }
 }

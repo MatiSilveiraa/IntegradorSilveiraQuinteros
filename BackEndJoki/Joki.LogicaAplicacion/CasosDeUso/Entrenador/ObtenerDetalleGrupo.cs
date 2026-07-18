@@ -19,7 +19,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
             int grupoId,
             int entrenadorId)
         {
-            var grupo =
+            var grupo = 
                 _repositorioGrupo.ObtenerDetalleGrupo(
                     grupoId,
                     entrenadorId);
@@ -44,23 +44,39 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Entrenador
                 CantidadClases = grupo.CantidadClases,
 
                 Alumnos = grupo.Alumnos
-                    .Select(a => new AlumnoGrupoDTO
-                    {
-                        Id = a.Id,
+    .Select(a => new AlumnoGrupoDTO
+    {
+        Id = a.Id,
 
-                        Nombre = a.Nombre,
+        Nombre = a.Nombre,
 
-                        Apellido = a.Apellido,
+        Apellido = a.Apellido,
 
-                        Peso = a.Peso,
+        BloqueadoPorInasistencias =
+            a.BloqueadoPorInasistencias,
 
-                        Estatura = a.Estatura,
+        BloqueadoPorDeuda =
+            a.BloqueadoPorDeuda,
 
-                        IMC = a.IMC,
+        AsistenciasPresentes =
+            a.AsistenciasPresentes,
 
-                        Bloqueado = a.Bloqueado
-                    })
-                    .ToList(),
+        TotalClasesEvaluadas =
+            a.TotalClasesEvaluadas,
+
+        PorcentajeAsistencia =
+            a.PorcentajeAsistencia,
+
+        UltimaAsistencia =
+            a.UltimaAsistencia,
+
+        RachaActual =
+            a.RachaActual,
+
+        InasistenciasConsecutivas =
+            a.InasistenciasConsecutivas
+    })
+    .ToList(),
 
                 Clases = grupo.Clases
                     .Select(c => new ClaseGrupoDTO

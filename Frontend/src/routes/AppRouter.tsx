@@ -410,6 +410,15 @@ export default function AppRouter() {
   }
 />
 
+<Route
+  path="/entrenador/notificaciones"
+  element={
+    <ProtectedRoute rolPermitido="Entrenador">
+      <NotificacionPage />
+    </ProtectedRoute>
+  }
+/>
+
       </Routes>
     </BrowserRouter>
   );
