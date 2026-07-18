@@ -1,86 +1,120 @@
-import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
 
 type Props = {
-  metodo?: string;
   descripcion?: string;
 };
 
 export default function MetodoPagoCard({
-  metodo = "Mercado Pago",
-  descripcion = "Tarjetas de crédito, débito y medios habilitados.",
+  descripcion = "Podés utilizar tarjetas, dinero disponible en tu cuenta y otros medios habilitados por Mercado Pago.",
 }: Props) {
   return (
     <section className="h-full">
       <div className="mb-4">
-        <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
+        <p className="text-[#4adea8] text-xs sm:text-sm font-bold uppercase tracking-[0.14em]">
           Método de pago
         </p>
 
-        <h2 className="text-2xl font-bold text-white mt-2">
-          Pago online
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2">
+          Pagá de forma segura
         </h2>
 
-        <p className="text-sm text-gray-400 mt-2">
-          El pago se procesa de forma automática.
+        <p className="text-sm text-gray-400 mt-2 leading-relaxed">
+          La operación se procesa directamente en Mercado Pago.
         </p>
       </div>
 
-      <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-5 h-full">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 shrink-0 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center">
-            <PaymentsOutlinedIcon className="text-sky-300" />
-          </div>
+      <article className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-4 sm:p-5 h-full shadow-lg shadow-black/10 transition-all duration-300 hover:border-sky-400/40 hover:shadow-xl">
+        <div className="relative overflow-hidden rounded-3xl bg-white min-h-32 sm:min-h-36 p-6 sm:p-8 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-sky-100 opacity-80" />
 
-          <div className="min-w-0">
-            <h3 className="text-lg font-bold text-white">
-              {metodo}
-            </h3>
-
-            <p className="text-sm text-gray-400 mt-1">
-              {descripcion}
-            </p>
-          </div>
+          <img
+            src="/Mercado_Pago.svg.webp"
+            alt="Mercado Pago"
+            className="relative z-10 max-h-16 sm:max-h-20 w-full max-w-72 object-contain"
+          />
         </div>
 
-        <div className="mt-6 space-y-3">
-          <div className="flex items-start gap-3 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
-            <LockOutlinedIcon
-              className="text-[#4adea8] mt-0.5"
-              fontSize="small"
-            />
+        <p className="text-sm text-gray-400 mt-5 leading-relaxed">
+          {descripcion}
+        </p>
 
-            <div>
-              <p className="text-sm font-semibold text-white">
-                Pago seguro
-              </p>
+        <div className="mt-5 space-y-3">
+          <BeneficioPago
+            icono={
+              <LockOutlinedIcon
+                className="text-[#4adea8]"
+                fontSize="small"
+              />
+            }
+            titulo="Pago 100% seguro"
+            descripcion="Joki no almacena los datos de tu tarjeta."
+          />
 
-              <p className="text-xs text-gray-500 mt-1">
-                La operación se completa en la plataforma de Mercado Pago.
-              </p>
-            </div>
-          </div>
+          <BeneficioPago
+            icono={
+              <CreditCardOutlinedIcon
+                className="text-sky-400"
+                fontSize="small"
+              />
+            }
+            titulo="Diferentes medios"
+            descripcion="Tarjetas, saldo disponible y medios habilitados."
+          />
 
-          <div className="flex items-start gap-3 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4">
-            <InfoOutlinedIcon
-              className="text-gray-400 mt-0.5"
-              fontSize="small"
-            />
+          <BeneficioPago
+            icono={
+              <BoltOutlinedIcon
+                className="text-amber-300"
+                fontSize="small"
+              />
+            }
+            titulo="Confirmación automática"
+            descripcion="La cuota se actualiza cuando el pago es aprobado."
+          />
 
-            <div>
-              <p className="text-sm font-semibold text-white">
-                Pagos manuales
-              </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                Los pagos en efectivo o transferencia los registra el
-                administrador.
-              </p>
-            </div>
-          </div>
+          <BeneficioPago
+            icono={
+              <InfoOutlinedIcon
+                className="text-purple-300"
+                fontSize="small"
+              />
+            }
+            titulo="Pago por cuota"
+            descripcion="Elegí individualmente una cuota pendiente o vencida."
+          />
         </div>
-      </div>
+      </article>
     </section>
+  );
+}
+
+function BeneficioPago({
+  icono,
+  titulo,
+  descripcion,
+}: {
+  icono: React.ReactNode;
+  titulo: string;
+  descripcion: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 bg-[#12201b] border border-[#2d463b] rounded-2xl p-4 transition-all duration-300 hover:border-[#4adea8]/30">
+      <div className="w-10 h-10 shrink-0 rounded-xl bg-[#1a2b24] border border-[#2d463b] flex items-center justify-center">
+        {icono}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-white">
+          {titulo}
+        </p>
+
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+          {descripcion}
+        </p>
+      </div>
+    </div>
   );
 }
