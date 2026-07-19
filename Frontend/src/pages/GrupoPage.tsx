@@ -14,7 +14,6 @@ import FullScreenLoading from "../components/FullScreenSpinner";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import type { Perfil } from "../types";
 
 export default function GruposPage() {
@@ -28,7 +27,6 @@ export default function GruposPage() {
 
   const proximaClase = obtenerProximaClase(misClases);
 
-
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -38,7 +36,7 @@ export default function GruposPage() {
           obtenerMisClases(),
         ]);
 
-       console.log("MIS CLASES", JSON.stringify(clasesData, null, 2));
+        console.log("MIS CLASES", JSON.stringify(clasesData, null, 2));
 
         setPerfil(perfilData);
         setGrupos(gruposData);
@@ -191,48 +189,7 @@ export default function GruposPage() {
           </div>
         )}
 
-        <div
-          className="
-    bg-[#1a2b24]
-    border
-    border-[#2d463b]
-    rounded-2xl
-    p-5
-    mb-8
-  "
-        >
-          <div className="flex justify-between">
-            <div className="flex items-center gap-2">
-              <EmojiEventsRoundedIcon
-                sx={{
-                  color: "#facc15",
-                  fontSize: 24,
-                }}
-              />
-
-              <h3 className="font-bold">Objetivo semanal</h3>
-            </div>
-
-            <span>{misClases.length}/3</span>
-          </div>
-
-          <div
-            className="
-      mt-4
-      h-3
-      rounded-full
-      bg-[#12201b]
-      overflow-hidden
-    "
-          >
-            <div
-              className="h-full bg-[#4adea8]"
-              style={{
-                width: `${Math.min((misClases.length / 3) * 100, 100)}%`,
-              }}
-            />
-          </div>
-        </div>
+        
         {/* PRÓXIMA CLASE */}
 
         <div
@@ -287,10 +244,10 @@ export default function GruposPage() {
         {/* MIS CLASES */}
 
         <section className="mt-10">
-          <div className="flex justify-between items-center mb-5">
+          <div className="flex items-center justify-between gap-4 mb-5">
             <h2 className="text-3xl font-bold">Mis clases</h2>
 
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-400 text-sm shrink-0">
               {misClases.length} clases
             </span>
           </div>
@@ -325,75 +282,133 @@ export default function GruposPage() {
             transition-all
           "
                 >
-                  <div className="flex">
-                    <div className="w-32 h-32 flex-shrink-0">
+                  <div
+                    className="
+              flex
+              flex-col
+              sm:flex-row
+            "
+                  >
+                    {/* IMAGEN */}
+                    <div
+                      className="
+                w-full
+                h-40
+                sm:w-36
+                sm:h-auto
+                sm:min-h-[160px]
+                flex-shrink-0
+              "
+                    >
                       <img
                         src={obtenerImagenGrupo(
                           obtenerNombreGrupo(clase.grupoId),
                         )}
-                        alt="Clase"
+                        alt={obtenerNombreGrupo(clase.grupoId)}
                         className="
-      w-full
-      h-full
-      object-cover
-    "
+                  w-full
+                  h-full
+                  object-cover
+                "
                       />
                     </div>
 
-                    <div className="flex-1 p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-lg">
-                            {clase.diaSemana}
-                          </h3>
+                    {/* CONTENIDO */}
+                    <div className="flex-1 min-w-0 p-5">
+                      <div
+                        className="
+                  flex
+                  flex-col
+                  gap-5
+                  md:flex-row
+                  md:items-center
+                  md:justify-between
+                "
+                      >
+                        {/* INFORMACIÓN */}
+                        <div className="min-w-0">
+                          <div
+                            className="
+                      flex
+                      flex-wrap
+                      items-center
+                      gap-3
+                    "
+                          >
+                            <h3 className="font-bold text-xl">
+                              {clase.diaSemana}
+                            </h3>
 
-                          <p className="text-gray-400 mt-1">
+                            <span
+                              className="
+                        inline-flex
+                        items-center
+                        gap-1
+                        px-3
+                        py-1
+                        rounded-full
+                        bg-[#4adea8]/10
+                        text-[#4adea8]
+                        text-xs
+                        font-semibold
+                        whitespace-nowrap
+                      "
+                            >
+                              <CalendarMonthRoundedIcon
+                                sx={{
+                                  fontSize: 15,
+                                }}
+                              />
+                              Activa
+                            </span>
+                          </div>
+
+                          <p className="text-gray-300 mt-3 text-lg">
                             {clase.horaInicio.substring(0, 5)}
-
                             {" - "}
-
                             {clase.horaFin.substring(0, 5)}
                           </p>
 
-                          <p className="text-gray-500 text-sm mt-2">
+                          <p className="text-gray-500 mt-2">
                             {obtenerNombreGrupo(clase.grupoId)}
                           </p>
                         </div>
 
-                        <span
+                        {/* ACCIONES */}
+                        <div
                           className="
-    flex
-    items-center
-    gap-1
-    px-3
-    py-1
-    rounded-full
-    bg-[#4adea8]/10
-    text-[#4adea8]
-    text-xs
-    font-semibold
-  "
+                    flex
+                    flex-col
+                    gap-2
+                    w-full
+                    md:w-auto
+                    md:items-end
+                    shrink-0
+                  "
                         >
-                          <CalendarMonthRoundedIcon sx={{ fontSize: 15 }} />
-                          Activa
-                        </span>
-                        <button
-                          onClick={() => handleDesinscribirse(clase.id)}
-                          className="
-    mt-4
-    px-4
-    py-2
-    rounded-lg
-    bg-red-500/20
-    text-red-400
-    hover:bg-red-500/30
-    transition-all
-    text-sm
-    font-semibold
-  "
-                        >
-                          Desinscribirme
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDesinscribirse(clase.id)}
+                            className="
+                      w-full
+                      md:w-auto
+                      px-5
+                      py-3
+                      rounded-xl
+                      bg-red-500/10
+                      border
+                      border-red-500/30
+                      text-red-400
+                      hover:bg-red-500/20
+                      transition-all
+                      text-sm
+                      font-semibold
+                      whitespace-nowrap
+                    "
+                          >
+                            Desinscribirme
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -402,14 +417,6 @@ export default function GruposPage() {
             </div>
           )}
         </section>
-
-        <div
-          className="
-    border-t
-    border-[#2d463b]
-    my-10
-  "
-        />
         <section className="mt-8">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-bold">Grupos Disponibles</h2>

@@ -61,7 +61,7 @@ export default function RachaCard({ racha }: Props) {
 
           <button
             type="button"
-            onClick={() => navigate("/alumno/asistencias")}
+            onClick={() => navigate("/alumno/asistencias?tab=historial")}
             className="mt-6 px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] text-gray-200 font-bold hover:border-[#4adea8] hover:text-[#4adea8] transition-all"
           >
             Ver asistencias

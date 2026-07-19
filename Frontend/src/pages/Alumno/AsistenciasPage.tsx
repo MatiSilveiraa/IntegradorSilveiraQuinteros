@@ -46,8 +46,6 @@ type EstadoPantalla =
   | "registrada"
   | "error-ubicacion";
 
-type TabActiva = "registrar" | "historial";
-
 type Coordenadas = {
   latitud: number;
   longitud: number;
@@ -70,7 +68,11 @@ export default function AsistenciasPage() {
   const [ultimaActualizacion, setUltimaActualizacion] = useState("");
   const [estadoPantalla, setEstadoPantalla] =
     useState<EstadoPantalla>("cargando");
-  const [tabActiva, setTabActiva] = useState<TabActiva>("registrar");
+  const [tabActiva, setTabActiva] = useState<"registrar" | "historial">(
+    window.location.search.includes("tab=historial")
+      ? "historial"
+      : "registrar",
+  );
   const [mensajeResultado, setMensajeResultado] = useState("");
   const [horaRegistroLocal, setHoraRegistroLocal] = useState("");
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
@@ -130,9 +132,7 @@ export default function AsistenciasPage() {
           normalizarTexto(clase.diaSemana) === normalizarTexto(diaActual),
       )
       .sort((a, b) =>
-        formatearHora(a.horaInicio).localeCompare(
-          formatearHora(b.horaInicio),
-        ),
+        formatearHora(a.horaInicio).localeCompare(formatearHora(b.horaInicio)),
       );
   }, [misClases]);
 
@@ -147,8 +147,7 @@ export default function AsistenciasPage() {
       const finPermitido = horaAMinutos(clase.horaFin);
 
       return (
-        minutosActuales >= inicioPermitido &&
-        minutosActuales <= finPermitido
+        minutosActuales >= inicioPermitido && minutosActuales <= finPermitido
       );
     });
 
@@ -161,8 +160,8 @@ export default function AsistenciasPage() {
     return proximaClase ?? clasesDeHoy[clasesDeHoy.length - 1];
   }, [clasesDeHoy]);
 
-  const asistenciasHistorial =
-    (historial?.asistencias ?? []) as AsistenciaHistorial[];
+  const asistenciasHistorial = (historial?.asistencias ??
+    []) as AsistenciaHistorial[];
 
   const asistenciaYaRegistrada =
     claseActual?.asistenciaRegistradaHoy === true ||
@@ -170,17 +169,14 @@ export default function AsistenciasPage() {
 
   const horaAsistenciaRegistrada = useMemo(() => {
     if (claseActual?.fechaRegistroAsistencia) {
-      return formatearHoraUruguay(
-        claseActual.fechaRegistroAsistencia,
-      );
+      return formatearHoraUruguay(claseActual.fechaRegistroAsistencia);
     }
 
     return horaRegistroLocal;
   }, [claseActual?.fechaRegistroAsistencia, horaRegistroLocal]);
 
   const tipoRegistroTexto = useMemo(() => {
-    const tipo =
-      claseActual?.tipoRegistroAsistencia?.toUpperCase();
+    const tipo = claseActual?.tipoRegistroAsistencia?.toUpperCase();
 
     if (tipo === "GEOLOCALIZACION") return "Geolocalización";
     if (tipo === "MANUAL") return "Registro manual";
@@ -194,9 +190,7 @@ export default function AsistenciasPage() {
       estadoPantalla !== "registrando"
     ) {
       setEstadoPantalla("registrada");
-      setMensajeResultado(
-        "La asistencia ya fue registrada para esta clase.",
-      );
+      setMensajeResultado("La asistencia ya fue registrada para esta clase.");
     }
   }, [claseActual?.asistenciaRegistradaHoy, estadoPantalla]);
 
@@ -232,8 +226,7 @@ export default function AsistenciasPage() {
     const finPermitido = horaAMinutos(claseActual.horaFin);
 
     return (
-      minutosActuales >= inicioPermitido &&
-      minutosActuales <= finPermitido
+      minutosActuales >= inicioPermitido && minutosActuales <= finPermitido
     );
   }, [claseActual]);
 
@@ -246,10 +239,7 @@ export default function AsistenciasPage() {
     estadoPantalla !== "registrando" &&
     !obteniendoUbicacion;
 
-
-  const solicitarUbicacion = async (
-    mostrarToastExito = true,
-  ) => {
+  const solicitarUbicacion = async (mostrarToastExito = true) => {
     if (!navigator.geolocation) {
       setEstadoPantalla("error-ubicacion");
       toast.error("Tu navegador no permite obtener la ubicación.");
@@ -336,12 +326,11 @@ export default function AsistenciasPage() {
     try {
       setEstadoPantalla("registrando");
 
-      const resultado =
-        await registrarAsistenciaGeolocalizacion(
-          claseActual.id,
-          ubicacion.latitud,
-          ubicacion.longitud,
-        );
+      const resultado = await registrarAsistenciaGeolocalizacion(
+        claseActual.id,
+        ubicacion.latitud,
+        ubicacion.longitud,
+      );
 
       setHoraRegistroLocal(
         new Date().toLocaleTimeString("es-UY", {
@@ -354,15 +343,12 @@ export default function AsistenciasPage() {
         resultado?.mensaje ?? "Asistencia registrada correctamente",
       );
 
-      const [clasesActualizadas, historialActualizado] =
-        await Promise.all([
-          obtenerMisClases(),
-          obtenerMiHistorial(),
-        ]);
+      const [clasesActualizadas, historialActualizado] = await Promise.all([
+        obtenerMisClases(),
+        obtenerMiHistorial(),
+      ]);
 
-      setMisClases(
-        (clasesActualizadas ?? []) as ClaseAsistencia[],
-      );
+      setMisClases((clasesActualizadas ?? []) as ClaseAsistencia[]);
       setHistorial(historialActualizado);
       setEstadoPantalla("registrada");
 
@@ -402,9 +388,7 @@ export default function AsistenciasPage() {
             Control de asistencias
           </p>
 
-          <h1 className="text-3xl lg:text-4xl font-bold mt-2">
-            Asistencias
-          </h1>
+          <h1 className="text-3xl lg:text-4xl font-bold mt-2">Asistencias</h1>
 
           <p className="text-gray-400 mt-2">
             Registrá tu asistencia y consultá tu historial.
@@ -458,17 +442,15 @@ export default function AsistenciasPage() {
                   asistenciaYaRegistrada
                     ? "bg-[#4adea8]/10 border-[#4adea8]/40"
                     : estadoPantalla === "error-ubicacion"
-                    ? "bg-red-500/5 border-red-500/30"
-                    : "bg-[#1a2b24] border-[#2d463b]"
+                      ? "bg-red-500/5 border-red-500/30"
+                      : "bg-[#1a2b24] border-[#2d463b]"
                 }
               `}
             >
               {asistenciaYaRegistrada ? (
                 <div className="flex flex-col md:flex-row md:items-center gap-5">
                   <div className="w-16 h-16 shrink-0 rounded-2xl bg-[#4adea8] text-[#12201b] flex items-center justify-center">
-                    <CheckCircleOutlineOutlinedIcon
-                      sx={{ fontSize: 38 }}
-                    />
+                    <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 38 }} />
                   </div>
 
                   <div>
@@ -600,8 +582,7 @@ export default function AsistenciasPage() {
 
                                 {ultimaActualizacion && (
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Última actualización:{" "}
-                                    {ultimaActualizacion}
+                                    Última actualización: {ultimaActualizacion}
                                   </p>
                                 )}
                               </div>
@@ -619,8 +600,8 @@ export default function AsistenciasPage() {
                           </h3>
 
                           <p className="text-sm text-gray-400 mt-2 max-w-sm">
-                            Permití el acceso a la ubicación para comprobar
-                            si estás dentro del área de la clase.
+                            Permití el acceso a la ubicación para comprobar si
+                            estás dentro del área de la clase.
                           </p>
 
                           <button
@@ -646,8 +627,7 @@ export default function AsistenciasPage() {
                       {claseActual ? (
                         <>
                           <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
-                            {claseActual.grupoNombre ??
-                              "Clase programada"}
+                            {claseActual.grupoNombre ?? "Clase programada"}
                           </p>
 
                           <h3 className="text-3xl font-bold mt-3">
@@ -668,9 +648,7 @@ export default function AsistenciasPage() {
                             </p>
                           )}
 
-                          {esUbicacionLegible(
-                            claseActual.ubicacionNombre,
-                          ) && (
+                          {esUbicacionLegible(claseActual.ubicacionNombre) && (
                             <p className="text-gray-400 mt-2">
                               Ubicación:{" "}
                               <span className="text-white font-semibold">
@@ -705,9 +683,7 @@ export default function AsistenciasPage() {
                             <ClassLocationMap
                               latitud={claseActual.latitud}
                               longitud={claseActual.longitud}
-                              radio={
-                                claseActual.radioGeolocalizacion
-                              }
+                              radio={claseActual.radioGeolocalizacion}
                             />
                           </div>
                         </>
@@ -738,12 +714,11 @@ export default function AsistenciasPage() {
                             : "El registro se enviará únicamente cuando presiones el botón."}
                         </p>
 
-                        {!asistenciaYaRegistrada &&
-                          !ubicacion && (
-                            <p className="text-red-400 text-sm mt-3">
-                              Debés habilitar la ubicación antes de confirmar.
-                            </p>
-                          )}
+                        {!asistenciaYaRegistrada && !ubicacion && (
+                          <p className="text-red-400 text-sm mt-3">
+                            Debés habilitar la ubicación antes de confirmar.
+                          </p>
+                        )}
 
                         {!asistenciaYaRegistrada &&
                           ubicacion &&
@@ -758,8 +733,8 @@ export default function AsistenciasPage() {
                           dentroDelRadio &&
                           !horarioDisponible && (
                             <p className="text-amber-300 text-sm mt-3">
-                              Podés registrar desde 5 minutos antes del inicio
-                              y hasta la hora de finalización.
+                              Podés registrar desde 5 minutos antes del inicio y
+                              hasta la hora de finalización.
                             </p>
                           )}
 
@@ -831,31 +806,115 @@ function HistorialAsistencias({
   asistencias: AsistenciaHistorial[];
   clases: ClaseAsistencia[];
 }) {
-  const asistenciasOrdenadas = [...asistencias].sort(
-    (a, b) =>
-      new Date(b.fecha).getTime() -
-      new Date(a.fecha).getTime(),
-  );
+  type FiltroHistorial =
+    | "mes-actual"
+    | "mes-anterior"
+    | "ultimos-3-meses"
+    | "todo";
 
+  const [filtro, setFiltro] = useState<FiltroHistorial>("mes-actual");
+
+  const [paginaActual, setPaginaActual] = useState(1);
+
+  const REGISTROS_POR_PAGINA = 5;
+
+  /*
+   * RESÚMENES GENERALES
+   * Estos valores no dependen del filtro seleccionado.
+   */
   const totalPresentes = asistencias.filter(
     (asistencia) => asistencia.presente,
   ).length;
 
-  const asistenciasEsteMes = asistencias.filter(
-    (asistencia) => {
-      const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
-      const ahora = new Date();
+  const asistenciasEsteMes = asistencias.filter((asistencia) => {
+    const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
+    const ahora = new Date();
 
-      return (
-        fecha.getMonth() === ahora.getMonth() &&
-        fecha.getFullYear() === ahora.getFullYear() &&
-        asistencia.presente
+    return (
+      fecha.getMonth() === ahora.getMonth() &&
+      fecha.getFullYear() === ahora.getFullYear() &&
+      asistencia.presente
+    );
+  }).length;
+
+  /*
+   * FILTRADO DEL HISTORIAL
+   */
+  const asistenciasFiltradas = useMemo(() => {
+    const ahora = new Date();
+
+    const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+    const inicioMesAnterior = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth() - 1,
+      1,
+    );
+
+    const finMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth(), 0);
+
+    const inicioUltimosTresMeses = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth() - 2,
+      1,
+    );
+
+    return [...asistencias]
+      .filter((asistencia) => {
+        const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
+
+        switch (filtro) {
+          case "mes-actual":
+            return fecha >= inicioMesActual;
+
+          case "mes-anterior":
+            return fecha >= inicioMesAnterior && fecha <= finMesAnterior;
+
+          case "ultimos-3-meses":
+            return fecha >= inicioUltimosTresMeses;
+
+          case "todo":
+            return true;
+
+          default:
+            return true;
+        }
+      })
+      .sort(
+        (a, b) =>
+          crearFechaLocalDesdeISO(b.fecha).getTime() -
+          crearFechaLocalDesdeISO(a.fecha).getTime(),
       );
-    },
-  ).length;
+  }, [asistencias, filtro]);
+
+  /*
+   * PAGINACIÓN
+   */
+  const totalPaginas = Math.ceil(
+    asistenciasFiltradas.length / REGISTROS_POR_PAGINA,
+  );
+
+  const indiceInicio = (paginaActual - 1) * REGISTROS_POR_PAGINA;
+
+  const indiceFin = indiceInicio + REGISTROS_POR_PAGINA;
+
+  const asistenciasPaginadas = asistenciasFiltradas.slice(
+    indiceInicio,
+    indiceFin,
+  );
+
+  /*
+   * Cuando cambia el filtro volvemos
+   * automáticamente a la primera página.
+   */
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [filtro]);
 
   return (
     <div className="space-y-8">
+      {/* RESUMEN */}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <ResumenHistorial
           titulo="Total de asistencias"
@@ -870,22 +929,115 @@ function HistorialAsistencias({
         />
       </div>
 
+      {/* HISTORIAL */}
+
       <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-        <div className="mb-6">
-          <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
-            Actividad
-          </p>
+        {/* CABECERA */}
 
-          <h2 className="text-2xl font-bold mt-2">
-            Historial de asistencias
-          </h2>
+        <div
+          className="
+            flex
+            flex-col
+            lg:flex-row
+            lg:items-end
+            lg:justify-between
+            gap-5
+            mb-6
+          "
+        >
+          <div>
+            <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
+              Actividad
+            </p>
 
-          <p className="text-gray-400 mt-2">
-            Consultá tus registros anteriores.
-          </p>
+            <h2 className="text-2xl font-bold mt-2">
+              Historial de asistencias
+            </h2>
+
+            <p className="text-gray-400 mt-2">
+              Consultá tus registros anteriores.
+            </p>
+          </div>
+
+          {/* FILTRO */}
+
+          <div className="w-full lg:w-auto">
+            <label
+              htmlFor="filtro-historial"
+              className="
+                block
+                text-xs
+                text-gray-400
+                mb-2
+              "
+            >
+              Mostrar registros
+            </label>
+
+            <select
+              id="filtro-historial"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value as FiltroHistorial)}
+              className="
+                w-full
+                lg:w-56
+                bg-[#12201b]
+                border
+                border-[#2d463b]
+                rounded-xl
+                px-4
+                py-3
+                text-white
+                outline-none
+                cursor-pointer
+                focus:border-[#4adea8]
+                transition-all
+              "
+            >
+              <option value="mes-actual">Este mes</option>
+
+              <option value="mes-anterior">Mes anterior</option>
+
+              <option value="ultimos-3-meses">Últimos 3 meses</option>
+
+              <option value="todo">Todo el historial</option>
+            </select>
+          </div>
         </div>
 
-        {!asistenciasOrdenadas.length ? (
+        {/* CANTIDAD DE RESULTADOS */}
+
+        {asistenciasFiltradas.length > 0 && (
+          <div
+            className="
+              flex
+              items-center
+              justify-between
+              gap-4
+              mb-5
+              pb-5
+              border-b
+              border-[#2d463b]
+            "
+          >
+            <p className="text-sm text-gray-400">
+              Mostrando{" "}
+              <span className="text-white font-semibold">
+                {indiceInicio + 1}-
+                {Math.min(indiceFin, asistenciasFiltradas.length)}
+              </span>{" "}
+              de{" "}
+              <span className="text-white font-semibold">
+                {asistenciasFiltradas.length}
+              </span>{" "}
+              registros
+            </p>
+          </div>
+        )}
+
+        {/* SIN RESULTADOS */}
+
+        {!asistenciasFiltradas.length ? (
           <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-10 text-center">
             <HistoryOutlinedIcon
               sx={{
@@ -894,102 +1046,255 @@ function HistorialAsistencias({
               }}
             />
 
-            <h3 className="text-xl font-bold mt-4">
-              Todavía no hay asistencias
-            </h3>
+            <h3 className="text-xl font-bold mt-4">No hay registros</h3>
 
             <p className="text-gray-400 mt-2">
-              Tus próximos registros aparecerán en esta sección.
+              No encontramos asistencias para el período seleccionado.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {asistenciasOrdenadas.map((asistencia) => {
-              const clase = clases.find(
-                (item) => item.id === asistencia.claseId,
-              );
+          <>
+            {/* LISTADO */}
 
-              return (
-                <article
-                  key={asistencia.id}
-                  className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-5"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`
-                          w-12 h-12 shrink-0 rounded-2xl
-                          flex items-center justify-center
-                          ${
-                            asistencia.presente
-                              ? "bg-[#4adea8]/10 text-[#4adea8]"
-                              : "bg-red-500/10 text-red-400"
-                          }
-                        `}
-                      >
-                        {asistencia.presente ? (
-                          <EventAvailableOutlinedIcon />
-                        ) : (
-                          <ErrorOutlineOutlinedIcon />
-                        )}
-                      </div>
+            <div className="space-y-4">
+              {asistenciasPaginadas.map((asistencia) => {
+                const clase = clases.find(
+                  (item) => item.id === asistencia.claseId,
+                );
 
-                      <div>
-                        <p className="text-sm text-gray-400 capitalize">
-                          {formatearFechaCompleta(
-                            asistencia.fecha,
+                return (
+                  <article
+                    key={asistencia.id}
+                    className="
+                        rounded-2xl
+                        bg-[#12201b]
+                        border
+                        border-[#2d463b]
+                        p-5
+                      "
+                  >
+                    <div
+                      className="
+                          flex
+                          flex-col
+                          sm:flex-row
+                          sm:items-center
+                          sm:justify-between
+                          gap-4
+                        "
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* ICONO */}
+
+                        <div
+                          className={`
+                              w-12
+                              h-12
+                              shrink-0
+                              rounded-2xl
+                              flex
+                              items-center
+                              justify-center
+
+                              ${
+                                asistencia.presente
+                                  ? "bg-[#4adea8]/10 text-[#4adea8]"
+                                  : "bg-red-500/10 text-red-400"
+                              }
+                            `}
+                        >
+                          {asistencia.presente ? (
+                            <EventAvailableOutlinedIcon />
+                          ) : (
+                            <ErrorOutlineOutlinedIcon />
                           )}
-                        </p>
+                        </div>
 
-                        <h3 className="text-xl font-bold mt-1">
-                          {clase?.grupoNombre ??
-                            "Clase anterior"}
-                        </h3>
+                        {/* INFORMACIÓN */}
 
-                        {clase && (
-                          <p className="text-gray-400 mt-2">
-                            {clase.diaSemana} ·{" "}
-                            {formatearHora(
-                              clase.horaInicio,
-                            )}{" "}
-                            -{" "}
-                            {formatearHora(
-                              clase.horaFin,
-                            )}
+                        <div>
+                          <p className="text-sm text-gray-400 capitalize">
+                            {formatearFechaCompleta(asistencia.fecha)}
                           </p>
-                        )}
+
+                          <h3 className="text-xl font-bold mt-1">
+                            {clase?.grupoNombre ?? "Clase anterior"}
+                          </h3>
+
+                          {clase && (
+                            <p className="text-gray-400 mt-2">
+                              {clase.diaSemana}
+                              {" · "}
+                              {formatearHora(clase.horaInicio)}
+                              {" - "}
+                              {formatearHora(clase.horaFin)}
+                            </p>
+                          )}
+                        </div>
                       </div>
+
+                      {/* ESTADO */}
+
+                      <span
+                        className={`
+                            self-start
+                            sm:self-auto
+                            inline-flex
+                            items-center
+                            gap-2
+                            px-4
+                            py-2
+                            rounded-full
+                            border
+                            text-sm
+                            font-bold
+
+                            ${
+                              asistencia.presente
+                                ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
+                                : "bg-red-500/10 border-red-500/30 text-red-400"
+                            }
+                          `}
+                      >
+                        {asistencia.presente
+                          ? "Asistencia registrada"
+                          : "Ausente"}
+                      </span>
                     </div>
 
-                    <span
+                    <div className="mt-4 pt-4 border-t border-[#2d463b]">
+                      <p className="text-sm text-gray-400">
+                        Estado:{" "}
+                        <span className="text-white font-semibold">
+                          {asistencia.estado}
+                        </span>
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {/* PAGINACIÓN */}
+
+            {totalPaginas > 1 && (
+              <div
+                className="
+                  flex
+                  flex-col
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
+                  gap-4
+                  mt-6
+                  pt-6
+                  border-t
+                  border-[#2d463b]
+                "
+              >
+                <p className="text-sm text-gray-400">
+                  Página{" "}
+                  <span className="text-white font-semibold">
+                    {paginaActual}
+                  </span>{" "}
+                  de{" "}
+                  <span className="text-white font-semibold">
+                    {totalPaginas}
+                  </span>
+                </p>
+
+                <div className="flex items-center gap-2">
+                  {/* ANTERIOR */}
+
+                  <button
+                    type="button"
+                    disabled={paginaActual === 1}
+                    onClick={() =>
+                      setPaginaActual((pagina) => Math.max(pagina - 1, 1))
+                    }
+                    className="
+                      px-4
+                      py-2
+                      rounded-xl
+                      bg-[#12201b]
+                      border
+                      border-[#2d463b]
+                      text-sm
+                      font-semibold
+                      hover:border-[#4adea8]
+                      hover:text-[#4adea8]
+                      disabled:opacity-40
+                      disabled:cursor-not-allowed
+                      disabled:hover:border-[#2d463b]
+                      disabled:hover:text-white
+                      transition-all
+                    "
+                  >
+                    Anterior
+                  </button>
+
+                  {/* NÚMEROS DE PÁGINA */}
+
+                  {Array.from(
+                    { length: totalPaginas },
+                    (_, index) => index + 1,
+                  ).map((pagina) => (
+                    <button
+                      key={pagina}
+                      type="button"
+                      onClick={() => setPaginaActual(pagina)}
                       className={`
-                        self-start sm:self-auto inline-flex items-center gap-2
-                        px-4 py-2 rounded-full border text-sm font-bold
+                        w-10
+                        h-10
+                        rounded-xl
+                        font-bold
+                        transition-all
+
                         ${
-                          asistencia.presente
-                            ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
-                            : "bg-red-500/10 border-red-500/30 text-red-400"
+                          paginaActual === pagina
+                            ? "bg-[#4adea8] text-[#12201b]"
+                            : "bg-[#12201b] border border-[#2d463b] text-gray-300 hover:border-[#4adea8]"
                         }
                       `}
                     >
-                      {asistencia.presente
-                        ? "Asistencia registrada"
-                        : "Ausente"}
-                    </span>
-                  </div>
+                      {pagina}
+                    </button>
+                  ))}
 
-                  <div className="mt-4 pt-4 border-t border-[#2d463b]">
-                    <p className="text-sm text-gray-400">
-                      Estado:{" "}
-                      <span className="text-white font-semibold">
-                        {asistencia.estado}
-                      </span>
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  {/* SIGUIENTE */}
+
+                  <button
+                    type="button"
+                    disabled={paginaActual === totalPaginas}
+                    onClick={() =>
+                      setPaginaActual((pagina) =>
+                        Math.min(pagina + 1, totalPaginas),
+                      )
+                    }
+                    className="
+                      px-4
+                      py-2
+                      rounded-xl
+                      bg-[#12201b]
+                      border
+                      border-[#2d463b]
+                      text-sm
+                      font-semibold
+                      hover:border-[#4adea8]
+                      hover:text-[#4adea8]
+                      disabled:opacity-40
+                      disabled:cursor-not-allowed
+                      disabled:hover:border-[#2d463b]
+                      disabled:hover:text-white
+                      transition-all
+                    "
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>
@@ -1008,21 +1313,13 @@ function ResumenHistorial({
   return (
     <div className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
       <p className="text-sm text-gray-400">{titulo}</p>
-      <p className="text-4xl font-bold text-[#4adea8] mt-3">
-        {valor}
-      </p>
-      <p className="text-xs text-gray-500 mt-2">
-        {descripcion}
-      </p>
+      <p className="text-4xl font-bold text-[#4adea8] mt-3">{valor}</p>
+      <p className="text-xs text-gray-500 mt-2">{descripcion}</p>
     </div>
   );
 }
 
-function MisClases({
-  clases,
-}: {
-  clases: ClaseAsistencia[];
-}) {
+function MisClases({ clases }: { clases: ClaseAsistencia[] }) {
   return (
     <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
       <div className="mb-6">
@@ -1033,9 +1330,7 @@ function MisClases({
       </div>
 
       {!clases.length ? (
-        <p className="text-gray-400">
-          No tenés clases registradas.
-        </p>
+        <p className="text-gray-400">No tenés clases registradas.</p>
       ) : (
         <div className="space-y-3">
           {clases.map((clase) => (
@@ -1049,8 +1344,7 @@ function MisClases({
                 </p>
 
                 <p className="text-gray-400 mt-1">
-                  {clase.diaSemana} ·{" "}
-                  {formatearHora(clase.horaInicio)} -{" "}
+                  {clase.diaSemana} · {formatearHora(clase.horaInicio)} -{" "}
                   {formatearHora(clase.horaFin)}
                 </p>
               </div>
@@ -1078,7 +1372,6 @@ function MisClases({
     </section>
   );
 }
-
 
 function EstadoBadge({
   dentroDelRadio,
@@ -1164,9 +1457,7 @@ function EstadoVacio({
 
       <h2 className="text-2xl font-bold mt-5">{titulo}</h2>
 
-      <p className="text-gray-400 mt-2 max-w-xl mx-auto">
-        {descripcion}
-      </p>
+      <p className="text-gray-400 mt-2 max-w-xl mx-auto">{descripcion}</p>
     </section>
   );
 }
@@ -1187,40 +1478,35 @@ function obtenerTextoEstado({
   if (asistenciaYaRegistrada) {
     return {
       titulo: "Asistencia confirmada",
-      descripcion:
-        "Ya registraste tu asistencia para esta clase.",
+      descripcion: "Ya registraste tu asistencia para esta clase.",
     };
   }
 
   if (estadoPantalla === "error-ubicacion") {
     return {
       titulo: "Necesitamos tu ubicación",
-      descripcion:
-        "Habilitá el permiso de ubicación para continuar.",
+      descripcion: "Habilitá el permiso de ubicación para continuar.",
     };
   }
 
   if (estadoPantalla === "ubicacion-pendiente") {
     return {
       titulo: "Obteniendo ubicación...",
-      descripcion:
-        "Estamos comprobando tu posición actual.",
+      descripcion: "Estamos comprobando tu posición actual.",
     };
   }
 
   if (!claseActual) {
     return {
       titulo: "Sin clase disponible",
-      descripcion:
-        "No encontramos una clase para registrar en este momento.",
+      descripcion: "No encontramos una clase para registrar en este momento.",
     };
   }
 
   if (!dentroDelRadio) {
     return {
       titulo: "Acercate a la ubicación",
-      descripcion:
-        "Todavía estás fuera del radio permitido.",
+      descripcion: "Todavía estás fuera del radio permitido.",
     };
   }
 
@@ -1234,22 +1520,17 @@ function obtenerTextoEstado({
 
   return {
     titulo: "Listo para confirmar",
-    descripcion:
-      "Estás dentro del área y en el horario permitido.",
+    descripcion: "Estás dentro del área y en el horario permitido.",
   };
 }
 
 function obtenerPosicionActual(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(
-      resolve,
-      reject,
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      },
-    );
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0,
+    });
   });
 }
 
@@ -1261,10 +1542,7 @@ function formatearHora(hora?: string) {
 function horaAMinutos(hora?: string) {
   if (!hora) return 0;
 
-  const [horas, minutos] = hora
-    .substring(0, 5)
-    .split(":")
-    .map(Number);
+  const [horas, minutos] = hora.substring(0, 5).split(":").map(Number);
 
   return horas * 60 + minutos;
 }
@@ -1281,33 +1559,25 @@ function esUbicacionLegible(ubicacion?: string) {
   return !/^\d+$/.test(ubicacion.trim());
 }
 
-function formatearHoraUruguay(
-  fecha?: string | null,
-) {
+function formatearHoraUruguay(fecha?: string | null) {
   if (!fecha) return "";
 
-  return new Date(fecha).toLocaleTimeString(
-    "es-UY",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Montevideo",
-    },
-  );
+  return new Date(fecha).toLocaleTimeString("es-UY", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Montevideo",
+  });
 }
 
 function crearFechaLocalDesdeISO(fecha: string) {
   const fechaSinHora = fecha.substring(0, 10);
-  const [anio, mes, dia] =
-    fechaSinHora.split("-").map(Number);
+  const [anio, mes, dia] = fechaSinHora.split("-").map(Number);
 
   return new Date(anio, mes - 1, dia);
 }
 
 function formatearFechaCompleta(fecha: string) {
-  return crearFechaLocalDesdeISO(
-    fecha,
-  ).toLocaleDateString("es-UY", {
+  return crearFechaLocalDesdeISO(fecha).toLocaleDateString("es-UY", {
     weekday: "long",
     day: "2-digit",
     month: "long",

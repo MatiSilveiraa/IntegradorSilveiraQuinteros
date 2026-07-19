@@ -142,16 +142,16 @@ export default function GrupoDetallePage() {
 
   return (
     <AlumnoLayout nombre={undefined}>
-      <main className="max-w-5xl mx-auto">
+      <main className="max-w-5xl mx-auto w-full min-w-0 overflow-x-hidden">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold">{grupo.nombre}</h1>
+          <h1 className="text-3xl font-bold break-words">{grupo.nombre}</h1>
 
           <p className="text-gray-400 mt-1">Nivel {grupo.nivel}</p>
         </header>
 
         <BlockedAccountAlert motivo={obtenerMotivoBloqueo(perfil)} />
 
-        <div className="grid gap-4">
+        <div className="grid gap-4 w-full min-w-0">
           {(grupo.clases?.length ?? 0) > 0 ? (
             grupo.clases?.map((clase: Clase) => {
               const estaInscripto = clasesInscritas.includes(clase.id);
@@ -160,17 +160,37 @@ export default function GrupoDetallePage() {
                 <div
                   key={clase.id}
                   className="
-                      bg-[#1a2b24]
-                      border
-                      border-[#2d463b]
-                      rounded-2xl
-                      p-5
-                    "
+                  w-full
+                  min-w-0
+                  max-w-full
+                  bg-[#1a2b24]
+                  border
+                  border-[#2d463b]
+                  rounded-2xl
+                  p-5
+                  overflow-hidden
+                "
                 >
-                  <div className="flex justify-between items-start gap-6">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <CalendarTodayOutlinedIcon sx={{ fontSize: 18 }} />
+                  <div
+                    className="
+                    flex
+                    flex-col
+                    gap-6
+                    sm:flex-row
+                    sm:justify-between
+                    sm:items-start
+                  "
+                  >
+                    {/* INFORMACIÓN DE LA CLASE */}
+
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <CalendarTodayOutlinedIcon
+                          sx={{
+                            fontSize: 18,
+                            flexShrink: 0,
+                          }}
+                        />
 
                         <span className="font-bold text-lg">
                           {clase.diaSemana}
@@ -178,18 +198,21 @@ export default function GrupoDetallePage() {
 
                         <span
                           className="
-          px-3
-          py-1
-          rounded-full
-          bg-blue-500/10
-          text-blue-400
-          text-xs
-          font-semibold
-        "
+                          px-3
+                          py-1
+                          rounded-full
+                          bg-blue-500/10
+                          text-blue-400
+                          text-xs
+                          font-semibold
+                          whitespace-nowrap
+                        "
                         >
                           {clase.estado}
                         </span>
                       </div>
+
+                      {/* HORARIO */}
 
                       <p className="text-gray-300">
                         {clase.horaInicio.substring(0, 5)}
@@ -197,21 +220,25 @@ export default function GrupoDetallePage() {
                         {clase.horaFin.substring(0, 5)}
                       </p>
 
+                      {/* ENTRENADORES */}
+
                       {clase.entrenadores && clase.entrenadores.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {clase.entrenadores.map((nombre) => (
                             <span
                               key={nombre}
                               className="
-          px-3
-          py-1
-          rounded-lg
-          bg-[#12201b]
-          text-[#4adea8]
-          text-sm
-          border
-          border-[#2d463b]
-        "
+                                  max-w-full
+                                  px-3
+                                  py-1
+                                  rounded-lg
+                                  bg-[#12201b]
+                                  text-[#4adea8]
+                                  text-sm
+                                  border
+                                  border-[#2d463b]
+                                  break-words
+                                "
                             >
                               👨‍🏫 {nombre}
                             </span>
@@ -219,39 +246,43 @@ export default function GrupoDetallePage() {
                         </div>
                       )}
 
+                      {/* CUPO Y TIPO */}
+
                       <div className="flex flex-wrap gap-2">
                         <span
                           className="
-          px-3
-          py-1
-          rounded-lg
-          bg-[#12201b]
-          text-[#4adea8]
-          text-sm
-        "
+                          px-3
+                          py-1
+                          rounded-lg
+                          bg-[#12201b]
+                          text-[#4adea8]
+                          text-sm
+                        "
                         >
                           👥 {clase.cantidadInscriptos ?? 0}/{clase.cupoMaximo}
                         </span>
 
                         <span
                           className="
-          px-3
-          py-1
-          rounded-lg
-          bg-[#12201b]
-          text-[#4adea8]
-          text-sm
-        "
+                          px-3
+                          py-1
+                          rounded-lg
+                          bg-[#12201b]
+                          text-[#4adea8]
+                          text-sm
+                        "
                         >
                           {clase.esFija ? "Clase fija" : "Clase especial"}
                         </span>
                       </div>
 
-                      <div>
-                        <div className="flex justify-between text-xs mb-2">
+                      {/* OCUPACIÓN */}
+
+                      <div className="w-full min-w-0">
+                        <div className="flex justify-between text-xs mb-2 gap-4">
                           <span className="text-gray-400">Ocupación</span>
 
-                          <span className="text-[#4adea8]">
+                          <span className="text-[#4adea8] shrink-0">
                             {Math.round(
                               ((clase.cantidadInscriptos ?? 0) * 100) /
                                 (clase.cupoMaximo ?? 1),
@@ -260,14 +291,27 @@ export default function GrupoDetallePage() {
                           </span>
                         </div>
 
-                        <div className="h-2 bg-[#12201b] rounded-full overflow-hidden">
+                        <div
+                          className="
+                          w-full
+                          h-2
+                          bg-[#12201b]
+                          rounded-full
+                          overflow-hidden
+                        "
+                        >
                           <div
-                            className="h-full bg-[#4adea8]"
+                            className="
+                            h-full
+                            bg-[#4adea8]
+                            transition-all
+                          "
                             style={{
-                              width: `${
+                              width: `${Math.min(
                                 ((clase.cantidadInscriptos ?? 0) * 100) /
-                                (clase.cupoMaximo ?? 1)
-                              }%`,
+                                  (clase.cupoMaximo ?? 1),
+                                100,
+                              )}%`,
                             }}
                           />
                         </div>
@@ -289,49 +333,68 @@ export default function GrupoDetallePage() {
                         )}
                       </div>
 
+                      {/* UBICACIÓN */}
+
                       {clase.latitud && clase.longitud && (
                         <a
-                          href={`https://www.openstreetmap.org/?mlat=${clase.latitud}&mlon=${clase.longitud}&zoom=16`}
+                          href={`https://www.google.com/maps/search/?api=1&query=${clase.latitud},${clase.longitud}`}
                           target="_blank"
                           rel="noreferrer"
                           className="
-          inline-block
-          text-[#4adea8]
-          text-sm
-          hover:underline
-        "
+      inline-block
+      text-[#4adea8]
+      text-sm
+      hover:underline
+    "
                         >
                           Ver ubicación
                         </a>
                       )}
 
+                      {/* VIGENCIA */}
+
                       {clase.fechaFin && (
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-gray-500 text-sm break-words">
                           Vigente hasta{" "}
                           {new Date(clase.fechaFin).toLocaleDateString("es-UY")}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex items-center">
+                    {/* ACCIONES */}
+
+                    <div
+                      className="
+                      flex
+                      items-center
+                      w-full
+                      sm:w-auto
+                      shrink-0
+                    "
+                    >
                       {estaInscripto ? (
                         <button
+                          type="button"
                           onClick={() => handleDesinscribirse(clase.id)}
                           className="
-          px-5
-          py-3
-          rounded-xl
-          font-bold
-          bg-red-500/20
-          text-red-400
-          hover:bg-red-500/30
-          transition-all
-        "
+                          w-full
+                          sm:w-auto
+                          px-5
+                          py-3
+                          rounded-xl
+                          font-bold
+                          bg-red-500/20
+                          text-red-400
+                          hover:bg-red-500/30
+                          transition-all
+                          whitespace-nowrap
+                        "
                         >
                           Desinscribirme
                         </button>
                       ) : (
                         <button
+                          type="button"
                           disabled={bloqueado}
                           onClick={() => {
                             if (!validarCuentaActiva(perfil)) {
@@ -341,17 +404,19 @@ export default function GrupoDetallePage() {
                             handleInscribirse(clase.id);
                           }}
                           className={`
-          px-5
-          py-3
-          rounded-xl
-          font-bold
-          transition-all
-          ${
-            bloqueado
-              ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-              : "bg-[#4adea8] text-[#12201b] hover:opacity-90"
-          }
-        `}
+                          w-full
+                          sm:w-auto
+                          px-5
+                          py-3
+                          rounded-xl
+                          font-bold
+                          transition-all
+                          ${
+                            bloqueado
+                              ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+                              : "bg-[#4adea8] text-[#12201b] hover:opacity-90"
+                          }
+                        `}
                         >
                           {bloqueado ? "Cuenta bloqueada" : "Inscribirme"}
                         </button>
@@ -364,13 +429,14 @@ export default function GrupoDetallePage() {
           ) : (
             <div
               className="
-                bg-[#1a2b24]
-                border
-                border-[#2d463b]
-                rounded-2xl
-                p-8
-                text-center
-              "
+              w-full
+              bg-[#1a2b24]
+              border
+              border-[#2d463b]
+              rounded-2xl
+              p-8
+              text-center
+            "
             >
               <p className="text-gray-400">
                 Este grupo no tiene clases configuradas.
