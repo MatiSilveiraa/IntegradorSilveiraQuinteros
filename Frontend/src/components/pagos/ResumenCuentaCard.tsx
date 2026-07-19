@@ -12,14 +12,14 @@ type Props = {
 };
 
 export default function ResumenCuentaCard({ cuota }: Props) {
-  const bonificada =
-    cuota?.estado?.toUpperCase() === "BONIFICADA" ||
-    (cuota?.montoFinal === 0 &&
-      cuota?.estado?.toUpperCase() !== "PENDIENTE");
+  const estadoNormalizado = String(cuota?.estado ?? "")
+    .trim()
+    .toUpperCase();
 
+  const bonificada = estadoNormalizado === "BONIFICADA";
   const estado = bonificada
     ? "BONIFICADA"
-    : cuota?.estado?.toUpperCase() ?? "SIN CUOTA";
+    : estadoNormalizado || "SIN CUOTA";
 
   const importe =
     cuota?.montoFinal ??
@@ -34,59 +34,67 @@ export default function ResumenCuentaCard({ cuota }: Props) {
 
   const descuento = cuota?.descuento ?? 0;
   const visual = obtenerVisualEstado(estado);
+  const textoEstado = obtenerTextoEstado(cuota, bonificada);
 
   return (
-    <div className="h-full rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-6 shadow-xl">
-      <div className="flex items-start justify-between gap-4">
+    <article className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5 sm:p-6 shadow-lg shadow-black/10">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-[#4adea8]">
+          <p className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-[#4adea8]">
             Cuota actual
           </p>
 
-          <p className="mt-1 text-2xl font-bold text-white">
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-white">
             {periodo}
-          </p>
+          </h2>
         </div>
 
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${visual.clases}`}
+          className={`inline-flex self-start items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase ${visual.clases}`}
         >
           {visual.icono}
           {estado}
         </span>
       </div>
 
-      <div className="my-5 flex items-center gap-3 border-y border-[#2d463b] py-5">
-        <PaymentsOutlinedIcon className="text-gray-400" />
-
-        <span className="text-4xl font-bold text-white">
-          {formatearDinero(importe)}
-
-          <span className="ml-2 text-sm font-normal text-gray-400">
-            UYU
-          </span>
-        </span>
-      </div>
-
-      <div className="space-y-3 text-sm">
-        <p className="text-gray-400">
-          {obtenerTextoEstado(cuota, bonificada)}
-        </p>
-
-        {bonificada && (
-          <p className="rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-2 text-purple-300">
-            Esta cuota fue bonificada y no requiere pago.
-          </p>
-        )}
-
-        {!bonificada && descuento > 0 && (
-          <div className="inline-flex items-center gap-2 rounded-xl border border-[#4adea8]/20 bg-[#4adea8]/5 px-3 py-2 text-[#4adea8]">
-            <SavingsOutlinedIcon sx={{ fontSize: 18 }} />
-            Beneficio aplicado: -{formatearDinero(descuento)}
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 sm:items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-[#12201b] border border-[#2d463b] flex items-center justify-center">
+            <PaymentsOutlinedIcon className="text-[#4adea8]" />
           </div>
-        )}
+
+          <div>
+            <p className="text-xs text-gray-400">Monto final</p>
+
+            <p className="text-3xl sm:text-4xl font-bold text-white leading-none mt-1">
+              {formatearDinero(importe)}
+              <span className="ml-2 text-xs sm:text-sm font-normal text-gray-400">
+                UYU
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="sm:border-l sm:border-[#2d463b] sm:pl-5">
+          <p className="text-sm text-gray-300">
+            {textoEstado}
+          </p>
+
+          {!bonificada && descuento > 0 && (
+            <div className="inline-flex items-center gap-2 mt-3 rounded-xl border border-[#4adea8]/20 bg-[#4adea8]/5 px-3 py-2 text-xs sm:text-sm text-[#4adea8]">
+              <SavingsOutlinedIcon sx={{ fontSize: 18 }} />
+              Beneficio aplicado: -{formatearDinero(descuento)}
+            </div>
+          )}
+
+          {bonificada && (
+            <div className="inline-flex mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-2 text-xs sm:text-sm text-purple-300">
+              Esta cuota no requiere pago.
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -95,7 +103,9 @@ function obtenerTextoEstado(cuota: Cuota, bonificada: boolean) {
     return "Cuota cubierta mediante un beneficio.";
   }
 
-  const estado = cuota.estado?.toUpperCase();
+  const estado = String(cuota.estado ?? "")
+    .trim()
+    .toUpperCase();
 
   if (estado === "PAGADA") {
     return cuota.fechaPago

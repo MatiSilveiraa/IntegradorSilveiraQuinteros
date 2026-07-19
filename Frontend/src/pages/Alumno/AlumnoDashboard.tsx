@@ -12,6 +12,7 @@ import RachaCard from "../../components/dashboard/RachaCard";
 import ResumenCard from "../../components/dashboard/ResumenCard";
 import NovedadesCard from "../../components/dashboard/NovedadesCard";
 import SecurityIcon from "@mui/icons-material/Security";
+import { obtenerProximaClase } from "../../utils/proximaClaseUtils";
 
 import { useNavigate } from "react-router-dom";
 
@@ -37,33 +38,6 @@ export default function AlumnoDashboard() {
 
   const [misClases, setMisClases] = useState<Clase[]>([]);
 
-  const diasSemana = [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miercoles",
-    "Jueves",
-    "Viernes",
-    "Sabado",
-  ];
-
-  const obtenerProximaClase = (clases: Clase[]) => {
-    if (!clases.length) {
-      return undefined;
-    }
-
-    const hoy = new Date().getDay();
-
-    const ordenadas = [...clases].sort(
-      (a, b) =>
-        diasSemana.indexOf(a.diaSemana) - diasSemana.indexOf(b.diaSemana),
-    );
-
-    return (
-      ordenadas.find((c) => diasSemana.indexOf(c.diaSemana) >= hoy) ||
-      ordenadas[0]
-    );
-  };
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -172,7 +146,10 @@ export default function AlumnoDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <ProximaClaseCard clase={proximaClase} />
 
-          <CuotaCard cuota={cuota} />
+          <CuotaCard
+  cuota={cuota}
+  bloqueadoPorDeuda={perfil?.bloqueadoPorDeuda}
+/>
 
           <RachaCard racha={perfil?.rachaAsistenciaMensual} />
 

@@ -2,10 +2,11 @@ import { useNavigate } from "react-router-dom";
 import Card from "../ui/Card";
 import type { ReactNode } from "react";
 import type { Historial } from "../../types";
+
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
-import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+
 
 type Props = {
   historial?: Historial;
@@ -15,8 +16,8 @@ export default function ResumenCard({ historial }: Props) {
   const navigate = useNavigate();
 
   const asistencias = historial?.asistencias?.length ?? 0;
-  // const pagos = historial?.pagos?.length ?? 0;
-  const cuotas = historial?.cuotas?.length ?? 0;
+  const pagos = historial?.pagos?.length ?? 0;
+ 
 
   return (
     <Card className="lg:col-span-2">
@@ -31,7 +32,7 @@ export default function ResumenCard({ historial }: Props) {
           </h3>
 
           <p className="text-gray-400 mt-2">
-            Consultá rápidamente tus asistencias, pagos y cuotas.
+            Consultá rápidamente tus asistencias y movimientos.
           </p>
         </div>
 
@@ -45,38 +46,25 @@ export default function ResumenCard({ historial }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <ResumenItem
           titulo="Asistencias"
           valor={asistencias}
           descripcion="Registros acumulados"
           icono={
-            <CalendarMonthRoundedIcon sx={{ color: "#60a5fa", fontSize: 24 }} />
+            <CalendarMonthRoundedIcon
+              sx={{ color: "#60a5fa", fontSize: 24 }}
+            />
           }
           onClick={() => navigate("/alumno/asistencias")}
         />
 
         <ResumenItem
           titulo="Pagos"
-          valor={2}
-          descripcion="Pagos registrados"
+          valor={pagos}
+          descripcion="Pagos confirmados"
           icono={
             <CreditCardRoundedIcon
-              sx={{
-                color: "#4adea8",
-                fontSize: 28,
-              }}
-            />
-          }
-          onClick={() => navigate("/alumno/pagos")}
-        />
-
-        <ResumenItem
-          titulo="Cuotas"
-          valor={cuotas}
-          descripcion="Cuotas generadas"
-          icono={
-            <DescriptionRoundedIcon
               sx={{
                 color: "#4adea8",
                 fontSize: 28,
@@ -123,7 +111,9 @@ function ResumenItem({
 
       <p className="text-xs text-gray-500 mt-4">{descripcion}</p>
 
-      <p className="text-sm text-[#4adea8] font-semibold mt-4">Ver detalle →</p>
+      <p className="text-sm text-[#4adea8] font-semibold mt-4">
+        Ver detalle →
+      </p>
     </button>
   );
 }

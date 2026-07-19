@@ -84,6 +84,7 @@ export default function DashboardNextClass({
                     clase.fechaProximaClase,
                   )}
                 </p>
+                
               </div>
             </div>
 
