@@ -192,9 +192,11 @@ export default function PagosPage() {
     return <FullPageLoader />;
   }
 
-  return (
+ return (
   <AlumnoLayout nombre={perfil?.nombre}>
     <main className="w-full max-w-6xl mx-auto">
+
+      {/* HEADER */}
 
       <header className="mb-8">
         <p className="text-[#4adea8] text-xs sm:text-sm font-bold uppercase tracking-[0.14em]">
@@ -230,20 +232,33 @@ export default function PagosPage() {
         </div>
       )}
 
-      {/* METODO DE PAGO */}
+      {/* CUOTAS + MÉTODO DE PAGO */}
 
-      <div className="mt-6">
-        <MetodoPagoCard />
-      </div>
+      <div
+        className="
+          mt-10
+          grid
+          grid-cols-1
+          lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]
+          gap-6
+          items-start
+        "
+      >
+        {/* HISTORIAL / CUOTAS */}
 
-      {/* HISTORIAL */}
+        <div className="min-w-0">
+          <HistorialPagosCard
+            cuotas={cuotas}
+            onPagar={handlePagar}
+            cuotaProcesandoId={cuotaProcesandoId}
+          />
+        </div>
 
-      <div className="mt-10">
-        <HistorialPagosCard
-          cuotas={cuotas}
-          onPagar={handlePagar}
-          cuotaProcesandoId={cuotaProcesandoId}
-        />
+        {/* MÉTODO DE PAGO */}
+
+        <div className="lg:sticky lg:top-24">
+          <MetodoPagoCard />
+        </div>
       </div>
 
       {/* SEGURIDAD */}

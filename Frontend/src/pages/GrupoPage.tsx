@@ -15,12 +15,14 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import type { Perfil } from "../types";
+import { useNavigate } from "react-router-dom";
 
 export default function GruposPage() {
   const [perfil, setPerfil] = useState<Perfil | any>(null);
   const [loading, setLoading] = useState(true);
   const [grupos, setGrupos] = useState<any[]>([]);
   const [misClases, setMisClases] = useState<any[]>([]);
+  const navigate = useNavigate();
   useState<any[]>([]);
 
   const [busqueda, setBusqueda] = useState("");
@@ -79,6 +81,7 @@ export default function GruposPage() {
   return (
     <AlumnoLayout nombre={perfil?.nombre}>
       <main className="max-w-7xl mx-auto">
+        {/* HEADER */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Grupos</h1>
 
@@ -87,23 +90,34 @@ export default function GruposPage() {
           </p>
         </div>
 
-        <BuscadorGrupos
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        {/* RESUMEN */}
         <div className="grid gap-4 md:grid-cols-3 mt-6 mb-8">
-          <div
+          {/* CLASES ACTIVAS */}
+          <button
+            type="button"
+            onClick={() =>
+              document.getElementById("mis-clases")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
             className="
-      bg-[#1a2b24]
-      border
-      border-[#2d463b]
-      rounded-2xl
-      p-5
-    "
+            text-left
+            bg-[#1a2b24]
+            border
+            border-[#2d463b]
+            rounded-2xl
+            p-5
+            cursor-pointer
+            hover:border-[#4adea8]/60
+            active:scale-[0.98]
+            transition-all
+          "
           >
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-gray-400 text-sm">Clases activas</p>
+
                 <h2 className="text-3xl font-bold mt-2">{misClases.length}</h2>
               </div>
 
@@ -114,16 +128,24 @@ export default function GruposPage() {
                 }}
               />
             </div>
-          </div>
+          </button>
 
-          <div
+          {/* RACHA ACTUAL */}
+          <button
+            type="button"
+            onClick={() => navigate("/alumno/asistencias?tab=historial")}
             className="
-      bg-[#1a2b24]
-      border
-      border-[#2d463b]
-      rounded-2xl
-      p-5
-    "
+            text-left
+            bg-[#1a2b24]
+            border
+            border-[#2d463b]
+            rounded-2xl
+            p-5
+            cursor-pointer
+            hover:border-[#4adea8]/60
+            active:scale-[0.98]
+            transition-all
+          "
           >
             <div className="flex justify-between items-start">
               <div>
@@ -141,16 +163,29 @@ export default function GruposPage() {
                 }}
               />
             </div>
-          </div>
+          </button>
 
-          <div
+          {/* GRUPOS DISPONIBLES */}
+          <button
+            type="button"
+            onClick={() =>
+              document.getElementById("grupos-disponibles")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
             className="
-      bg-[#1a2b24]
-      border
-      border-[#2d463b]
-      rounded-2xl
-      p-5
-    "
+            text-left
+            bg-[#1a2b24]
+            border
+            border-[#2d463b]
+            rounded-2xl
+            p-5
+            cursor-pointer
+            hover:border-[#4adea8]/60
+            active:scale-[0.98]
+            transition-all
+          "
           >
             <div className="flex justify-between items-start">
               <div>
@@ -166,18 +201,20 @@ export default function GruposPage() {
                 }}
               />
             </div>
-          </div>
+          </button>
         </div>
+
+        {/* BLOQUEO POR INASISTENCIAS */}
         {perfil?.bloqueadoPorInasistencias && (
           <div
             className="
-      mt-6
-      bg-red-500/10
-      border
-      border-red-500/30
-      rounded-2xl
-      p-5
-    "
+            mt-6
+            bg-red-500/10
+            border
+            border-red-500/30
+            rounded-2xl
+            p-5
+          "
           >
             <h3 className="text-red-400 font-bold">Cuenta bloqueada</h3>
 
@@ -189,33 +226,31 @@ export default function GruposPage() {
           </div>
         )}
 
-        
         {/* PRÓXIMA CLASE */}
-
         <div
           className="
-    mt-8
-    rounded-3xl
-    border
-    border-[#4adea8]/20
-    bg-gradient-to-r
-    from-[#1a2b24]
-    to-[#163129]
-    p-6
-    shadow-lg
-  "
+          mt-8
+          rounded-3xl
+          border
+          border-[#4adea8]/20
+          bg-gradient-to-r
+          from-[#1a2b24]
+          to-[#163129]
+          p-6
+          shadow-lg
+        "
         >
           <span
             className="
-      inline-block
-      px-3
-      py-1
-      rounded-full
-      bg-[#4adea8]
-      text-[#12201b]
-      text-xs
-      font-bold
-    "
+            inline-block
+            px-3
+            py-1
+            rounded-full
+            bg-[#4adea8]
+            text-[#12201b]
+            text-xs
+            font-bold
+          "
           >
             PRÓXIMA CLASE
           </span>
@@ -232,18 +267,16 @@ export default function GruposPage() {
                 )} - ${proximaClase.horaFin.substring(0, 5)}`
               : "No tienes clases registradas"}
           </p>
+
           {proximaClase && (
-            <>
-              <p className="text-gray-300 mt-3">
-                Grupo: {obtenerNombreGrupo(proximaClase.grupoId)}
-              </p>
-            </>
+            <p className="text-gray-300 mt-3">
+              Grupo: {obtenerNombreGrupo(proximaClase.grupoId)}
+            </p>
           )}
         </div>
 
         {/* MIS CLASES */}
-
-        <section className="mt-10">
+        <section id="mis-clases" className="mt-10 scroll-mt-6">
           <div className="flex items-center justify-between gap-4 mb-5">
             <h2 className="text-3xl font-bold">Mis clases</h2>
 
@@ -255,13 +288,13 @@ export default function GruposPage() {
           {misClases.length === 0 ? (
             <div
               className="
-        bg-[#1a2b24]
-        border
-        border-[#2d463b]
-        rounded-2xl
-        p-8
-        text-center
-      "
+              bg-[#1a2b24]
+              border
+              border-[#2d463b]
+              rounded-2xl
+              p-8
+              text-center
+            "
             >
               <p className="text-gray-400">
                 No estás inscripto a ninguna clase.
@@ -273,32 +306,26 @@ export default function GruposPage() {
                 <div
                   key={clase.id}
                   className="
-            bg-[#1a2b24]
-            border
-            border-[#2d463b]
-            rounded-2xl
-            overflow-hidden
-            hover:border-[#4adea8]/40
-            transition-all
-          "
+                  bg-[#1a2b24]
+                  border
+                  border-[#2d463b]
+                  rounded-2xl
+                  overflow-hidden
+                  hover:border-[#4adea8]/40
+                  transition-all
+                "
                 >
-                  <div
-                    className="
-              flex
-              flex-col
-              sm:flex-row
-            "
-                  >
+                  <div className="flex flex-col sm:flex-row">
                     {/* IMAGEN */}
                     <div
                       className="
-                w-full
-                h-40
-                sm:w-36
-                sm:h-auto
-                sm:min-h-[160px]
-                flex-shrink-0
-              "
+                      w-full
+                      h-40
+                      sm:w-36
+                      sm:h-auto
+                      sm:min-h-[160px]
+                      flex-shrink-0
+                    "
                     >
                       <img
                         src={obtenerImagenGrupo(
@@ -306,10 +333,10 @@ export default function GruposPage() {
                         )}
                         alt={obtenerNombreGrupo(clase.grupoId)}
                         className="
-                  w-full
-                  h-full
-                  object-cover
-                "
+                        w-full
+                        h-full
+                        object-cover
+                      "
                       />
                     </div>
 
@@ -317,42 +344,35 @@ export default function GruposPage() {
                     <div className="flex-1 min-w-0 p-5">
                       <div
                         className="
-                  flex
-                  flex-col
-                  gap-5
-                  md:flex-row
-                  md:items-center
-                  md:justify-between
-                "
+                        flex
+                        flex-col
+                        gap-5
+                        md:flex-row
+                        md:items-center
+                        md:justify-between
+                      "
                       >
                         {/* INFORMACIÓN */}
                         <div className="min-w-0">
-                          <div
-                            className="
-                      flex
-                      flex-wrap
-                      items-center
-                      gap-3
-                    "
-                          >
+                          <div className="flex flex-wrap items-center gap-3">
                             <h3 className="font-bold text-xl">
                               {clase.diaSemana}
                             </h3>
 
                             <span
                               className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        px-3
-                        py-1
-                        rounded-full
-                        bg-[#4adea8]/10
-                        text-[#4adea8]
-                        text-xs
-                        font-semibold
-                        whitespace-nowrap
-                      "
+                              inline-flex
+                              items-center
+                              gap-1
+                              px-3
+                              py-1
+                              rounded-full
+                              bg-[#4adea8]/10
+                              text-[#4adea8]
+                              text-xs
+                              font-semibold
+                              whitespace-nowrap
+                            "
                             >
                               <CalendarMonthRoundedIcon
                                 sx={{
@@ -377,34 +397,34 @@ export default function GruposPage() {
                         {/* ACCIONES */}
                         <div
                           className="
-                    flex
-                    flex-col
-                    gap-2
-                    w-full
-                    md:w-auto
-                    md:items-end
-                    shrink-0
-                  "
+                          flex
+                          flex-col
+                          gap-2
+                          w-full
+                          md:w-auto
+                          md:items-end
+                          shrink-0
+                        "
                         >
                           <button
                             type="button"
                             onClick={() => handleDesinscribirse(clase.id)}
                             className="
-                      w-full
-                      md:w-auto
-                      px-5
-                      py-3
-                      rounded-xl
-                      bg-red-500/10
-                      border
-                      border-red-500/30
-                      text-red-400
-                      hover:bg-red-500/20
-                      transition-all
-                      text-sm
-                      font-semibold
-                      whitespace-nowrap
-                    "
+                            w-full
+                            md:w-auto
+                            px-5
+                            py-3
+                            rounded-xl
+                            bg-red-500/10
+                            border
+                            border-red-500/30
+                            text-red-400
+                            hover:bg-red-500/20
+                            transition-all
+                            text-sm
+                            font-semibold
+                            whitespace-nowrap
+                          "
                           >
                             Desinscribirme
                           </button>
@@ -417,13 +437,23 @@ export default function GruposPage() {
             </div>
           )}
         </section>
-        <section className="mt-8">
+
+        {/* GRUPOS DISPONIBLES */}
+        <section id="grupos-disponibles" className="mt-8 scroll-mt-6">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-bold">Grupos Disponibles</h2>
 
             <span className="text-gray-400 text-sm">
               {gruposFiltrados.length} grupos encontrados
             </span>
+          </div>
+
+          <div className="mb-10">
+            {/* BUSCADOR */}
+            <BuscadorGrupos
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
           </div>
 
           {gruposFiltrados.length === 0 ? (
@@ -453,9 +483,9 @@ export default function GruposPage() {
                   key={grupo.id}
                   id={grupo.id}
                   nombre={grupo.nombre}
-                  horario={`${obtenerDias(grupo.clases)} — ${obtenerHora(
+                  horario={`${obtenerDias(
                     grupo.clases,
-                  )}`}
+                  )} — ${obtenerHora(grupo.clases)}`}
                   nivel={grupo.nivel}
                   cantidadClases={grupo.clases?.length ?? 0}
                 />

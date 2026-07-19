@@ -9,7 +9,6 @@ export default function PerfilHero({
   nombre,
   apellido,
   editando,
-  onEditar,
 }: Props) {
   return (
     <section
@@ -59,16 +58,6 @@ export default function PerfilHero({
               : "Gestioná tu información personal y consultá el estado de tu cuenta."}
           </p>
         </div>
-
-        {!editando && (
-          <button
-            type="button"
-            onClick={onEditar}
-            className="w-full md:w-auto px-6 py-3 rounded-xl bg-[#4adea8] text-[#12201b] font-bold hover:brightness-110 active:scale-95 transition-all"
-          >
-            Editar perfil
-          </button>
-        )}
       </div>
     </section>
   );

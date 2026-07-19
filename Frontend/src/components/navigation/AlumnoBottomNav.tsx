@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined";
+import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 
@@ -23,7 +23,7 @@ export default function AlumnoBottomNav() {
     {
       label: "Asistencia",
       path: "/alumno/asistencias",
-      icon: <QrCodeScannerOutlinedIcon />,
+      icon: <MapOutlinedIcon />,
     },
     {
       label: "Pagos",

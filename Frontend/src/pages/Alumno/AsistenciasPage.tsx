@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import toast from "react-hot-toast";
 
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -23,8 +23,9 @@ import { obtenerMiHistorial } from "../../services/Historial.service";
 import obtenerDiaActual from "../../utils/dayUtils";
 import { calcularDistancia } from "../../utils/geolocationUtils";
 import { configurarLeaflet } from "../../utils/leafletUtils";
+import { obtenerMiPerfil } from "../../services/Perfil.service";
+import type { Clase, Historial, Perfil } from "../../types";
 
-import type { Clase, Historial } from "../../types";
 
 configurarLeaflet();
 
@@ -63,6 +64,8 @@ export default function AsistenciasPage() {
   const [loading, setLoading] = useState(true);
   const [misClases, setMisClases] = useState<ClaseAsistencia[]>([]);
   const [historial, setHistorial] = useState<Historial | null>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  
 
   const [ubicacion, setUbicacion] = useState<Coordenadas | null>(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState("");
@@ -86,15 +89,20 @@ export default function AsistenciasPage() {
       setLoading(true);
       setEstadoPantalla("cargando");
 
-      const [clasesData, historialData] = await Promise.all([
+      const [clasesData, historialData, perfilData] = await Promise.all([
         obtenerMisClases(),
         obtenerMiHistorial(),
+        obtenerMiPerfil(),
+        
       ]);
+      console.log("HISTORIAL COMPLETO:", historialData);
+console.log("ASISTENCIAS:", historialData?.asistencias);
 
       const clases = (clasesData ?? []) as ClaseAsistencia[];
 
       setMisClases(clases);
       setHistorial(historialData);
+      setPerfil(perfilData);
 
       if (!clases.length) {
         setEstadoPantalla("sin-clases");
@@ -418,14 +426,14 @@ export default function AsistenciasPage() {
               type="button"
               onClick={() => setTabActiva("historial")}
               className={`
-                flex items-center justify-center gap-3
-                px-5 py-4 rounded-2xl font-bold transition-all
-                ${
-                  tabActiva === "historial"
-                    ? "bg-[#4adea8] text-[#12201b]"
-                    : "bg-[#12201b] border border-[#2d463b] text-gray-300 hover:border-[#4adea8]"
-                }
-              `}
+    flex items-center justify-center gap-3
+    px-5 py-4 rounded-2xl font-bold transition-all
+    ${
+      tabActiva === "historial"
+        ? "bg-[#4adea8] text-[#12201b]"
+        : "bg-[#12201b] border border-[#2d463b] text-gray-300 hover:border-[#4adea8]"
+    }
+  `}
             >
               <HistoryOutlinedIcon />
               Mi historial
@@ -560,7 +568,7 @@ export default function AsistenciasPage() {
 
                       {ubicacion ? (
                         <>
-                          <div className="overflow-hidden rounded-2xl border border-[#2d463b]">
+                          <div className="relative z-0 overflow-hidden rounded-2xl border border-[#2d463b]">
                             <LocationMap
                               latitud={ubicacion.latitud}
                               longitud={ubicacion.longitud}
@@ -679,7 +687,7 @@ export default function AsistenciasPage() {
                             />
                           </div>
 
-                          <div className="mt-5 overflow-hidden rounded-2xl border border-[#2d463b]">
+                          <div className="relative z-0 mt-5 overflow-hidden rounded-2xl border border-[#2d463b]">
                             <ClassLocationMap
                               latitud={claseActual.latitud}
                               longitud={claseActual.longitud}
@@ -792,6 +800,7 @@ export default function AsistenciasPage() {
           <HistorialAsistencias
             asistencias={asistenciasHistorial}
             clases={misClases}
+            rachaMensual={perfil?.rachaAsistenciaMensual ?? 0}
           />
         )}
       </main>
@@ -802,9 +811,11 @@ export default function AsistenciasPage() {
 function HistorialAsistencias({
   asistencias,
   clases,
+  rachaMensual,
 }: {
   asistencias: AsistenciaHistorial[];
   clases: ClaseAsistencia[];
+  rachaMensual: number;
 }) {
   type FiltroHistorial =
     | "mes-actual"
@@ -812,34 +823,38 @@ function HistorialAsistencias({
     | "ultimos-3-meses"
     | "todo";
 
+    const inicioListadoRef = useRef<HTMLDivElement>(null);
+
+const cambiarPagina = (pagina: number) => {
+  setPaginaActual(pagina);
+
+  setTimeout(() => {
+    inicioListadoRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 0);
+};
+const asistenciasEsteMes = useMemo(() => {
+  const ahora = new Date();
+
+  return asistencias.filter((asistencia) => {
+    if (!asistencia.presente) return false;
+
+    const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
+
+    return (
+      fecha.getFullYear() === ahora.getFullYear() &&
+      fecha.getMonth() === ahora.getMonth()
+    );
+  }).length;
+}, [asistencias]);
   const [filtro, setFiltro] = useState<FiltroHistorial>("mes-actual");
 
   const [paginaActual, setPaginaActual] = useState(1);
 
   const REGISTROS_POR_PAGINA = 5;
 
-  /*
-   * RESÚMENES GENERALES
-   * Estos valores no dependen del filtro seleccionado.
-   */
-  const totalPresentes = asistencias.filter(
-    (asistencia) => asistencia.presente,
-  ).length;
-
-  const asistenciasEsteMes = asistencias.filter((asistencia) => {
-    const fecha = crearFechaLocalDesdeISO(asistencia.fecha);
-    const ahora = new Date();
-
-    return (
-      fecha.getMonth() === ahora.getMonth() &&
-      fecha.getFullYear() === ahora.getFullYear() &&
-      asistencia.presente
-    );
-  }).length;
-
-  /*
-   * FILTRADO DEL HISTORIAL
-   */
   const asistenciasFiltradas = useMemo(() => {
     const ahora = new Date();
 
@@ -912,393 +927,394 @@ function HistorialAsistencias({
   }, [filtro]);
 
   return (
-    <div className="space-y-8">
-      {/* RESUMEN */}
+  <div className="space-y-8">
+    {/* RESUMEN */}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <ResumenHistorial
-          titulo="Total de asistencias"
-          valor={totalPresentes}
-          descripcion="Registros acumulados"
-        />
+    <div className="grid gap-4 sm:grid-cols-2">
+      <ResumenHistorial
+        titulo="Asistencias este mes"
+        valor={asistenciasEsteMes}
+        descripcion="Asistencias registradas durante el mes actual"
+      />
 
-        <ResumenHistorial
-          titulo="Este mes"
-          valor={asistenciasEsteMes}
-          descripcion="Asistencias registradas"
-        />
+      <ResumenHistorial
+        titulo="Racha actual"
+        valor={rachaMensual}
+        descripcion="Clases consecutivas con asistencia"
+      />
+    </div>
+
+    {/* HISTORIAL */}
+
+    <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
+      {/* CABECERA */}
+
+      <div
+        className="
+          flex
+          flex-col
+          lg:flex-row
+          lg:items-end
+          lg:justify-between
+          gap-5
+          mb-6
+        "
+      >
+        <div>
+          <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
+            Actividad
+          </p>
+
+          <h2 className="text-2xl font-bold mt-2">
+            Historial de asistencias
+          </h2>
+
+          <p className="text-gray-400 mt-2">
+            Consultá tus registros anteriores.
+          </p>
+        </div>
+
+        {/* FILTRO */}
+
+        <div className="w-full lg:w-auto">
+          <label
+            htmlFor="filtro-historial"
+            className="block text-xs text-gray-400 mb-2"
+          >
+            Mostrar registros
+          </label>
+
+          <select
+            id="filtro-historial"
+            value={filtro}
+            onChange={(e) =>
+              setFiltro(e.target.value as FiltroHistorial)
+            }
+            className="
+              w-full
+              lg:w-56
+              bg-[#12201b]
+              border
+              border-[#2d463b]
+              rounded-xl
+              px-4
+              py-3
+              text-white
+              outline-none
+              cursor-pointer
+              focus:border-[#4adea8]
+              transition-all
+            "
+          >
+            <option value="mes-actual">Este mes</option>
+            <option value="mes-anterior">Mes anterior</option>
+            <option value="ultimos-3-meses">Últimos 3 meses</option>
+            <option value="todo">Todo el historial</option>
+          </select>
+        </div>
       </div>
 
-      {/* HISTORIAL */}
+      {/* PUNTO AL QUE SUBE AL CAMBIAR DE PÁGINA */}
+      <div ref={inicioListadoRef} />
 
-      <section className="bg-[#1a2b24] border border-[#2d463b] rounded-3xl p-6">
-        {/* CABECERA */}
+      {/* CANTIDAD DE RESULTADOS */}
 
+      {asistenciasFiltradas.length > 0 && (
         <div
           className="
             flex
-            flex-col
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
-            gap-5
-            mb-6
+            items-center
+            justify-between
+            gap-4
+            mb-5
+            pb-5
+            border-b
+            border-[#2d463b]
           "
         >
-          <div>
-            <p className="text-[#4adea8] text-sm font-bold uppercase tracking-wide">
-              Actividad
-            </p>
-
-            <h2 className="text-2xl font-bold mt-2">
-              Historial de asistencias
-            </h2>
-
-            <p className="text-gray-400 mt-2">
-              Consultá tus registros anteriores.
-            </p>
-          </div>
-
-          {/* FILTRO */}
-
-          <div className="w-full lg:w-auto">
-            <label
-              htmlFor="filtro-historial"
-              className="
-                block
-                text-xs
-                text-gray-400
-                mb-2
-              "
-            >
-              Mostrar registros
-            </label>
-
-            <select
-              id="filtro-historial"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value as FiltroHistorial)}
-              className="
-                w-full
-                lg:w-56
-                bg-[#12201b]
-                border
-                border-[#2d463b]
-                rounded-xl
-                px-4
-                py-3
-                text-white
-                outline-none
-                cursor-pointer
-                focus:border-[#4adea8]
-                transition-all
-              "
-            >
-              <option value="mes-actual">Este mes</option>
-
-              <option value="mes-anterior">Mes anterior</option>
-
-              <option value="ultimos-3-meses">Últimos 3 meses</option>
-
-              <option value="todo">Todo el historial</option>
-            </select>
-          </div>
+          <p className="text-sm text-gray-400">
+            Mostrando{" "}
+            <span className="text-white font-semibold">
+              {indiceInicio + 1}-
+              {Math.min(indiceFin, asistenciasFiltradas.length)}
+            </span>{" "}
+            de{" "}
+            <span className="text-white font-semibold">
+              {asistenciasFiltradas.length}
+            </span>{" "}
+            registros
+          </p>
         </div>
+      )}
 
-        {/* CANTIDAD DE RESULTADOS */}
+      {/* SIN RESULTADOS */}
 
-        {asistenciasFiltradas.length > 0 && (
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              gap-4
-              mb-5
-              pb-5
-              border-b
-              border-[#2d463b]
-            "
-          >
-            <p className="text-sm text-gray-400">
-              Mostrando{" "}
-              <span className="text-white font-semibold">
-                {indiceInicio + 1}-
-                {Math.min(indiceFin, asistenciasFiltradas.length)}
-              </span>{" "}
-              de{" "}
-              <span className="text-white font-semibold">
-                {asistenciasFiltradas.length}
-              </span>{" "}
-              registros
-            </p>
-          </div>
-        )}
+      {!asistenciasFiltradas.length ? (
+        <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-10 text-center">
+          <HistoryOutlinedIcon
+            sx={{
+              color: "#4adea8",
+              fontSize: 42,
+            }}
+          />
 
-        {/* SIN RESULTADOS */}
+          <h3 className="text-xl font-bold mt-4">
+            No hay registros
+          </h3>
 
-        {!asistenciasFiltradas.length ? (
-          <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-10 text-center">
-            <HistoryOutlinedIcon
-              sx={{
-                color: "#4adea8",
-                fontSize: 42,
-              }}
-            />
+          <p className="text-gray-400 mt-2">
+            No encontramos asistencias para el período seleccionado.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* LISTADO */}
 
-            <h3 className="text-xl font-bold mt-4">No hay registros</h3>
+          <div className="space-y-4">
+            {asistenciasPaginadas.map((asistencia) => {
+              const clase = clases.find(
+                (item) => item.id === asistencia.claseId,
+              );
 
-            <p className="text-gray-400 mt-2">
-              No encontramos asistencias para el período seleccionado.
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* LISTADO */}
-
-            <div className="space-y-4">
-              {asistenciasPaginadas.map((asistencia) => {
-                const clase = clases.find(
-                  (item) => item.id === asistencia.claseId,
-                );
-
-                return (
-                  <article
-                    key={asistencia.id}
+              return (
+                <article
+                  key={asistencia.id}
+                  className="
+                    rounded-2xl
+                    bg-[#12201b]
+                    border
+                    border-[#2d463b]
+                    p-5
+                  "
+                >
+                  <div
                     className="
-                        rounded-2xl
-                        bg-[#12201b]
-                        border
-                        border-[#2d463b]
-                        p-5
-                      "
-                  >
-                    <div
-                      className="
-                          flex
-                          flex-col
-                          sm:flex-row
-                          sm:items-center
-                          sm:justify-between
-                          gap-4
-                        "
-                    >
-                      <div className="flex items-start gap-4">
-                        {/* ICONO */}
-
-                        <div
-                          className={`
-                              w-12
-                              h-12
-                              shrink-0
-                              rounded-2xl
-                              flex
-                              items-center
-                              justify-center
-
-                              ${
-                                asistencia.presente
-                                  ? "bg-[#4adea8]/10 text-[#4adea8]"
-                                  : "bg-red-500/10 text-red-400"
-                              }
-                            `}
-                        >
-                          {asistencia.presente ? (
-                            <EventAvailableOutlinedIcon />
-                          ) : (
-                            <ErrorOutlineOutlinedIcon />
-                          )}
-                        </div>
-
-                        {/* INFORMACIÓN */}
-
-                        <div>
-                          <p className="text-sm text-gray-400 capitalize">
-                            {formatearFechaCompleta(asistencia.fecha)}
-                          </p>
-
-                          <h3 className="text-xl font-bold mt-1">
-                            {clase?.grupoNombre ?? "Clase anterior"}
-                          </h3>
-
-                          {clase && (
-                            <p className="text-gray-400 mt-2">
-                              {clase.diaSemana}
-                              {" · "}
-                              {formatearHora(clase.horaInicio)}
-                              {" - "}
-                              {formatearHora(clase.horaFin)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* ESTADO */}
-
-                      <span
-                        className={`
-                            self-start
-                            sm:self-auto
-                            inline-flex
-                            items-center
-                            gap-2
-                            px-4
-                            py-2
-                            rounded-full
-                            border
-                            text-sm
-                            font-bold
-
-                            ${
-                              asistencia.presente
-                                ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
-                                : "bg-red-500/10 border-red-500/30 text-red-400"
-                            }
-                          `}
-                      >
-                        {asistencia.presente
-                          ? "Asistencia registrada"
-                          : "Ausente"}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-[#2d463b]">
-                      <p className="text-sm text-gray-400">
-                        Estado:{" "}
-                        <span className="text-white font-semibold">
-                          {asistencia.estado}
-                        </span>
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            {/* PAGINACIÓN */}
-
-            {totalPaginas > 1 && (
-              <div
-                className="
-                  flex
-                  flex-col
-                  sm:flex-row
-                  sm:items-center
-                  sm:justify-between
-                  gap-4
-                  mt-6
-                  pt-6
-                  border-t
-                  border-[#2d463b]
-                "
-              >
-                <p className="text-sm text-gray-400">
-                  Página{" "}
-                  <span className="text-white font-semibold">
-                    {paginaActual}
-                  </span>{" "}
-                  de{" "}
-                  <span className="text-white font-semibold">
-                    {totalPaginas}
-                  </span>
-                </p>
-
-                <div className="flex items-center gap-2">
-                  {/* ANTERIOR */}
-
-                  <button
-                    type="button"
-                    disabled={paginaActual === 1}
-                    onClick={() =>
-                      setPaginaActual((pagina) => Math.max(pagina - 1, 1))
-                    }
-                    className="
-                      px-4
-                      py-2
-                      rounded-xl
-                      bg-[#12201b]
-                      border
-                      border-[#2d463b]
-                      text-sm
-                      font-semibold
-                      hover:border-[#4adea8]
-                      hover:text-[#4adea8]
-                      disabled:opacity-40
-                      disabled:cursor-not-allowed
-                      disabled:hover:border-[#2d463b]
-                      disabled:hover:text-white
-                      transition-all
+                      flex
+                      flex-col
+                      sm:flex-row
+                      sm:items-center
+                      sm:justify-between
+                      gap-4
                     "
                   >
-                    Anterior
-                  </button>
+                    <div className="flex items-start gap-4">
+                      {/* ICONO */}
 
-                  {/* NÚMEROS DE PÁGINA */}
+                      <div
+                        className={`
+                          w-12
+                          h-12
+                          shrink-0
+                          rounded-2xl
+                          flex
+                          items-center
+                          justify-center
+                          ${
+                            asistencia.presente
+                              ? "bg-[#4adea8]/10 text-[#4adea8]"
+                              : "bg-red-500/10 text-red-400"
+                          }
+                        `}
+                      >
+                        {asistencia.presente ? (
+                          <EventAvailableOutlinedIcon />
+                        ) : (
+                          <ErrorOutlineOutlinedIcon />
+                        )}
+                      </div>
 
-                  {Array.from(
-                    { length: totalPaginas },
-                    (_, index) => index + 1,
-                  ).map((pagina) => (
-                    <button
-                      key={pagina}
-                      type="button"
-                      onClick={() => setPaginaActual(pagina)}
+                      {/* INFORMACIÓN */}
+
+                      <div>
+                        <p className="text-sm text-gray-400 capitalize">
+                          {formatearFechaCompleta(asistencia.fecha)}
+                        </p>
+
+                        <h3 className="text-xl font-bold mt-1">
+                          {clase?.grupoNombre ?? "Clase anterior"}
+                        </h3>
+
+                        {clase && (
+                          <p className="text-gray-400 mt-2">
+                            {clase.diaSemana}
+                            {" · "}
+                            {formatearHora(clase.horaInicio)}
+                            {" - "}
+                            {formatearHora(clase.horaFin)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ESTADO */}
+
+                    <span
                       className={`
-                        w-10
-                        h-10
-                        rounded-xl
+                        self-start
+                        sm:self-auto
+                        inline-flex
+                        items-center
+                        gap-2
+                        px-4
+                        py-2
+                        rounded-full
+                        border
+                        text-sm
                         font-bold
-                        transition-all
-
                         ${
-                          paginaActual === pagina
-                            ? "bg-[#4adea8] text-[#12201b]"
-                            : "bg-[#12201b] border border-[#2d463b] text-gray-300 hover:border-[#4adea8]"
+                          asistencia.presente
+                            ? "bg-[#4adea8]/10 border-[#4adea8]/30 text-[#4adea8]"
+                            : "bg-red-500/10 border-red-500/30 text-red-400"
                         }
                       `}
                     >
-                      {pagina}
-                    </button>
-                  ))}
+                      {asistencia.presente
+                        ? "Asistencia registrada"
+                        : "Ausente"}
+                    </span>
+                  </div>
 
-                  {/* SIGUIENTE */}
+                  <div className="mt-4 pt-4 border-t border-[#2d463b]">
+                    <p className="text-sm text-gray-400">
+                      Estado:{" "}
+                      <span className="text-white font-semibold">
+                        {asistencia.estado}
+                      </span>
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
 
+          {/* PAGINACIÓN */}
+
+          {totalPaginas > 1 && (
+            <div
+              className="
+                flex
+                flex-col
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
+                gap-4
+                mt-6
+                pt-6
+                border-t
+                border-[#2d463b]
+              "
+            >
+              <p className="text-sm text-gray-400">
+                Página{" "}
+                <span className="text-white font-semibold">
+                  {paginaActual}
+                </span>{" "}
+                de{" "}
+                <span className="text-white font-semibold">
+                  {totalPaginas}
+                </span>
+              </p>
+
+              <div className="flex items-center gap-2">
+                {/* ANTERIOR */}
+
+                <button
+                  type="button"
+                  disabled={paginaActual === 1}
+                  onClick={() =>
+                    cambiarPagina(
+                      Math.max(paginaActual - 1, 1),
+                    )
+                  }
+                  className="
+                    px-4
+                    py-2
+                    rounded-xl
+                    bg-[#12201b]
+                    border
+                    border-[#2d463b]
+                    text-sm
+                    font-semibold
+                    hover:border-[#4adea8]
+                    hover:text-[#4adea8]
+                    disabled:opacity-40
+                    disabled:cursor-not-allowed
+                    disabled:hover:border-[#2d463b]
+                    disabled:hover:text-white
+                    transition-all
+                  "
+                >
+                  Anterior
+                </button>
+
+                {/* NÚMEROS DE PÁGINA */}
+
+                {Array.from(
+                  { length: totalPaginas },
+                  (_, index) => index + 1,
+                ).map((pagina) => (
                   <button
+                    key={pagina}
                     type="button"
-                    disabled={paginaActual === totalPaginas}
-                    onClick={() =>
-                      setPaginaActual((pagina) =>
-                        Math.min(pagina + 1, totalPaginas),
-                      )
-                    }
-                    className="
-                      px-4
-                      py-2
+                    onClick={() => cambiarPagina(pagina)}
+                    className={`
+                      w-10
+                      h-10
                       rounded-xl
-                      bg-[#12201b]
-                      border
-                      border-[#2d463b]
-                      text-sm
-                      font-semibold
-                      hover:border-[#4adea8]
-                      hover:text-[#4adea8]
-                      disabled:opacity-40
-                      disabled:cursor-not-allowed
-                      disabled:hover:border-[#2d463b]
-                      disabled:hover:text-white
+                      font-bold
                       transition-all
-                    "
+                      ${
+                        paginaActual === pagina
+                          ? "bg-[#4adea8] text-[#12201b]"
+                          : "bg-[#12201b] border border-[#2d463b] text-gray-300 hover:border-[#4adea8]"
+                      }
+                    `}
                   >
-                    Siguiente
+                    {pagina}
                   </button>
-                </div>
+                ))}
+
+                {/* SIGUIENTE */}
+
+                <button
+                  type="button"
+                  disabled={paginaActual === totalPaginas}
+                  onClick={() =>
+                    cambiarPagina(
+                      Math.min(
+                        paginaActual + 1,
+                        totalPaginas,
+                      ),
+                    )
+                  }
+                  className="
+                    px-4
+                    py-2
+                    rounded-xl
+                    bg-[#12201b]
+                    border
+                    border-[#2d463b]
+                    text-sm
+                    font-semibold
+                    hover:border-[#4adea8]
+                    hover:text-[#4adea8]
+                    disabled:opacity-40
+                    disabled:cursor-not-allowed
+                    disabled:hover:border-[#2d463b]
+                    disabled:hover:text-white
+                    transition-all
+                  "
+                >
+                  Siguiente
+                </button>
               </div>
-            )}
-          </>
-        )}
-      </section>
-    </div>
-  );
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  </div>
+);
 }
 
 function ResumenHistorial({
