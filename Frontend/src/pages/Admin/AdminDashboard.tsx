@@ -62,7 +62,7 @@ export default function AdminDashboard() {
         setPerfil(perfilData);
 
         /*
-         * Usamos exactamente el mismo "Recaudado"
+         * Usamos el mismo valor de recaudado
          * que se muestra en Finanzas y Cuotas.
          */
 
@@ -112,8 +112,8 @@ export default function AdminDashboard() {
     !perfil.twoFactorEnabled ? 1 : 0;
 
   /*
-   * Sumamos solamente las tareas
-   * que realmente requieren acción.
+   * Solamente contamos las situaciones
+   * que requieren atención del administrador.
    */
 
   const totalAlertas =
@@ -124,11 +124,16 @@ export default function AdminDashboard() {
 
   const hayAlertas = totalAlertas > 0;
 
+  /*
+   * RETURN
+   */
+
   return (
     <div
       className="
         min-h-screen
         w-full
+        max-w-full
         overflow-x-hidden
         bg-[#12201b]
         text-white
@@ -141,39 +146,43 @@ export default function AdminDashboard() {
           w-full
           max-w-7xl
           mx-auto
-          px-4
+          px-3
           sm:px-6
           pt-24
           pb-10
           overflow-x-hidden
         "
       >
-        {/* ================================================== */}
         {/* HERO */}
-        {/* ================================================== */}
 
-        <DashboardHero />
+        <div className="w-full min-w-0 overflow-hidden">
+          <DashboardHero />
+        </div>
 
-        {/* ================================================== */}
         {/* ALERTAS */}
-        {/* ================================================== */}
 
-        <section className="mb-10">
-
-          {/* CABECERA */}
+        <section
+          className="
+            mt-7
+            mb-8
+            w-full
+            min-w-0
+          "
+        >
+          {/* TÍTULO */}
 
           <div className="mb-4">
-
             <p
               className={`
                 text-xs
+                sm:text-sm
                 font-bold
                 uppercase
-                tracking-wider
+                tracking-wide
 
                 ${
                   hayAlertas
-                    ? "text-amber-400"
+                    ? "text-yellow-400"
                     : "text-[#4adea8]"
                 }
               `}
@@ -181,31 +190,46 @@ export default function AdminDashboard() {
               Alertas
             </p>
 
-            <h2 className="mt-1 text-xl font-bold">
+            <h2
+              className="
+                mt-1
+                text-xl
+                sm:text-2xl
+                font-bold
+              "
+            >
               Tareas pendientes
             </h2>
 
-            <p className="mt-1 text-xs text-gray-400">
+            <p
+              className="
+                mt-1
+                text-xs
+                sm:text-sm
+                text-gray-400
+              "
+            >
               Revisá las situaciones que requieren tu atención.
             </p>
-
           </div>
 
-          {/* BOTÓN DESPLEGABLE */}
+          {/* DESPLEGABLE */}
 
           <button
             type="button"
             onClick={() =>
               setMostrarTareas(
-                (valorActual) => !valorActual,
+                (estadoActual) => !estadoActual,
               )
             }
             className={`
               w-full
+              min-w-0
               rounded-2xl
               border
               px-4
               py-4
+              sm:px-5
               text-left
               transition-all
               duration-300
@@ -213,15 +237,14 @@ export default function AdminDashboard() {
               ${
                 hayAlertas
                   ? `
-                    border-amber-500/50
-                    bg-amber-500/10
-                    hover:bg-amber-500/15
-                    hover:border-amber-400
+                    border-yellow-500/50
+                    bg-yellow-500/10
+                    hover:bg-yellow-500/15
                   `
                   : `
                     border-[#4adea8]/30
-                    bg-[#1a211d]
-                    hover:border-[#4adea8]
+                    bg-[#4adea8]/5
+                    hover:bg-[#4adea8]/10
                   `
               }
             `}
@@ -230,130 +253,100 @@ export default function AdminDashboard() {
               className="
                 flex
                 items-center
-                justify-between
-                gap-4
+                gap-3
+                min-w-0
               "
             >
-
-              {/* IZQUIERDA */}
+              {/* ICONO */}
 
               <div
-                className="
+                className={`
+                  w-11
+                  h-11
+                  sm:w-12
+                  sm:h-12
+                  shrink-0
+                  rounded-xl
                   flex
                   items-center
-                  gap-3
-                  min-w-0
-                "
+                  justify-center
+
+                  ${
+                    hayAlertas
+                      ? "bg-yellow-500/15 text-yellow-300"
+                      : "bg-[#4adea8]/10 text-[#4adea8]"
+                  }
+                `}
               >
+                {hayAlertas ? (
+                  <WarningAmberOutlinedIcon />
+                ) : (
+                  <CheckCircleOutlineOutlinedIcon />
+                )}
+              </div>
 
-                {/* ICONO */}
+              {/* TEXTO */}
 
-                <div
+              <div className="flex-1 min-w-0">
+                <p
                   className={`
-                    flex
-                    h-10
-                    w-10
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded-xl
+                    text-sm
+                    sm:text-base
+                    font-bold
 
                     ${
                       hayAlertas
-                        ? `
-                          bg-amber-500/20
-                          text-amber-400
-                        `
-                        : `
-                          bg-[#4adea8]/10
-                          text-[#4adea8]
-                        `
+                        ? "text-yellow-300"
+                        : "text-[#4adea8]"
                     }
                   `}
                 >
-                  {hayAlertas ? (
-                    <WarningAmberOutlinedIcon
-                      fontSize="small"
-                    />
-                  ) : (
-                    <CheckCircleOutlineOutlinedIcon
-                      fontSize="small"
-                    />
-                  )}
-                </div>
+                  {hayAlertas
+                    ? `${totalAlertas} ${
+                        totalAlertas === 1
+                          ? "tarea pendiente"
+                          : "tareas pendientes"
+                      }`
+                    : "Todo al día"}
+                </p>
 
-                {/* INFORMACIÓN */}
-
-                <div className="min-w-0">
-
-                  <div
-                    className="
-                      flex
-                      flex-wrap
-                      items-center
-                      gap-2
-                    "
-                  >
-
-                    <p
-                      className={`
-                        font-bold
-
-                        ${
-                          hayAlertas
-                            ? "text-amber-300"
-                            : "text-white"
-                        }
-                      `}
-                    >
-                      {hayAlertas
-                        ? `${totalAlertas} ${
-                            totalAlertas === 1
-                              ? "tarea pendiente"
-                              : "tareas pendientes"
-                          }`
-                        : "Todo está al día"}
-                    </p>
-
-                  </div>
-
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {mostrarTareas
-                      ? "Ocultar detalles"
-                      : hayAlertas
-                        ? "Tocá para revisar todas las alertas"
-                        : "No hay acciones que requieran atención"}
-                  </p>
-
-                </div>
-
+                <p
+                  className="
+                    mt-0.5
+                    text-xs
+                    sm:text-sm
+                    text-gray-400
+                  "
+                >
+                  {hayAlertas
+                    ? "Tocá para revisar las alertas."
+                    : "No hay tareas que requieran atención."}
+                </p>
               </div>
 
               {/* FLECHA */}
 
               <div
                 className={`
-                  flex
-                  h-9
                   w-9
+                  h-9
                   shrink-0
-                  items-center
-                  justify-center
                   rounded-xl
                   border
-                  transition-all
+                  flex
+                  items-center
+                  justify-center
+                  transition-transform
                   duration-300
 
                   ${
                     hayAlertas
                       ? `
-                        border-amber-500/30
-                        bg-amber-500/10
-                        text-amber-400
+                        border-yellow-500/40
+                        text-yellow-300
                       `
                       : `
-                        border-[#2d463b]
-                        bg-[#12201b]
+                        border-[#4adea8]/30
                         text-[#4adea8]
                       `
                   }
@@ -367,68 +360,93 @@ export default function AdminDashboard() {
               >
                 <KeyboardArrowDownOutlinedIcon />
               </div>
-
             </div>
           </button>
 
-          {/* CONTENIDO DESPLEGABLE */}
+          {/* CONTENIDO DESPLEGADO */}
 
           {mostrarTareas && (
-            <div className="mt-3">
-           <DashboardSystemStatus
-  dashboard={dashboard}
-  twoFactorEnabled={perfil.twoFactorEnabled ?? false}
-/>
+            <div
+              className="
+                mt-3
+                w-full
+                min-w-0
+              "
+            >
+              <DashboardSystemStatus
+                dashboard={dashboard}
+                twoFactorEnabled={
+                  perfil.twoFactorEnabled ?? false
+                }
+              />
             </div>
           )}
-
         </section>
 
-        {/* ================================================== */}
         {/* RESUMEN */}
-        {/* ================================================== */}
 
-        <section className="mb-10">
-
-          <div className="mb-5">
-
+        <section
+          className="
+            mb-8
+            w-full
+            min-w-0
+          "
+        >
+          <div className="mb-4">
             <p
               className="
                 text-xs
+                sm:text-sm
                 font-bold
                 uppercase
-                tracking-wider
+                tracking-wide
                 text-[#4adea8]
               "
             >
               Resumen
             </p>
 
-            <h2 className="mt-1 text-xl font-bold">
+            <h2
+              className="
+                mt-1
+                text-xl
+                sm:text-2xl
+                font-bold
+              "
+            >
               Estado general
             </h2>
 
-            <p className="mt-1 text-xs text-gray-400">
+            <p
+              className="
+                mt-1
+                text-xs
+                sm:text-sm
+                text-gray-400
+              "
+            >
               Una vista rápida de la actividad del sistema.
             </p>
-
           </div>
 
-          <DashboardStats
-            dashboard={dashboard}
-            recaudadoMes={recaudadoMes}
-          />
-
+          <div className="w-full min-w-0">
+            <DashboardStats
+              dashboard={dashboard}
+              recaudadoMes={recaudadoMes}
+            />
+          </div>
         </section>
 
-        {/* ================================================== */}
         {/* ACCIONES RÁPIDAS */}
-        {/* ================================================== */}
 
-        <section>
+        <section
+          className="
+            w-full
+            min-w-0
+          "
+        >
           <DashboardQuickActions />
         </section>
-
       </main>
     </div>
   );

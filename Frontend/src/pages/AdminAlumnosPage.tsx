@@ -44,18 +44,27 @@ export default function AdminAlumnosPage() {
   const [loading, setLoading] = useState(true);
   const [detalle, setDetalle] = useState<Alumno | null>(null);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
-  const [alumnoAEliminar, setAlumnoAEliminar] = useState<Alumno | null>(null);
+  const [alumnoAEliminar, setAlumnoAEliminar] =
+    useState<Alumno | null>(null);
   const [eliminando, setEliminando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState<FiltroAlumnos>("todos");
-  const [menuAbiertoId, setMenuAbiertoId] = useState<number | null>(null);
+  const [filtro, setFiltro] =
+    useState<FiltroAlumnos>("todos");
+  const [menuAbiertoId, setMenuAbiertoId] =
+    useState<number | null>(null);
   const [paginaActual, setPaginaActual] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
+
+  /*
+   * CARGAR ALUMNOS
+   */
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
+
       const data = await obtenerAlumnos();
+
       setAlumnos(Array.isArray(data) ? data : []);
     } catch (error: any) {
       if (!error?.response || error.response.status >= 500) {
@@ -75,6 +84,10 @@ export default function AdminAlumnosPage() {
     void cargarDatos();
   }, []);
 
+  /*
+   * FILTRO RECIBIDO POR URL
+   */
+
   useEffect(() => {
     const filtroUrl = searchParams.get("filtro");
 
@@ -82,29 +95,44 @@ export default function AdminAlumnosPage() {
       case "cuotas-pendientes":
         setFiltro("cuotas-pendientes");
         break;
+
       case "bloqueados":
         setFiltro("bloqueados-inasistencias");
         break;
+
       case "deuda":
         setFiltro("bloqueados-deuda");
         break;
+
       case "racha":
         setFiltro("racha-alta");
         break;
+
       default:
         break;
     }
   }, [searchParams]);
 
+  /*
+   * VOLVER A PÁGINA 1 AL FILTRAR
+   */
+
   useEffect(() => {
     setPaginaActual(1);
   }, [busqueda, filtro, porPagina]);
 
+  /*
+   * VER DETALLE
+   */
+
   const verDetalle = async (alumnoId: number) => {
     try {
       setCargandoDetalle(true);
+
       setMenuAbiertoId(null);
+
       const data = await obtenerAlumno(alumnoId);
+
       setDetalle(data);
     } catch (error: any) {
       if (!error?.response || error.response.status >= 500) {
@@ -120,14 +148,22 @@ export default function AdminAlumnosPage() {
     }
   };
 
+  /*
+   * ELIMINAR ALUMNO
+   */
+
   const confirmarEliminar = async () => {
     if (!alumnoAEliminar) return;
 
     try {
       setEliminando(true);
+
       await eliminarAlumno(alumnoAEliminar.id);
+
       toast.success("Alumno eliminado correctamente");
+
       setAlumnoAEliminar(null);
+
       await cargarDatos();
     } catch (error: any) {
       if (!error?.response || error.response.status >= 500) {
@@ -143,19 +179,35 @@ export default function AdminAlumnosPage() {
     }
   };
 
+  /*
+   * FILTRADO
+   */
+
   const alumnosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
 
     return alumnos
       .filter((alumno) => {
-        if (!coincideFiltro(alumno, filtro)) return false;
-        if (!termino) return true;
+        if (!coincideFiltro(alumno, filtro)) {
+          return false;
+        }
+
+        if (!termino) {
+          return true;
+        }
+
+        /*
+         * También permitimos buscar por el estado visual real.
+         */
+
+        const estadoVisual = obtenerEstadoVisual(alumno);
 
         return [
           alumno.nombre,
           alumno.apellido,
           alumno.email,
           alumno.estado,
+          estadoVisual,
         ]
           .filter(Boolean)
           .join(" ")
@@ -170,28 +222,54 @@ export default function AdminAlumnosPage() {
       );
   }, [alumnos, busqueda, filtro]);
 
+  /*
+   * PAGINACIÓN
+   */
+
   const totalPaginas = Math.max(
     1,
     Math.ceil(alumnosFiltrados.length / porPagina),
   );
-  const paginaSegura = Math.min(paginaActual, totalPaginas);
-  const inicio = (paginaSegura - 1) * porPagina;
-  const fin = Math.min(inicio + porPagina, alumnosFiltrados.length);
-  const alumnosPagina = alumnosFiltrados.slice(inicio, fin);
+
+  const paginaSegura = Math.min(
+    paginaActual,
+    totalPaginas,
+  );
+
+  const inicio =
+    (paginaSegura - 1) * porPagina;
+
+  const fin = Math.min(
+    inicio + porPagina,
+    alumnosFiltrados.length,
+  );
+
+  const alumnosPagina =
+    alumnosFiltrados.slice(inicio, fin);
+
+  /*
+   * RESUMEN
+   */
 
   const resumen = useMemo(() => {
+    /*
+     * Un alumno solamente cuenta como activo
+     * si su estado es ACTIVO y no tiene ningún bloqueo.
+     */
+
     const activos = alumnos.filter(
-      (alumno) => alumno.estado?.toUpperCase() === "ACTIVO",
+      (alumno) =>
+        alumno.estado?.toUpperCase() === "ACTIVO" &&
+        !estaBloqueado(alumno),
     ).length;
 
     const bloqueados = alumnos.filter(
-      (alumno) =>
-        alumno.bloqueadoPorDeuda ||
-        alumno.bloqueadoPorInasistencias,
+      (alumno) => estaBloqueado(alumno),
     ).length;
 
     const cuotasPendientes = alumnos.filter(
-      (alumno) => obtenerCuotasPendientes(alumno) > 0,
+      (alumno) =>
+        obtenerCuotasPendientes(alumno) > 0,
     ).length;
 
     const promedioRacha =
@@ -199,7 +277,8 @@ export default function AdminAlumnosPage() {
         ? 0
         : Math.round(
             alumnos.reduce(
-              (total, alumno) => total + obtenerRacha(alumno),
+              (total, alumno) =>
+                total + obtenerRacha(alumno),
               0,
             ) / alumnos.length,
           );
@@ -213,30 +292,46 @@ export default function AdminAlumnosPage() {
     };
   }, [alumnos]);
 
+  /*
+   * LIMPIAR FILTROS
+   */
+
   const limpiarFiltros = () => {
     setBusqueda("");
     setFiltro("todos");
   };
 
-  if (loading) return <FullScreenLoading />;
+  /*
+   * LOADING
+   */
+
+  if (loading) {
+    return <FullScreenLoading />;
+  }
 
   return (
     <div className="min-h-screen bg-[#12201b] text-white">
       <TopBar />
 
       <main className="mx-auto max-w-[1500px] px-4 pb-12 pt-24 sm:px-6 lg:px-8">
+        {/* CABECERA */}
+
         <section className="mb-8 rounded-3xl border border-[#4adea8]/20 bg-gradient-to-r from-[#1a2b24] to-[#163129] p-6 md:p-8">
           <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
             Administración
           </p>
+
           <h1 className="mt-2 text-3xl font-bold md:text-4xl">
             Alumnos
           </h1>
+
           <p className="mt-2 max-w-2xl text-gray-300">
-            Gestioná alumnos, bloqueos, cuotas y actividad desde una
-            vista preparada para crecer.
+            Gestioná alumnos, bloqueos, cuotas y actividad
+            desde una vista preparada para crecer.
           </p>
         </section>
+
+        {/* RESUMEN */}
 
         <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <ResumenCard
@@ -245,24 +340,28 @@ export default function AdminAlumnosPage() {
             descripcion="Alumnos registrados"
             icono={<PeopleOutlineOutlinedIcon />}
           />
+
           <ResumenCard
             titulo="Activos"
             valor={resumen.activos}
             descripcion="Acceso habilitado"
             icono={<CheckCircleOutlineOutlinedIcon />}
           />
+
           <ResumenCard
             titulo="Bloqueados"
             valor={resumen.bloqueados}
             descripcion="Deuda o inasistencias"
             icono={<WarningAmberOutlinedIcon />}
           />
+
           <ResumenCard
             titulo="Con deuda"
             valor={resumen.cuotasPendientes}
             descripcion="Cuotas pendientes"
             icono={<PaymentsOutlinedIcon />}
           />
+
           <ResumenCard
             titulo="Promedio racha"
             valor={resumen.promedioRacha}
@@ -271,8 +370,12 @@ export default function AdminAlumnosPage() {
           />
         </section>
 
+        {/* FILTROS */}
+
         <section className="mb-8 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4 sm:p-5">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px_auto] lg:items-center">
+            {/* BÚSQUEDA */}
+
             <div className="relative">
               <SearchOutlinedIcon
                 sx={{
@@ -286,7 +389,9 @@ export default function AdminAlumnosPage() {
 
               <input
                 value={busqueda}
-                onChange={(event) => setBusqueda(event.target.value)}
+                onChange={(event) =>
+                  setBusqueda(event.target.value)
+                }
                 placeholder="Buscar por nombre, apellido, email o estado..."
                 className="h-12 w-full rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-12 outline-none transition-all focus:border-[#4adea8]"
               />
@@ -303,6 +408,8 @@ export default function AdminAlumnosPage() {
               )}
             </div>
 
+            {/* SELECT DE FILTROS */}
+
             <div className="relative">
               <FilterAltOutlinedIcon
                 sx={{
@@ -318,30 +425,51 @@ export default function AdminAlumnosPage() {
               <select
                 value={filtro}
                 onChange={(event) =>
-                  setFiltro(event.target.value as FiltroAlumnos)
+                  setFiltro(
+                    event.target.value as FiltroAlumnos,
+                  )
                 }
                 className="h-12 w-full appearance-none rounded-2xl border border-[#2d463b] bg-[#12201b] pl-12 pr-4 outline-none transition-all focus:border-[#4adea8]"
               >
-                <option value="todos">Todos los alumnos</option>
+                <option value="todos">
+                  Todos los alumnos
+                </option>
+
                 <optgroup label="Estado">
-                  <option value="estado-activo">Activos</option>
-                  <option value="estado-inactivo">Inactivos</option>
-                  <option value="estado-bloqueado">Bloqueados</option>
+                  <option value="estado-activo">
+                    Activos
+                  </option>
+
+                  <option value="estado-inactivo">
+                    Inactivos
+                  </option>
+
+                  <option value="estado-bloqueado">
+                    Bloqueados
+                  </option>
                 </optgroup>
+
                 <optgroup label="Situación">
                   <option value="cuotas-pendientes">
                     Con cuotas pendientes
                   </option>
+
                   <option value="bloqueados-deuda">
                     Bloqueados por deuda
                   </option>
+
                   <option value="bloqueados-inasistencias">
                     Bloqueados por inasistencias
                   </option>
-                  <option value="racha-alta">Racha alta</option>
+
+                  <option value="racha-alta">
+                    Racha alta
+                  </option>
                 </optgroup>
               </select>
             </div>
+
+            {/* LIMPIAR */}
 
             {(busqueda || filtro !== "todos") && (
               <button
@@ -350,10 +478,13 @@ export default function AdminAlumnosPage() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#2d463b] bg-[#12201b] px-4 font-semibold text-[#4adea8] hover:border-[#4adea8]"
               >
                 <ClearOutlinedIcon fontSize="small" />
+
                 Limpiar
               </button>
             )}
           </div>
+
+          {/* CANTIDAD */}
 
           <div className="mt-4 flex flex-col gap-3 border-t border-[#2d463b] pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-gray-400">
@@ -366,23 +497,34 @@ export default function AdminAlumnosPage() {
 
             <label className="flex items-center gap-2 text-sm text-gray-400">
               Mostrar
+
               <select
                 value={porPagina}
                 onChange={(event) =>
-                  setPorPagina(Number(event.target.value))
+                  setPorPagina(
+                    Number(event.target.value),
+                  )
                 }
                 className="rounded-lg border border-[#2d463b] bg-[#12201b] px-3 py-2 text-white outline-none focus:border-[#4adea8]"
               >
-                {OPCIONES_POR_PAGINA.map((opcion) => (
-                  <option key={opcion} value={opcion}>
-                    {opcion}
-                  </option>
-                ))}
+                {OPCIONES_POR_PAGINA.map(
+                  (opcion) => (
+                    <option
+                      key={opcion}
+                      value={opcion}
+                    >
+                      {opcion}
+                    </option>
+                  ),
+                )}
               </select>
+
               por página
             </label>
           </div>
         </section>
+
+        {/* ESTADO VACÍO / TABLA */}
 
         {alumnos.length === 0 ? (
           <EstadoVacio
@@ -396,10 +538,13 @@ export default function AdminAlumnosPage() {
           />
         ) : (
           <section className="overflow-visible rounded-3xl border border-[#2d463b] bg-[#1a2b24]">
+            {/* CABECERA TABLA */}
+
             <header className="border-b border-[#2d463b] px-5 py-5 sm:px-6">
               <h2 className="text-2xl font-bold">
                 Listado de alumnos
               </h2>
+
               <p className="mt-1 text-sm text-gray-400">
                 Página {paginaSegura} de {totalPaginas}
               </p>
@@ -409,14 +554,22 @@ export default function AdminAlumnosPage() {
               <table className="w-full min-w-[1050px] text-left">
                 <thead className="bg-[#12201b] text-sm text-gray-400">
                   <tr>
-                    <th className="px-6 py-4">Alumno</th>
+                    <th className="px-6 py-4">
+                      Alumno
+                    </th>
+
                     <th className="px-6 py-4">
                       Situación financiera
                     </th>
-                    <th className="px-6 py-4">Actividad</th>
+
+                    <th className="px-6 py-4">
+                      Actividad
+                    </th>
+
                     <th className="px-6 py-4">
                       Estado y bloqueos
                     </th>
+
                     <th className="px-6 py-4 text-right">
                       Acciones
                     </th>
@@ -425,24 +578,48 @@ export default function AdminAlumnosPage() {
 
                 <tbody>
                   {alumnosPagina.map((alumno) => {
-                    const racha = obtenerRacha(alumno);
-                    const cuotas = obtenerCuotasPendientes(alumno);
-                    const clases = obtenerClasesConfiables(alumno);
+                    const racha =
+                      obtenerRacha(alumno);
+
+                    const cuotas =
+                      obtenerCuotasPendientes(alumno);
+
+                    const clases =
+                      obtenerClasesConfiables(alumno);
+
+                    const bloqueadoDeuda =
+                      Boolean(
+                        alumno.bloqueadoPorDeuda,
+                      );
+
+                    const bloqueadoInasistencias =
+                      Boolean(
+                        alumno.bloqueadoPorInasistencias,
+                      );
+
+                    const bloqueado =
+                      bloqueadoDeuda ||
+                      bloqueadoInasistencias;
 
                     return (
                       <tr
                         key={alumno.id}
                         className="border-t border-[#2d463b] transition-all hover:bg-[#4adea8]/5"
                       >
+                        {/* ALUMNO */}
+
                         <td className="min-w-[280px] px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#4adea8]/30 bg-[#4adea8]/10 font-bold text-[#4adea8]">
                               {iniciales(alumno)}
                             </div>
+
                             <div>
                               <p className="font-bold text-white">
-                                {alumno.nombre} {alumno.apellido}
+                                {alumno.nombre}{" "}
+                                {alumno.apellido}
                               </p>
+
                               <p className="text-sm text-gray-400">
                                 {alumno.email}
                               </p>
@@ -450,11 +627,14 @@ export default function AdminAlumnosPage() {
                           </div>
                         </td>
 
+                        {/* FINANZAS */}
+
                         <td className="min-w-[190px] px-6 py-4">
                           {cuotas > 0 ? (
                             <span className="inline-flex rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
                               {cuotas} cuota
-                              {cuotas === 1 ? "" : "s"} pendiente
+                              {cuotas === 1 ? "" : "s"}{" "}
+                              pendiente
                               {cuotas === 1 ? "" : "s"}
                             </span>
                           ) : (
@@ -463,6 +643,8 @@ export default function AdminAlumnosPage() {
                             </span>
                           )}
                         </td>
+
+                        {/* ACTIVIDAD */}
 
                         <td className="min-w-[190px] px-6 py-4">
                           <div className="flex flex-wrap gap-2">
@@ -479,45 +661,72 @@ export default function AdminAlumnosPage() {
                           </div>
                         </td>
 
+                        {/* ESTADO Y BLOQUEOS */}
+
                         <td className="min-w-[230px] px-6 py-4">
-                          <div className="flex flex-wrap gap-2">
-                            <span
-                              className={`rounded-full border px-3 py-1 text-xs font-semibold ${obtenerEstadoClase(
-                                alumno.estado,
-                              )}`}
-                            >
-                              {alumno.estado ?? "Sin estado"}
-                            </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {bloqueado ? (
+                              <>
+                                {/* ESTADO VISUAL BLOQUEADO */}
 
-                            {alumno.bloqueadoPorDeuda && (
-                              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
-                                Bloqueado por deuda
-                              </span>
-                            )}
+                                <span
+                                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                                    bloqueadoDeuda
+                                      ? "border-red-500/30 bg-red-500/10 text-red-400"
+                                      : "border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+                                  }`}
+                                >
+                                  BLOQUEADO
+                                </span>
 
-                            {alumno.bloqueadoPorInasistencias && (
-                              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-300">
-                                Bloqueado por inasistencias
-                              </span>
-                            )}
+                                {/* MOTIVO DEUDA */}
 
-                            {!alumno.bloqueadoPorDeuda &&
-                              !alumno.bloqueadoPorInasistencias && (
+                                {bloqueadoDeuda && (
+                                  <span className="text-xs text-red-400">
+                                    Por deuda
+                                  </span>
+                                )}
+
+                                {/* MOTIVO INASISTENCIAS */}
+
+                                {bloqueadoInasistencias && (
+                                  <span className="text-xs text-yellow-300">
+                                    Por inasistencias
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {/* ESTADO NORMAL */}
+
+                                <span
+                                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${obtenerEstadoClase(
+                                    alumno.estado,
+                                  )}`}
+                                >
+                                  {alumno.estado ??
+                                    "Sin estado"}
+                                </span>
+
                                 <span className="text-xs text-gray-500">
                                   Sin bloqueos
                                 </span>
-                              )}
+                              </>
+                            )}
                           </div>
                         </td>
+
+                        {/* ACCIONES */}
 
                         <td className="relative min-w-[100px] px-6 py-4 text-right">
                           <button
                             type="button"
                             onClick={() =>
-                              setMenuAbiertoId((actual) =>
-                                actual === alumno.id
-                                  ? null
-                                  : alumno.id,
+                              setMenuAbiertoId(
+                                (actual) =>
+                                  actual === alumno.id
+                                    ? null
+                                    : alumno.id,
                               )
                             }
                             className="rounded-xl border border-[#2d463b] bg-[#12201b] px-4 py-2 text-xl leading-none hover:border-[#4adea8]"
@@ -525,22 +734,31 @@ export default function AdminAlumnosPage() {
                             ⋮
                           </button>
 
-                          {menuAbiertoId === alumno.id && (
+                          {menuAbiertoId ===
+                            alumno.id && (
                             <div className="absolute right-6 top-14 z-30 w-52 overflow-hidden rounded-2xl border border-[#2d463b] bg-[#12201b] text-left shadow-2xl">
                               <button
                                 type="button"
                                 onClick={() =>
-                                  void verDetalle(alumno.id)
+                                  void verDetalle(
+                                    alumno.id,
+                                  )
                                 }
                                 className="w-full px-4 py-3 text-sm text-white hover:bg-[#4adea8]/10"
                               >
                                 Ver detalle
                               </button>
+
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setAlumnoAEliminar(alumno);
-                                  setMenuAbiertoId(null);
+                                  setAlumnoAEliminar(
+                                    alumno,
+                                  );
+
+                                  setMenuAbiertoId(
+                                    null,
+                                  );
                                 }}
                                 className="w-full border-t border-[#2d463b] px-4 py-3 text-sm text-red-400 hover:bg-red-500/10"
                               >
@@ -556,6 +774,8 @@ export default function AdminAlumnosPage() {
               </table>
             </div>
 
+            {/* PAGINACIÓN */}
+
             <Paginacion
               paginaActual={paginaSegura}
               totalPaginas={totalPaginas}
@@ -565,24 +785,38 @@ export default function AdminAlumnosPage() {
         )}
       </main>
 
-      {cargandoDetalle && <FullScreenLoading />}
+      {/* LOADING DETALLE */}
+
+      {cargandoDetalle && (
+        <FullScreenLoading />
+      )}
+
+      {/* MODAL DETALLE */}
 
       <AlumnoDetalleModal
         alumno={detalle}
         onCerrar={() => setDetalle(null)}
       />
 
+      {/* MODAL ELIMINAR */}
+
       {alumnoAEliminar && (
         <EliminarAlumnoModal
           alumno={alumnoAEliminar}
           eliminando={eliminando}
-          onCancelar={() => setAlumnoAEliminar(null)}
+          onCancelar={() =>
+            setAlumnoAEliminar(null)
+          }
           onConfirmar={confirmarEliminar}
         />
       )}
     </div>
   );
 }
+
+/*
+ * TARJETA RESUMEN
+ */
 
 function ResumenCard({
   titulo,
@@ -597,13 +831,28 @@ function ResumenCard({
 }) {
   return (
     <article className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5">
-      <div className="text-[#4adea8]">{icono}</div>
-      <p className="mt-4 text-sm text-gray-400">{titulo}</p>
-      <p className="mt-1 text-3xl font-bold">{valor}</p>
-      <p className="mt-2 text-xs text-gray-500">{descripcion}</p>
+      <div className="text-[#4adea8]">
+        {icono}
+      </div>
+
+      <p className="mt-4 text-sm text-gray-400">
+        {titulo}
+      </p>
+
+      <p className="mt-1 text-3xl font-bold">
+        {valor}
+      </p>
+
+      <p className="mt-2 text-xs text-gray-500">
+        {descripcion}
+      </p>
     </article>
   );
 }
+
+/*
+ * PAGINACIÓN
+ */
 
 function Paginacion({
   paginaActual,
@@ -629,50 +878,65 @@ function Paginacion({
         <button
           type="button"
           disabled={paginaActual === 1}
-          onClick={() => onCambiar(paginaActual - 1)}
+          onClick={() =>
+            onCambiar(paginaActual - 1)
+          }
           className="flex h-10 items-center gap-1 rounded-xl border border-[#2d463b] bg-[#12201b] px-3 text-sm font-semibold disabled:opacity-40"
         >
           <NavigateBeforeOutlinedIcon fontSize="small" />
+
           Anterior
         </button>
 
-        {paginas.map((pagina, indice) =>
-          pagina === "..." ? (
-            <span
-              key={`ellipsis-${indice}`}
-              className="px-2 text-gray-500"
-            >
-              …
-            </span>
-          ) : (
-            <button
-              key={pagina}
-              type="button"
-              onClick={() => onCambiar(pagina)}
-              className={`h-10 min-w-10 rounded-xl border px-3 text-sm font-semibold ${
-                paginaActual === pagina
-                  ? "border-[#4adea8] bg-[#4adea8] text-[#12201b]"
-                  : "border-[#2d463b] bg-[#12201b] text-gray-300"
-              }`}
-            >
-              {pagina}
-            </button>
-          ),
+        {paginas.map(
+          (pagina, indice) =>
+            pagina === "..." ? (
+              <span
+                key={`ellipsis-${indice}`}
+                className="px-2 text-gray-500"
+              >
+                …
+              </span>
+            ) : (
+              <button
+                key={pagina}
+                type="button"
+                onClick={() =>
+                  onCambiar(pagina)
+                }
+                className={`h-10 min-w-10 rounded-xl border px-3 text-sm font-semibold ${
+                  paginaActual === pagina
+                    ? "border-[#4adea8] bg-[#4adea8] text-[#12201b]"
+                    : "border-[#2d463b] bg-[#12201b] text-gray-300"
+                }`}
+              >
+                {pagina}
+              </button>
+            ),
         )}
 
         <button
           type="button"
-          disabled={paginaActual === totalPaginas}
-          onClick={() => onCambiar(paginaActual + 1)}
+          disabled={
+            paginaActual === totalPaginas
+          }
+          onClick={() =>
+            onCambiar(paginaActual + 1)
+          }
           className="flex h-10 items-center gap-1 rounded-xl border border-[#2d463b] bg-[#12201b] px-3 text-sm font-semibold disabled:opacity-40"
         >
           Siguiente
+
           <NavigateNextOutlinedIcon fontSize="small" />
         </button>
       </div>
     </footer>
   );
 }
+
+/*
+ * MODAL ELIMINAR
+ */
 
 function EliminarAlumnoModal({
   alumno,
@@ -691,6 +955,7 @@ function EliminarAlumnoModal({
         <h2 className="text-2xl font-bold">
           Eliminar alumno
         </h2>
+
         <p className="mt-2 text-gray-400">
           ¿Seguro que querés eliminar a{" "}
           <strong className="text-white">
@@ -715,13 +980,19 @@ function EliminarAlumnoModal({
             disabled={eliminando}
             className="rounded-xl bg-red-500 px-5 py-3 font-bold text-white disabled:opacity-50"
           >
-            {eliminando ? "Eliminando..." : "Eliminar"}
+            {eliminando
+              ? "Eliminando..."
+              : "Eliminar"}
           </button>
         </div>
       </section>
     </div>
   );
 }
+
+/*
+ * ESTADO VACÍO
+ */
 
 function EstadoVacio({
   titulo,
@@ -732,76 +1003,170 @@ function EstadoVacio({
 }) {
   return (
     <section className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-10 text-center">
-      <h2 className="text-2xl font-bold">{titulo}</h2>
-      <p className="mt-2 text-gray-400">{descripcion}</p>
+      <h2 className="text-2xl font-bold">
+        {titulo}
+      </h2>
+
+      <p className="mt-2 text-gray-400">
+        {descripcion}
+      </p>
     </section>
   );
 }
+
+/*
+ * SABER SI UN ALUMNO ESTÁ BLOQUEADO
+ */
+
+function estaBloqueado(alumno: Alumno) {
+  return Boolean(
+    alumno.bloqueadoPorDeuda ||
+      alumno.bloqueadoPorInasistencias,
+  );
+}
+
+/*
+ * ESTADO VISUAL REAL
+ */
+
+function obtenerEstadoVisual(
+  alumno: Alumno,
+) {
+  if (estaBloqueado(alumno)) {
+    return "BLOQUEADO";
+  }
+
+  return (
+    alumno.estado?.toUpperCase() ??
+    "SIN ESTADO"
+  );
+}
+
+/*
+ * FILTROS
+ */
 
 function coincideFiltro(
   alumno: Alumno,
   filtro: FiltroAlumnos,
 ) {
-  const estado = alumno.estado?.toUpperCase();
+  const estado =
+    alumno.estado?.toUpperCase();
+
+  const bloqueado =
+    estaBloqueado(alumno);
 
   switch (filtro) {
     case "estado-activo":
-      return estado === "ACTIVO";
-    case "estado-inactivo":
-      return estado === "INACTIVO";
-    case "estado-bloqueado":
       return (
-        estado === "BLOQUEADO" ||
-        Boolean(
-          alumno.bloqueadoPorDeuda ||
-            alumno.bloqueadoPorInasistencias,
-        )
+        estado === "ACTIVO" &&
+        !bloqueado
       );
+
+    case "estado-inactivo":
+      return (
+        estado === "INACTIVO" &&
+        !bloqueado
+      );
+
+    case "estado-bloqueado":
+      return bloqueado;
+
     case "bloqueados-inasistencias":
-      return Boolean(alumno.bloqueadoPorInasistencias);
+      return Boolean(
+        alumno.bloqueadoPorInasistencias,
+      );
+
     case "bloqueados-deuda":
-      return Boolean(alumno.bloqueadoPorDeuda);
+      return Boolean(
+        alumno.bloqueadoPorDeuda,
+      );
+
     case "cuotas-pendientes":
-      return obtenerCuotasPendientes(alumno) > 0;
+      return (
+        obtenerCuotasPendientes(alumno) >
+        0
+      );
+
     case "racha-alta":
       return obtenerRacha(alumno) >= 5;
+
     default:
       return true;
   }
 }
 
+/*
+ * RACHA
+ */
+
 function obtenerRacha(alumno: Alumno) {
-  return alumno.rachaAsistenciaMensual ?? alumno.rachaMensual ?? 0;
+  return (
+    alumno.rachaAsistenciaMensual ??
+    alumno.rachaMensual ??
+    0
+  );
 }
 
-function obtenerClasesConfiables(alumno: Alumno) {
-  if (typeof alumno.clasesInscriptas === "number") {
+/*
+ * CLASES
+ */
+
+function obtenerClasesConfiables(
+  alumno: Alumno,
+) {
+  if (
+    typeof alumno.clasesInscriptas ===
+    "number"
+  ) {
     return alumno.clasesInscriptas;
   }
 
-  if (typeof alumno.cantidadClasesInscripto === "number") {
+  if (
+    typeof alumno.cantidadClasesInscripto ===
+    "number"
+  ) {
     return alumno.cantidadClasesInscripto;
   }
 
   return null;
 }
 
-function obtenerCuotasPendientes(alumno: Alumno) {
+/*
+ * CUOTAS PENDIENTES
+ */
+
+function obtenerCuotasPendientes(
+  alumno: Alumno,
+) {
   return alumno.cuotasPendientes ?? 0;
 }
 
-function obtenerEstadoClase(estado?: string) {
+/*
+ * COLOR DEL ESTADO
+ */
+
+function obtenerEstadoClase(
+  estado?: string,
+) {
   switch (estado?.toUpperCase()) {
     case "ACTIVO":
       return "bg-[#4adea8]/10 text-[#4adea8] border-[#4adea8]/30";
+
     case "BLOQUEADO":
       return "bg-yellow-500/10 text-yellow-300 border-yellow-500/30";
+
     case "INACTIVO":
       return "bg-gray-500/10 text-gray-300 border-gray-500/30";
+
     default:
       return "bg-[#12201b] text-gray-300 border-[#2d463b]";
   }
 }
+
+/*
+ * INICIALES
+ */
 
 function iniciales(alumno: Alumno) {
   return `${alumno.nombre?.charAt(0) ?? ""}${
@@ -809,6 +1174,9 @@ function iniciales(alumno: Alumno) {
   }`.toUpperCase();
 }
 
+/*
+ * PÁGINAS VISIBLES
+ */
 
 function obtenerPaginasVisibles(
   paginaActual: number,
@@ -816,16 +1184,29 @@ function obtenerPaginasVisibles(
 ): Array<number | "..."> {
   if (totalPaginas <= 7) {
     return Array.from(
-      { length: totalPaginas },
+      {
+        length: totalPaginas,
+      },
       (_, indice) => indice + 1,
     );
   }
 
   if (paginaActual <= 4) {
-    return [1, 2, 3, 4, 5, "...", totalPaginas];
+    return [
+      1,
+      2,
+      3,
+      4,
+      5,
+      "...",
+      totalPaginas,
+    ];
   }
 
-  if (paginaActual >= totalPaginas - 3) {
+  if (
+    paginaActual >=
+    totalPaginas - 3
+  ) {
     return [
       1,
       "...",
