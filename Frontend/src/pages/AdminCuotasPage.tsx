@@ -5,6 +5,7 @@ import TopBar from "../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../components/FullScreenSpinner";
 import ResumenCard from "../components/ui/ResumenCard";
 import DashboardIncomeChart from "../components/admin/DashboardIncomeChart";
+import Pagination from "../components/ui/Pagination";
 
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
@@ -90,6 +91,9 @@ export default function AdminCuotasPage() {
   const [buscar, setBuscar] = useState("");
   const [mes, setMes] = useState(hoy.getMonth() + 1);
   const [anio, setAnio] = useState(hoy.getFullYear());
+
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
 
   /*
    * FILTRO POR ALUMNO
@@ -220,6 +224,10 @@ export default function AdminCuotasPage() {
     void cargarDatos();
   }, [estado, mes, anio, alumnoIdFiltro]);
 
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [buscar, estado, mes, anio, alumnoIdFiltro, registrosPorPagina]);
+
   /*
    * CUOTAS ORDENADAS
    */
@@ -285,28 +293,60 @@ export default function AdminCuotasPage() {
     );
   }, [cuotasOrdenadas, buscar, alumnoIdFiltro]);
 
+  const totalRegistros = cuotasFiltradas.length;
+
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(totalRegistros / registrosPorPagina),
+  );
+
+  const cuotasPaginadas = useMemo(() => {
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+
+    return cuotasFiltradas.slice(
+      inicio,
+      inicio + registrosPorPagina,
+    );
+  }, [cuotasFiltradas, paginaActual, registrosPorPagina]);
+
+  useEffect(() => {
+    if (paginaActual > totalPaginas) {
+      setPaginaActual(totalPaginas);
+    }
+  }, [paginaActual, totalPaginas]);
+
   /*
    * RESUMEN DEL ALUMNO
    */
 
   const resumenAlumno = useMemo(() => {
+    const cuotasConDeuda = cuotasFiltradas.filter(
+      (c) => c.estado !== "PAGADA" && !c.bonificada,
+    );
+
+    const pagosRegistrados = cuotasFiltradas
+      .filter((c) => Boolean(c.fechaPago))
+      .sort(
+        (a, b) =>
+          new Date(b.fechaPago as string).getTime() -
+          new Date(a.fechaPago as string).getTime(),
+      );
+
     return {
       total: cuotasFiltradas.length,
-
-      pendientes: cuotasFiltradas.filter(
-        (c) => c.estado !== "PAGADA" && !c.bonificada,
-      ).length,
-
-      vencidas: cuotasFiltradas.filter(
-        (c) =>
-          c.vencida &&
-          c.estado !== "PAGADA" &&
-          !c.bonificada,
-      ).length,
-
+      pendientes: cuotasConDeuda.length,
+      vencidas: cuotasConDeuda.filter((c) => c.vencida).length,
       pagadas: cuotasFiltradas.filter(
         (c) => c.estado === "PAGADA",
       ).length,
+      deudaActual: cuotasConDeuda.reduce(
+        (total, cuota) => total + cuota.montoFinal,
+        0,
+      ),
+      ultimoPago: pagosRegistrados[0]?.fechaPago ?? null,
+      bloqueadoPorDeuda: cuotasFiltradas.some(
+        (c) => c.bloqueadoPorDeuda,
+      ),
     };
   }, [cuotasFiltradas]);
 
@@ -479,15 +519,20 @@ export default function AdminCuotasPage() {
           </p>
 
           <h1 className="mt-2 text-3xl sm:text-4xl font-bold">
-            Finanzas y cuotas
+            {alumnoIdFiltro
+              ? `Detalle financiero de ${alumnoNombreFiltro}`
+              : "Finanzas y cuotas"}
           </h1>
 
           <p className="text-gray-400 mt-2">
-            Consultá el estado financiero, gestioná las cuotas y registrá
-            pagos manuales.
+            {alumnoIdFiltro
+              ? "Consultá el estado de cuenta, la deuda y el historial completo del alumno."
+              : "Consultá el estado financiero, gestioná las cuotas y registrá pagos manuales."}
           </p>
         </div>
 
+        {!alumnoIdFiltro && (
+          <>
         {/* CONFIGURACIÓN DE CUOTA */}
 
         <section className="mb-8 rounded-3xl border border-[#4adea8]/20 bg-[#1a2b24] p-6">
@@ -612,6 +657,8 @@ export default function AdminCuotasPage() {
             />
           </div>
         </section>
+          </>
+        )}
 
         {/* FILTROS */}
 
@@ -721,45 +768,71 @@ export default function AdminCuotasPage() {
           </section>
         )}
 
-        {/* HISTORIAL DEL ALUMNO */}
+        {/* DETALLE FINANCIERO DEL ALUMNO */}
 
         {alumnoIdFiltro && (
-          <section className="bg-yellow-500/10 border border-yellow-500/30 rounded-3xl p-6 mb-6">
-
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
+          <section className="mb-8 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-6">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-yellow-300">
-                  Historial de cuotas de {alumnoNombreFiltro}
-                </h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-2xl font-bold">
+                    {alumnoNombreFiltro}
+                  </h2>
+
+                  <span
+                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${
+                      resumenAlumno.bloqueadoPorDeuda
+                        ? "border-red-500/30 bg-red-500/10 text-red-400"
+                        : "border-[#4adea8]/30 bg-[#4adea8]/10 text-[#4adea8]"
+                    }`}
+                  >
+                    {resumenAlumno.bloqueadoPorDeuda
+                      ? "Bloqueado por deuda"
+                      : "Cuenta al día"}
+                  </span>
+                </div>
 
                 {alumnoEmailFiltro && (
-                  <p className="text-gray-300 mt-1">
+                  <p className="mt-1 text-gray-400">
                     {alumnoEmailFiltro}
                   </p>
                 )}
 
-                <p className="text-gray-300 text-sm mt-3">
-                  Se muestran todas las cuotas registradas para este alumno.
-                  Si sigue bloqueado, revisá cuotas vencidas anteriores.
+                <p className="mt-4 max-w-2xl text-sm text-gray-400">
+                  Se muestran todas las cuotas del alumno. El estado de cada
+                  cuota es independiente del estado general de su cuenta.
                 </p>
+
+                <button
+                  type="button"
+                  onClick={limpiarFiltros}
+                  className="mt-5 rounded-xl border border-[#2d463b] bg-[#12201b] px-5 py-3 font-semibold transition-colors hover:border-[#4adea8]"
+                >
+                  ← Volver al listado mensual
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-
+              <div className="grid w-full gap-3 sm:grid-cols-2 xl:max-w-2xl xl:grid-cols-3">
                 <MiniResumen
-                  titulo="Total"
-                  valor={resumenAlumno.total}
+                  titulo="Deuda actual"
+                  valor={formatearDinero(resumenAlumno.deudaActual)}
+                  destacado={resumenAlumno.deudaActual > 0}
                 />
 
                 <MiniResumen
-                  titulo="Pendientes"
-                  valor={resumenAlumno.pendientes}
-                />
-
-                <MiniResumen
-                  titulo="Vencidas"
+                  titulo="Cuotas vencidas"
                   valor={resumenAlumno.vencidas}
+                  destacado={resumenAlumno.vencidas > 0}
+                />
+
+                <MiniResumen
+                  titulo="Último pago"
+                  valor={formatearFecha(resumenAlumno.ultimoPago)}
+                />
+
+                <MiniResumen
+                  titulo="Total cuotas"
+                  valor={resumenAlumno.total}
                 />
 
                 <MiniResumen
@@ -767,17 +840,13 @@ export default function AdminCuotasPage() {
                   valor={resumenAlumno.pagadas}
                 />
 
+                <MiniResumen
+                  titulo="Pendientes"
+                  valor={resumenAlumno.pendientes}
+                  destacado={resumenAlumno.pendientes > 0}
+                />
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={limpiarFiltros}
-              className="mt-5 px-5 py-3 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
-            >
-              ← Volver al listado mensual
-            </button>
-
           </section>
         )}
 
@@ -821,7 +890,7 @@ export default function AdminCuotasPage() {
 
                 <tbody>
 
-                  {cuotasFiltradas.map((cuota) => (
+                  {cuotasPaginadas.map((cuota) => (
 
                     <tr
                       key={cuota.cuotaId}
@@ -838,15 +907,15 @@ export default function AdminCuotasPage() {
                           {cuota.email}
                         </p>
 
-                        {cuota.bloqueadoPorDeuda &&
-                          cuota.estado !== "PAGADA" &&
-                          !cuota.bonificada && (
-
-                            <p className="text-xs text-red-400 mt-1">
-                              Bloqueado por deuda
-                            </p>
-
-                          )}
+                        {cuota.bloqueadoPorDeuda ? (
+                          <p className="mt-1 text-xs font-semibold text-red-400">
+                            Bloqueado por deuda
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-xs font-semibold text-[#4adea8]">
+                            Cuenta al día
+                          </p>
+                        )}
 
                       </td>
 
@@ -924,7 +993,9 @@ export default function AdminCuotasPage() {
                               }
                               className="px-4 py-2 rounded-xl bg-[#12201b] border border-[#2d463b] hover:border-[#4adea8] font-semibold"
                             >
-                              Ver historial
+                              {cuota.bloqueadoPorDeuda
+                                ? "Revisar deuda"
+                                : "Ver historial"}
                             </button>
 
                           )}
@@ -942,6 +1013,18 @@ export default function AdminCuotasPage() {
               </table>
 
             </div>
+
+            <Pagination
+              paginaActual={paginaActual}
+              totalPaginas={totalPaginas}
+              totalRegistros={totalRegistros}
+              registrosPorPagina={registrosPorPagina}
+              onCambiarPagina={setPaginaActual}
+              onCambiarRegistrosPorPagina={(cantidad) => {
+                setRegistrosPorPagina(cantidad);
+                setPaginaActual(1);
+              }}
+            />
 
           </div>
 
@@ -1226,21 +1309,31 @@ export default function AdminCuotasPage() {
 function MiniResumen({
   titulo,
   valor,
+  destacado = false,
 }: {
   titulo: string;
-  valor: number;
+  valor: number | string;
+  destacado?: boolean;
 }) {
   return (
-    <div className="bg-[#12201b] border border-[#2d463b] rounded-2xl px-4 py-3 min-w-[95px]">
-
+    <div
+      className={`min-w-[95px] rounded-2xl border px-4 py-3 ${
+        destacado
+          ? "border-red-500/30 bg-red-500/10"
+          : "border-[#2d463b] bg-[#12201b]"
+      }`}
+    >
       <p className="text-xs text-gray-400">
         {titulo}
       </p>
 
-      <p className="text-xl font-bold text-[#4adea8] mt-1">
+      <p
+        className={`mt-1 text-xl font-bold ${
+          destacado ? "text-red-400" : "text-[#4adea8]"
+        }`}
+      >
         {valor}
       </p>
-
     </div>
   );
 }

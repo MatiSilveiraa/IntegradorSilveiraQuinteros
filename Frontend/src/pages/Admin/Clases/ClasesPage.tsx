@@ -56,6 +56,8 @@ export default function ClasesPage() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todas");
 
+  const [desplazamientoSemana, setDesplazamientoSemana] = useState(0);
+
   const [diasAbiertos, setDiasAbiertos] = useState<Record<string, boolean>>({});
 
   const [menuClaseId, setMenuClaseId] = useState<number | null>(null);
@@ -99,6 +101,26 @@ export default function ClasesPage() {
     void cargarClases();
   }, []);
 
+  const inicioSemana = useMemo(() => {
+    const hoy = crearFechaLocal(obtenerFechaActualUruguay());
+    const numeroDia = obtenerNumeroDiaDate(hoy);
+
+    hoy.setDate(
+      hoy.getDate() - (numeroDia - 1) + desplazamientoSemana * 7,
+    );
+
+    return fechaAString(hoy);
+  }, [desplazamientoSemana]);
+
+  const finSemana = useMemo(
+    () => sumarDias(inicioSemana, 6),
+    [inicioSemana],
+  );
+
+  const volverSemanaActual = () => {
+    setDesplazamientoSemana(0);
+  };
+
   const clasesFiltradas = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
 
@@ -138,8 +160,8 @@ export default function ClasesPage() {
       grupos.set(dia, new Map());
     });
 
-    const hoy = obtenerFechaActualUruguay();
-    const finRango = sumarDias(hoy, 28);
+    const inicioRango = inicioSemana;
+    const finRango = finSemana;
 
     clasesFiltradas.forEach((clase) => {
       const dia = normalizarDia(clase.diaSemana);
@@ -147,11 +169,19 @@ export default function ClasesPage() {
       let fechasOcurrencia: string[] = [];
 
       if (clase.esFija) {
-        fechasOcurrencia = generarOcurrenciasRecurrentes(clase, hoy, finRango);
+        fechasOcurrencia = generarOcurrenciasRecurrentes(
+          clase,
+          inicioRango,
+          finRango,
+        );
       } else {
         const fechaPuntual = clase.fechaInicio?.substring(0, 10);
 
-        if (fechaPuntual) {
+        if (
+          fechaPuntual &&
+          fechaPuntual >= inicioRango &&
+          fechaPuntual <= finRango
+        ) {
           fechasOcurrencia = [fechaPuntual];
         }
       }
@@ -179,30 +209,27 @@ export default function ClasesPage() {
     });
 
     return grupos;
-  }, [clasesFiltradas]);
+  }, [clasesFiltradas, inicioSemana, finSemana]);
 
   useEffect(() => {
+    const primerDiaConClases = DIAS_ORDENADOS.find((dia) => {
+      const fechasDia = clasesAgrupadas.get(dia);
+
+      return fechasDia
+        ? Array.from(fechasDia.values()).some(
+            (lista) => lista.length > 0,
+          )
+        : false;
+    });
+
     const inicial: Record<string, boolean> = {};
 
     DIAS_ORDENADOS.forEach((dia) => {
-      const fechasDia = clasesAgrupadas.get(dia);
-
-      const cantidadClases = fechasDia
-        ? Array.from(fechasDia.values()).reduce(
-            (total, lista) => total + lista.length,
-            0,
-          )
-        : 0;
-
-      if (cantidadClases > 0) {
-        inicial[dia] = true;
-      }
+      inicial[dia] = dia === primerDiaConClases;
     });
 
-    setDiasAbiertos((actual) => ({
-      ...inicial,
-      ...actual,
-    }));
+    setDiasAbiertos(inicial);
+    setMenuClaseId(null);
   }, [clasesAgrupadas]);
   const resumen = useMemo(() => {
     return {
@@ -279,10 +306,22 @@ export default function ClasesPage() {
   };
 
   const alternarDia = (dia: string) => {
-    setDiasAbiertos((actual) => ({
-      ...actual,
-      [dia]: !(actual[dia] ?? true),
-    }));
+    setDiasAbiertos((actual) => {
+      const estabaAbierto = actual[dia] === true;
+      const siguiente: Record<string, boolean> = {};
+
+      DIAS_ORDENADOS.forEach((item) => {
+        siguiente[item] = false;
+      });
+
+      if (!estabaAbierto) {
+        siguiente[dia] = true;
+      }
+
+      return siguiente;
+    });
+
+    setMenuClaseId(null);
   };
 
   if (loading) {
@@ -323,8 +362,7 @@ export default function ClasesPage() {
               </h1>
 
               <p className="mt-2 max-w-3xl text-gray-300">
-                Vista compacta organizada por día y horario, con acciones
-                secundarias dentro de un único menú.
+                Consultá y administrá las clases de una semana a la vez.
               </p>
             </div>
 
@@ -365,6 +403,50 @@ export default function ClasesPage() {
           />
         </section>
 
+        <section className="mb-6 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <button
+              type="button"
+              onClick={() =>
+                setDesplazamientoSemana((actual) => actual - 1)
+              }
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-[#2d463b] bg-[#12201b] px-5 font-semibold transition-colors hover:border-[#4adea8]"
+            >
+              ← Semana anterior
+            </button>
+
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#4adea8]">
+                Semana seleccionada
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold sm:text-2xl">
+                {formatearRangoSemana(inicioSemana, finSemana)}
+              </h2>
+
+              {desplazamientoSemana !== 0 && (
+                <button
+                  type="button"
+                  onClick={volverSemanaActual}
+                  className="mt-2 text-sm font-semibold text-[#4adea8] hover:underline"
+                >
+                  Volver a la semana actual
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setDesplazamientoSemana((actual) => actual + 1)
+              }
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-[#2d463b] bg-[#12201b] px-5 font-semibold transition-colors hover:border-[#4adea8]"
+            >
+              Semana siguiente →
+            </button>
+          </div>
+        </section>
+
         <section className="mb-8 rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4 sm:p-5">
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
             <div className="relative">
@@ -401,10 +483,10 @@ export default function ClasesPage() {
           </div>
 
           <p className="mt-4 border-t border-[#2d463b] pt-4 text-sm text-gray-400">
-            {clasesFiltradas.length}{" "}
-            {clasesFiltradas.length === 1
-              ? "clase encontrada"
-              : "clases encontradas"}
+            {contarOcurrencias(clasesAgrupadas)}{" "}
+            {contarOcurrencias(clasesAgrupadas) === 1
+              ? "clase visible en esta semana"
+              : "clases visibles en esta semana"}
           </p>
         </section>
 
@@ -419,6 +501,11 @@ export default function ClasesPage() {
           <EstadoVacio
             titulo="No se encontraron clases"
             descripcion="Probá cambiar la búsqueda o el filtro seleccionado."
+          />
+        ) : contarOcurrencias(clasesAgrupadas) === 0 ? (
+          <EstadoVacio
+            titulo="No hay clases en esta semana"
+            descripcion="Podés consultar otra semana usando los botones de navegación."
           />
         ) : (
           <div className="space-y-5">
@@ -436,7 +523,7 @@ export default function ClasesPage() {
                 return null;
               }
 
-              const abierto = diasAbiertos[dia] ?? true;
+              const abierto = diasAbiertos[dia] ?? false;
 
               return (
                 <section
@@ -1191,4 +1278,63 @@ function obtenerNumeroDiaDate(fecha: Date) {
   const dia = fecha.getDay();
 
   return dia === 0 ? 7 : dia;
+}
+
+function contarOcurrencias(
+  clasesAgrupadas: Map<string, Map<string, ClaseConOcurrencia[]>>,
+) {
+  let total = 0;
+
+  clasesAgrupadas.forEach((fechas) => {
+    fechas.forEach((lista) => {
+      total += lista.length;
+    });
+  });
+
+  return total;
+}
+
+function formatearRangoSemana(inicio: string, fin: string) {
+  const inicioDate = crearFechaLocal(inicio);
+  const finDate = crearFechaLocal(fin);
+
+  const mismoMes =
+    inicioDate.getMonth() === finDate.getMonth() &&
+    inicioDate.getFullYear() === finDate.getFullYear();
+
+  const mismoAnio =
+    inicioDate.getFullYear() === finDate.getFullYear();
+
+  const diaInicio = inicioDate.getDate();
+  const diaFin = finDate.getDate();
+
+  const mesInicio = inicioDate.toLocaleDateString("es-UY", {
+    month: "long",
+  });
+
+  const mesFin = finDate.toLocaleDateString("es-UY", {
+    month: "long",
+  });
+
+  if (mismoMes) {
+    return `${diaInicio} al ${diaFin} de ${capitalizar(mesFin)} de ${finDate.getFullYear()}`;
+  }
+
+  if (mismoAnio) {
+    return `${diaInicio} de ${capitalizar(
+      mesInicio,
+    )} al ${diaFin} de ${capitalizar(mesFin)} de ${finDate.getFullYear()}`;
+  }
+
+  return `${diaInicio} de ${capitalizar(
+    mesInicio,
+  )} de ${inicioDate.getFullYear()} al ${diaFin} de ${capitalizar(
+    mesFin,
+  )} de ${finDate.getFullYear()}`;
+}
+
+function capitalizar(texto: string) {
+  if (!texto) return texto;
+
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
