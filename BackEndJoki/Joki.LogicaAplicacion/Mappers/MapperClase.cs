@@ -97,87 +97,119 @@ namespace Joki.LogicaAplicacion.Mappers
             return new ClaseResponse
             {
                 Id =
-                    clase.Id,
+         clase.Id,
 
                 GrupoId =
-                    clase.GrupoId,
+         clase.GrupoId,
 
                 GrupoNombre =
-                    clase.Grupo?.Nombre,
+         clase.Grupo?.Nombre,
+
+                NombreGrupo =
+         clase.Grupo?.Nombre,
 
                 UbicacionNombre =
-                    ObtenerNombreUbicacion(
-                        clase),
+         ObtenerNombreUbicacion(
+             clase),
 
-    
+                Ubicacion =
+         ObtenerNombreUbicacion(
+             clase),
+
                 EntrenadorNombre =
-                    nombrePrincipal,
+         nombrePrincipal,
 
                 EntrenadoresIds =
-                    relacionesEntrenadores
-                        .Select(x =>
-                            x.EntrenadorId)
-                        .ToList(),
+         relacionesEntrenadores
+             .Select(x =>
+                 x.EntrenadorId)
+             .ToList(),
 
                 Entrenadores =
-                    relacionesEntrenadores
-                        .Select(x =>
-                            ObtenerNombreCompleto(
-                                x.Entrenador))
-                        .Where(nombre =>
-                            !string.IsNullOrWhiteSpace(
-                                nombre))
-                        .ToList(),
+         relacionesEntrenadores
+             .Select(x =>
+                 ObtenerNombreCompleto(
+                     x.Entrenador))
+             .Where(nombre =>
+                 !string.IsNullOrWhiteSpace(
+                     nombre))
+             .ToList(),
 
                 EntrenadorPrincipalId =
-                    relacionPrincipal
-                        ?.EntrenadorId,
+         relacionPrincipal
+             ?.EntrenadorId,
 
                 EntrenadorPrincipal =
-                    nombrePrincipal,
+         nombrePrincipal,
+
+                Entrenador =
+         relacionPrincipal == null
+             ? null
+             : new EntrenadorClaseResponse
+             {
+                 Id =
+                     relacionPrincipal.EntrenadorId,
+
+                 Nombre =
+                     relacionPrincipal
+                         .Entrenador
+                         .Nombre?
+                         .Valor
+                     ?? string.Empty,
+
+                 Apellido =
+                     relacionPrincipal
+                         .Entrenador
+                         .Apellido?
+                         .Valor
+                     ?? string.Empty
+             },
 
                 DiaSemana =
-                    clase.DiaSemana.ToString(),
+         clase.DiaSemana.ToString(),
 
                 HoraInicio =
-                    clase.HoraInicio,
+         clase.HoraInicio,
 
                 HoraFin =
-                    clase.HoraFin,
+         clase.HoraFin,
 
                 Latitud =
-                    clase.Ubicacion?.Latitud
-                    ?? 0,
+         clase.Ubicacion?.Latitud
+         ?? 0,
 
                 Longitud =
-                    clase.Ubicacion?.Longitud
-                    ?? 0,
+         clase.Ubicacion?.Longitud
+         ?? 0,
 
                 CodigoPostal =
-                    clase.Ubicacion?.CodigoPostal
-                    ?? string.Empty,
+         clase.Ubicacion?.CodigoPostal
+         ?? string.Empty,
 
                 RadioGeolocalizacion =
-                    clase.RadioGeolocalizacion,
+         clase.RadioGeolocalizacion,
 
                 EsFija =
-                    clase.EsFija,
+         clase.EsFija,
 
                 FechaInicio =
-                    clase.FechaInicio,
+         clase.FechaInicio,
 
                 FechaFin =
-                    clase.FechaFin,
+         clase.FechaFin,
 
                 CupoMaximo =
-                    clase.CupoMaximo,
+         clase.CupoMaximo,
 
                 Estado =
-                    clase.Estado.ToString(),
+         clase.Estado.ToString(),
+
+                EstadoClase =
+         clase.Estado.ToString(),
 
                 CantidadInscriptos =
-                    clase.Inscripciones?.Count
-                    ?? 0
+         clase.Inscripciones?.Count
+         ?? 0
             };
         }
 

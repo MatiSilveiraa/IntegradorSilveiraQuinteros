@@ -6,9 +6,16 @@
 
         public int GrupoId { get; set; }
 
+        
         public string? GrupoNombre { get; set; }
 
+        public string? NombreGrupo { get; set; }
+
+ 
         public string? UbicacionNombre { get; set; }
+
+        public string? Ubicacion { get; set; }
+
 
         public string? EntrenadorNombre { get; set; }
 
@@ -21,6 +28,8 @@
         public int? EntrenadorPrincipalId { get; set; }
 
         public string? EntrenadorPrincipal { get; set; }
+
+        public EntrenadorClaseResponse? Entrenador { get; set; }
 
         public string DiaSemana { get; set; }
             = string.Empty;
@@ -52,7 +61,12 @@
 
         public int CupoMaximo { get; set; }
 
+       
         public string Estado { get; set; }
+            = string.Empty;
+
+      
+        public string EstadoClase { get; set; }
             = string.Empty;
 
         public int CantidadInscriptos { get; set; }

@@ -10,6 +10,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
 
+
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 
@@ -253,15 +254,35 @@ function VistaSemanal({
   onVer: (id: number) => void;
   onAsistencia: (id: number) => void;
 }) {
+  const [diasExpandidos, setDiasExpandidos] = useState<string[]>([]);
+
+  const alternarDia = (dia: string) => {
+    setDiasExpandidos((actuales) =>
+      actuales.includes(dia)
+        ? actuales.filter((item) => item !== dia)
+        : [...actuales, dia],
+    );
+  };
+
   return (
     <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       {DIAS.map((dia) => {
         const clasesDia = clasesPorDia.get(dia) ?? [];
+        const estaExpandido = diasExpandidos.includes(dia);
+
+        const clasesVisibles = estaExpandido
+          ? clasesDia
+          : clasesDia.slice(0, 4);
+
+        const cantidadOcultas = Math.max(
+          clasesDia.length - clasesVisibles.length,
+          0,
+        );
 
         return (
           <article
             key={dia}
-            className="rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-5"
+            className="self-start rounded-3xl border border-[#2d463b] bg-[#1a2b24] p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -280,25 +301,174 @@ function VistaSemanal({
             </div>
 
             {clasesDia.length === 0 ? (
-              <div className="mt-5 rounded-2xl border border-dashed border-[#2d463b] bg-[#12201b] p-6 text-center text-sm text-gray-500">
+              <div className="mt-4 rounded-2xl border border-dashed border-[#2d463b] bg-[#12201b] p-6 text-center text-sm text-gray-500">
                 Sin clases
               </div>
             ) : (
-              <div className="mt-5 space-y-3">
-                {clasesDia.map((clase) => (
-                  <ClaseAgendaCard
-                    key={clase.claseId}
-                    clase={clase}
-                    onVer={onVer}
-                    onAsistencia={onAsistencia}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="mt-4 space-y-2">
+                  {clasesVisibles.map((clase) => (
+                    <ClaseAgendaCard
+                      key={clase.claseId}
+                      clase={clase}
+                      onVer={onVer}
+                      onAsistencia={onAsistencia}
+                    />
+                  ))}
+                </div>
+
+                {clasesDia.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => alternarDia(dia)}
+                    className="
+                      mt-3
+                      flex
+                      w-full
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-[#2d463b]
+                      bg-[#12201b]
+                      px-4
+                      py-2.5
+                      text-sm
+                      font-semibold
+                      text-[#4adea8]
+                      transition-all
+                      hover:border-[#4adea8]
+                    "
+                  >
+                    {estaExpandido
+                      ? "Ver menos"
+                      : `Ver ${cantidadOcultas} más`}
+                  </button>
+                )}
+              </>
             )}
           </article>
         );
       })}
     </section>
+  );
+}
+
+function ClaseAgendaCard({
+  clase,
+  onVer,
+  onAsistencia,
+}: {
+  clase: ClaseAsignadaEntrenador;
+  onVer: (id: number) => void;
+  onAsistencia: (id: number) => void;
+}) {
+  return (
+    <article
+      className="
+        rounded-xl
+        border
+        border-[#2d463b]
+        bg-[#12201b]
+        p-3
+        transition-all
+        hover:border-[#4adea8]/40
+      "
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-bold">
+            {clase.grupo}
+          </h3>
+
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
+            <AccessTimeOutlinedIcon
+              sx={{
+                color: "#4adea8",
+                fontSize: 15,
+              }}
+            />
+
+            {hora(clase.horaInicio)} - {hora(clase.horaFin)}
+          </p>
+        </div>
+
+        {clase.esPrincipal && (
+          <span
+            title="Entrenador principal"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10"
+          >
+            <StarOutlineOutlinedIcon
+              sx={{
+                color: "#fbbf24",
+                fontSize: 16,
+              }}
+            />
+          </span>
+        )}
+      </div>
+
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+        <PeopleOutlineOutlinedIcon
+          sx={{
+            color: "#4adea8",
+            fontSize: 15,
+          }}
+        />
+
+        <span>
+          {clase.cantidadAlumnos}/{clase.cupoMaximo} alumnos
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onVer(clase.claseId)}
+          className="
+            flex
+            h-8
+            items-center
+            justify-center
+            gap-1.5
+            rounded-lg
+            border
+            border-[#2d463b]
+            text-[11px]
+            font-semibold
+            transition-all
+            hover:border-[#4adea8]
+            hover:text-[#4adea8]
+          "
+        >
+          <VisibilityOutlinedIcon sx={{ fontSize: 15 }} />
+          Ver
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onAsistencia(clase.claseId)}
+          className="
+            flex
+            h-8
+            items-center
+            justify-center
+            gap-1.5
+            rounded-lg
+            bg-[#4adea8]
+            px-2
+            text-[11px]
+            font-bold
+            text-[#12201b]
+            transition-all
+            hover:brightness-110
+          "
+        >
+          <FactCheckOutlinedIcon sx={{ fontSize: 15 }} />
+          Asistencia
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -378,65 +548,6 @@ function VistaLista({
   );
 }
 
-function ClaseAgendaCard({
-  clase,
-  onVer,
-  onAsistencia,
-}: {
-  clase: ClaseAsignadaEntrenador;
-  onVer: (id: number) => void;
-  onAsistencia: (id: number) => void;
-}) {
-  return (
-    <div className="rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="break-words font-bold">
-            {clase.grupo}
-          </h3>
-
-          <p className="mt-2 inline-flex items-center gap-2 text-sm text-gray-300">
-            <AccessTimeOutlinedIcon
-              sx={{ color: "#4adea8", fontSize: 17 }}
-            />
-            {hora(clase.horaInicio)} - {hora(clase.horaFin)}
-          </p>
-        </div>
-
-        {clase.esPrincipal && (
-          <StarOutlineOutlinedIcon
-            sx={{ color: "#fbbf24", fontSize: 20 }}
-          />
-        )}
-      </div>
-
-      <p className="mt-3 inline-flex items-center gap-2 text-xs text-gray-400">
-        <PeopleOutlineOutlinedIcon
-          sx={{ color: "#4adea8", fontSize: 16 }}
-        />
-        {clase.cantidadAlumnos}/{clase.cupoMaximo} alumnos
-      </p>
-
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => onVer(clase.claseId)}
-          className="flex h-9 items-center justify-center rounded-lg border border-[#2d463b] text-xs font-semibold hover:border-[#4adea8]"
-        >
-          Ver
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onAsistencia(clase.claseId)}
-          className="flex h-9 items-center justify-center rounded-lg bg-[#4adea8] text-xs font-bold text-[#12201b]"
-        >
-          Asistencia
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function Resumen({
   titulo,

@@ -28,7 +28,7 @@ export default function BuscadorGrupos({
       <input
         value={value}
         onChange={onChange}
-        placeholder="Filtrar por nombre o ubicación"
+        placeholder="Buscar por nombre, nivel, día u horario"
         className="
           w-full
           h-14

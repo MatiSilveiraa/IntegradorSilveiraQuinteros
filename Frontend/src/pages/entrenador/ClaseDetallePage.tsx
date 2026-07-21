@@ -15,6 +15,7 @@ import { useSearchParams } from "react-router-dom";
 import TopBar from "../../components/navigation/DashboardTopBar";
 import FullScreenLoading from "../../components/FullScreenSpinner";
 import ClassLocationMap from "../../components/maps/ClassLocationMap";
+import DirectionsOutlinedIcon from "@mui/icons-material/DirectionsOutlined";
 
 import { obtenerMiPerfil } from "../../services/Perfil.service";
 import { obtenerDetalleClase } from "../../services/Entrenador.Service";
@@ -112,6 +113,19 @@ export default function ClaseDetallePage() {
     Number.isFinite(clase.latitud) &&
     Number.isFinite(clase.longitud);
 
+    const abrirGoogleMaps = () => {
+  if (!tieneUbicacionValida) {
+    toast.error("Esta clase no tiene una ubicación válida.");
+    return;
+  }
+
+  window.open(
+    `https://www.google.com/maps/search/?api=1&query=${clase.latitud},${clase.longitud}`,
+    "_blank",
+    "noopener,noreferrer",
+  );
+};
+
   const fechaEfectiva =
     fechaOcurrencia ?? clase?.fechaOcurrencia?.substring(0, 10);
 
@@ -190,60 +204,102 @@ export default function ClaseDetallePage() {
               </div>
             </div>
 
-            <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              <button
-                type="button"
-                disabled={!disponibilidadAsistencia?.habilitada}
-                onClick={() => {
-                  const fechaEfectiva =
-                    fechaOcurrencia ?? clase.fechaOcurrencia?.substring(0, 10);
+           <div className="flex flex-col items-stretch gap-3 sm:items-end">
 
-                  if (!fechaEfectiva) {
-                    toast.error(
-                      "No se pudo determinar la fecha de la ocurrencia.",
-                    );
-                    return;
-                  }
+  <button
+    type="button"
+    disabled={!tieneUbicacionValida}
+    onClick={abrirGoogleMaps}
+    className="
+      flex
+      h-11
+      items-center
+      justify-center
+      gap-2
+      rounded-xl
+      border
+      border-[#4adea8]/30
+      bg-[#4adea8]/10
+      px-5
+      font-semibold
+      text-[#4adea8]
+      transition-all
+      hover:bg-[#4adea8]/20
+      disabled:cursor-not-allowed
+      disabled:border-gray-700
+      disabled:bg-gray-800
+      disabled:text-gray-500
+    "
+  >
+    <DirectionsOutlinedIcon fontSize="small" />
 
-                  const params = new URLSearchParams({
-                    fecha: fechaEfectiva,
-                    volver: `/entrenador/clases/${clase.id}?fecha=${fechaEfectiva}`,
-                  });
+    Abrir Google Maps
+  </button>
 
-                  navigate(
-                    `/entrenador/clases/${clase.id}/asistencia?${params.toString()}`,
-                  );
-                }}
-                title={
-                  !disponibilidadAsistencia?.habilitada
-                    ? disponibilidadAsistencia?.mensaje
-                    : undefined
-                }
-                className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4adea8] px-5 font-bold text-[#12201b] transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400 disabled:hover:brightness-100"
-              >
-                {disponibilidadAsistencia?.habilitada ? (
-                  <FactCheckOutlinedIcon fontSize="small" />
-                ) : (
-                  <LockClockOutlinedIcon fontSize="small" />
-                )}
+  <button
+    type="button"
+    disabled={!disponibilidadAsistencia?.habilitada}
+    onClick={() => {
+      const fechaEfectiva =
+        fechaOcurrencia ?? clase.fechaOcurrencia?.substring(0, 10);
 
-                {disponibilidadAsistencia?.habilitada
-                  ? "Tomar asistencia"
-                  : "Asistencia no disponible"}
-              </button>
+      if (!fechaEfectiva) {
+        toast.error(
+          "No se pudo determinar la fecha de la ocurrencia.",
+        );
+        return;
+      }
 
-              {disponibilidadAsistencia && (
-                <p
-                  className={`max-w-sm text-right text-xs ${
-                    disponibilidadAsistencia.habilitada
-                      ? "text-[#4adea8]"
-                      : "text-yellow-300"
-                  }`}
-                >
-                  {disponibilidadAsistencia.mensaje}
-                </p>
-              )}
-            </div>
+      const params = new URLSearchParams({
+        fecha: fechaEfectiva,
+        volver: `/entrenador/clases/${clase.id}?fecha=${fechaEfectiva}`,
+      });
+
+      navigate(
+        `/entrenador/clases/${clase.id}/asistencia?${params.toString()}`,
+      );
+    }}
+    className="
+      flex
+      h-12
+      items-center
+      justify-center
+      gap-2
+      rounded-xl
+      bg-[#4adea8]
+      px-5
+      font-bold
+      text-[#12201b]
+      transition-all
+      hover:brightness-110
+      disabled:cursor-not-allowed
+      disabled:bg-gray-700
+      disabled:text-gray-400
+    "
+  >
+    {disponibilidadAsistencia?.habilitada ? (
+      <FactCheckOutlinedIcon fontSize="small" />
+    ) : (
+      <LockClockOutlinedIcon fontSize="small" />
+    )}
+
+    {disponibilidadAsistencia?.habilitada
+      ? "Tomar asistencia"
+      : "Asistencia no disponible"}
+  </button>
+
+  {disponibilidadAsistencia && (
+    <p
+      className={`max-w-sm text-right text-xs ${
+        disponibilidadAsistencia.habilitada
+          ? "text-[#4adea8]"
+          : "text-yellow-300"
+      }`}
+    >
+      {disponibilidadAsistencia.mensaje}
+    </p>
+  )}
+</div>
           </div>
         </section>
 
@@ -360,6 +416,30 @@ export default function ClaseDetallePage() {
                     radio={clase.radio}
                     editable={false}
                   />
+
+                  <button
+  type="button"
+  onClick={abrirGoogleMaps}
+  className="
+    mt-4
+    flex
+    w-full
+    items-center
+    justify-center
+    gap-2
+    rounded-xl
+    bg-[#4adea8]
+    py-3
+    font-bold
+    text-[#12201b]
+    transition-all
+    hover:brightness-110
+  "
+>
+  <DirectionsOutlinedIcon fontSize="small" />
+
+  Abrir en Google Maps
+</button>
                 </div>
               ) : (
                 <div className="mt-5 rounded-2xl border border-[#2d463b] bg-[#12201b] p-6 text-center">

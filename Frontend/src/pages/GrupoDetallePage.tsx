@@ -144,7 +144,7 @@ const handleInscribirse = async (claseId: number) => {
         <h2 className="text-2xl font-bold">Grupo no encontrado</h2>
 
         <button
-          onClick={() => navigate("/alumno/grupos")}
+          onClick={() => navigate("/alumno/explorar")}
           className="
             px-5
             py-3
@@ -165,6 +165,23 @@ const handleInscribirse = async (claseId: number) => {
     <AlumnoLayout nombre={undefined}>
       <main className="max-w-5xl mx-auto w-full min-w-0 overflow-x-hidden">
         <header className="mb-8">
+          <button
+  type="button"
+  onClick={() => navigate("/alumno/explorar")}
+  className="
+    mb-5
+    inline-flex
+    items-center
+    gap-2
+    text-sm
+    font-semibold
+    text-[#4adea8]
+    transition-all
+    hover:underline
+  "
+>
+  ← Volver a explorar
+</button>
           <h1 className="text-3xl font-bold break-words">{grupo.nombre}</h1>
 
           <p className="text-gray-400 mt-1">Nivel {grupo.nivel}</p>

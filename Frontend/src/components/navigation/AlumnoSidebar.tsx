@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import FitnessCenterOutlinedIcon from "@mui/icons-material/FitnessCenterOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
@@ -10,14 +11,31 @@ import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 
 const menuItems = [
-  { label: "Inicio", path: "/alumno", icon: <HomeOutlinedIcon /> },
-  { label: "Grupos", path: "/alumno/grupos", icon: <GroupOutlinedIcon /> },
+  {
+    label: "Inicio",
+    path: "/alumno",
+    icon: <HomeOutlinedIcon />,
+  },
+  {
+    label: "Mis entrenamientos",
+    path: "/alumno/mis-entrenamientos",
+    icon: <CalendarMonthOutlinedIcon />,
+  },
+  {
+    label: "Explorar clases",
+    path: "/alumno/explorar",
+    icon: <FitnessCenterOutlinedIcon />,
+  },
   {
     label: "Asistencias",
     path: "/alumno/asistencias",
     icon: <MapOutlinedIcon />,
   },
-  { label: "Pagos", path: "/alumno/pagos", icon: <PaymentsOutlinedIcon /> },
+  {
+    label: "Pagos",
+    path: "/alumno/pagos",
+    icon: <PaymentsOutlinedIcon />,
+  },
   {
     label: "Beneficios",
     path: "/alumno/beneficios",
@@ -33,27 +51,34 @@ const menuItems = [
     path: "/alumno/seguridad",
     icon: <SecurityOutlinedIcon />,
   },
-  { label: "Perfil", path: "/alumno/perfil", icon: <PersonOutlinedIcon /> },
+  {
+    label: "Perfil",
+    path: "/alumno/perfil",
+    icon: <PersonOutlinedIcon />,
+  },
 ];
 
 export default function AlumnoSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-56 bg-[#0e1511] border-r border-[#2d463b] flex-col z-40">
-      <div className="h-16 flex items-center px-4 border-b border-[#2d463b]">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-56 flex-col border-r border-[#2d463b] bg-[#0e1511] lg:flex">
+      <div className="flex h-16 items-center border-b border-[#2d463b] px-4">
         <div>
-          <h2 className="text-white text-lg font-bold leading-tight">Joki</h2>
+          <h2 className="text-lg font-bold leading-tight text-white">
+            Joki
+          </h2>
+
           <p className="text-xs text-gray-500">Panel del alumno</p>
         </div>
       </div>
 
-      <nav className="flex flex-col gap-1 p-3 mt-2">
+      <nav className="mt-2 flex flex-col gap-1 overflow-y-auto p-3">
         {menuItems.map((item) => {
           const isActive =
             location.pathname === item.path ||
             (item.path !== "/alumno" &&
-              location.pathname.startsWith(item.path));
+              location.pathname.startsWith(`${item.path}/`));
 
           return (
             <Link
@@ -61,22 +86,29 @@ export default function AlumnoSidebar() {
               to={item.path}
               className={`
                 group
-                flex items-center gap-3
-                px-4 py-3
+                flex
+                items-center
+                gap-3
                 rounded-2xl
-                transition-all duration-200
-                text-sm font-semibold
-
+                px-4
+                py-3
+                text-sm
+                font-semibold
+                transition-all
+                duration-200
                 ${
                   isActive
                     ? "bg-[#4adea8] text-[#12201b] shadow-lg shadow-[#4adea8]/10"
-                    : "text-gray-400 hover:text-white hover:bg-[#1a2b24]"
+                    : "text-gray-400 hover:bg-[#1a2b24] hover:text-white"
                 }
               `}
             >
               <span
                 className={`
-                  flex items-center justify-center w-6
+                  flex
+                  w-6
+                  items-center
+                  justify-center
                   ${
                     isActive
                       ? "text-[#12201b]"
@@ -93,10 +125,11 @@ export default function AlumnoSidebar() {
         })}
       </nav>
 
-      <div className="mt-auto p-4 border-t border-[#2d463b]">
-        <div className="rounded-2xl bg-[#12201b] border border-[#2d463b] p-4">
+      <div className="mt-auto border-t border-[#2d463b] p-4">
+        <div className="rounded-2xl border border-[#2d463b] bg-[#12201b] p-4">
           <p className="text-xs text-gray-500">Joki Training Team</p>
-          <p className="text-sm text-gray-300 mt-1">
+
+          <p className="mt-1 text-sm text-gray-300">
             Tu progreso en un solo lugar.
           </p>
         </div>

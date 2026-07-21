@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -17,8 +23,10 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import VerifyCodePage from "../pages/VerifyCodePage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import AdminGrupoDetallePage from "../pages/AdminGrupoDetallePage";
+import MisEntrenamientosPage from "../pages/Alumno/MisEntrenamientosPage";
+import ExplorarClasesPage from "../pages/Alumno/ExplorarClasesPage";
 
-import GruposPage from "../pages/GrupoPage";
+
 import GrupoDetallePage from "../pages/GrupoDetallePage";
 import AdminGruposPage from "../pages/AdminGruposPage";
 
@@ -216,23 +224,42 @@ export default function AppRouter() {
           }
         />
 
-        <Route
-          path="/alumno/grupos"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <GruposPage />
-            </ProtectedRoute>
-          }
-        />
+     <Route
+  path="/alumno/mis-entrenamientos"
+  element={
+    <ProtectedRoute rolPermitido="Alumno">
+      <MisEntrenamientosPage />
+    </ProtectedRoute>
+  }
+/>
 
-        <Route
-          path="/alumno/grupos/:grupoId"
-          element={
-            <ProtectedRoute rolPermitido="Alumno">
-              <GrupoDetallePage />
-            </ProtectedRoute>
-          }
-        />
+<Route
+  path="/alumno/explorar"
+  element={
+    <ProtectedRoute rolPermitido="Alumno">
+      <ExplorarClasesPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/alumno/explorar/:grupoId"
+  element={
+    <ProtectedRoute rolPermitido="Alumno">
+      <GrupoDetallePage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/alumno/grupos"
+  element={<Navigate to="/alumno/explorar" replace />}
+/>
+
+<Route
+  path="/alumno/grupos/:grupoId"
+  element={<RedireccionarGrupoAnterior />}
+/>
 
         <Route
           path="/alumno/beneficios"
@@ -422,4 +449,19 @@ export default function AppRouter() {
       </Routes>
     </BrowserRouter>
   );
+
+function RedireccionarGrupoAnterior() {
+  const { grupoId } = useParams();
+
+  return (
+    <Navigate
+      to={`/alumno/explorar/${grupoId}`}
+      replace
+    />
+  );
 }
+
+
+}
+
+
