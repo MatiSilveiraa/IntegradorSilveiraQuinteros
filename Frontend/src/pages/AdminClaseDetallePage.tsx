@@ -60,7 +60,7 @@ const [busquedaInscriptos, setBusquedaInscriptos] = useState("");
 
       setClase(data);
 
-      const inscriptosData = await obtenerInscriptosClase(Number(id));
+const inscriptosData = await obtenerInscriptosClase(Number(id));
 setInscriptos(inscriptosData);
 
       const actual = estados.find(

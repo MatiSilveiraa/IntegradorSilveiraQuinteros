@@ -37,9 +37,6 @@ export default function GruposPage() {
           obtenerGrupos(),
           obtenerMisClases(),
         ]);
-
-        console.log("MIS CLASES", JSON.stringify(clasesData, null, 2));
-
         setPerfil(perfilData);
         setGrupos(gruposData);
         setMisClases(clasesData);

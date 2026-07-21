@@ -47,7 +47,6 @@ export default function AlumnoDashboard() {
           obtenerMiHistorial(),
           obtenerMisClases(),
         ]);
-        console.log("PERFIL", perfilData);
         setPerfil(perfilData);
 
         setHistorial(historialData);

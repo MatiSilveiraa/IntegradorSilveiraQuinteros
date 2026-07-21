@@ -1,5 +1,6 @@
 ﻿using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.InterfacesRepositorio;
+using Microsoft.EntityFrameworkCore;
 
 namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
 {
@@ -36,6 +37,14 @@ namespace Joki.Infraestructura.AccesoDatos.EF.Repositorios
             _context.SaveChanges();
         }
 
+        public IEnumerable<ListaEspera> ObtenerPorClase(int claseId)
+        {
+            return _context.Set<ListaEspera>()
+                .Include(l => l.Alumno)
+                .Where(l => l.ClaseId == claseId)
+                .OrderBy(l => l.FechaSolicitud)
+                .ToList();
+        }
         public bool Existe(int alumnoId, int claseId)
         {
             return _context.Set<ListaEspera>()

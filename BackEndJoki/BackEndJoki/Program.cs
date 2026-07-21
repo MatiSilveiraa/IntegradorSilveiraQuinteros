@@ -246,8 +246,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     builder.Services.AddScoped<ISalirDeClase,SalirDeClase>();
     builder.Services.AddScoped<IObtenerClasesDisponiblesEntrenador,ObtenerClasesDisponiblesEntrenador>();
     builder.Services.AddScoped<IObtenerMisClasesEntrenador,ObtenerMisClasesEntrenador>();
-builder.Services.Configure<DemoSettings>(
-    builder.Configuration.GetSection("DemoSettings"));
+    builder.Services.AddScoped<IObtenerListaEsperaClase, ObtenerListaEsperaClase>();
+    builder.Services.Configure<DemoSettings>(builder.Configuration.GetSection("DemoSettings"));
 
 builder.Services.AddRateLimiter(options =>
 {

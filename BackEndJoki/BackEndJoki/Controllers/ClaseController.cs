@@ -19,6 +19,7 @@ namespace Joki.WebApi.Controllers
         private readonly IObtenerClases _obtenerClases;
         private readonly ICambiarEstadoClase _cambiarEstadoClase;
         private readonly IObtenerInscriptosClase _obtenerInscriptosClase;
+        private readonly IObtenerListaEsperaClase _obtenerListaEsperaClase;
 
         public ClaseController(
             ICrearClase crearClase,
@@ -27,7 +28,8 @@ namespace Joki.WebApi.Controllers
             IObtenerClase obtenerClase,
             IObtenerClases obtenerClases,
             ICambiarEstadoClase cambiarEstadoClase,
-            IObtenerInscriptosClase obtenerInscriptosClase)
+            IObtenerInscriptosClase obtenerInscriptosClase,
+            IObtenerListaEsperaClase obtenerListaEsperaClase)
         {
             _crearClase = crearClase;
             _editarClase = editarClase;
@@ -36,6 +38,7 @@ namespace Joki.WebApi.Controllers
             _obtenerClases = obtenerClases;
             _cambiarEstadoClase = cambiarEstadoClase;
             _obtenerInscriptosClase = obtenerInscriptosClase;
+            _obtenerListaEsperaClase = obtenerListaEsperaClase;
         }
 
         [Authorize(Roles = "Admin")]
@@ -53,15 +56,6 @@ namespace Joki.WebApi.Controllers
                         request,
                         usuarioId);
 
-                /*
-                 * Si hay entrenadores con clases superpuestas,
-                 * todavía no se crea la clase.
-                 *
-                 * El frontend debe mostrar un modal y reenviar
-                 * el mismo request con:
-                 *
-                 * ForzarAsignacion = true
-                 */
                 if (resultado.RequiereConfirmacion)
                 {
                     return Conflict(resultado);
@@ -187,6 +181,40 @@ namespace Joki.WebApi.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpGet("{id:int}/lista-espera")]
+        public IActionResult ObtenerListaEspera(
+    int id)
+        {
+            try
+            {
+                var listaEspera =
+                    _obtenerListaEsperaClase.Ejecutar(id);
+
+                return Ok(listaEspera);
+            }
+            catch (LogicaNegocioException e)
+            {
+                return NotFound(new
+                {
+                    mensaje = e.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Ocurrió un error al cargar la lista de espera de la clase."
+                    });
+            }
+        }
+
+
+
+
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public IActionResult Editar(
             int id,
@@ -203,14 +231,7 @@ namespace Joki.WebApi.Controllers
                         request,
                         usuarioId);
 
-                /*
-                 * Si hay superposición de entrenadores,
-                 * el backend devuelve 409 y no guarda los cambios.
-                 *
-                 * El frontend debe reenviar el request con:
-                 *
-                 * ForzarAsignacion = true
-                 */
+ 
                 if (resultado.RequiereConfirmacion)
                 {
                     return Conflict(resultado);

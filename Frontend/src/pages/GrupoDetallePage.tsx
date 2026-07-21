@@ -31,6 +31,7 @@ export default function GrupoDetallePage() {
   const [perfil, setPerfil] = useState<any>(null);
 
   const [clasesInscritas, setClasesInscritas] = useState<number[]>([]);
+  const [clasesEnEspera, setClasesEnEspera] = useState<number[]>([]);
 
   const cargarGrupo = async () => {
     try {
@@ -72,24 +73,44 @@ export default function GrupoDetallePage() {
       });
   }, []);
 
-  const handleInscribirse = async (claseId: number) => {
-    try {
-      await inscribirseClase(claseId);
+const handleInscribirse = async (claseId: number) => {
+  try {
+    const response = await inscribirseClase(claseId);
 
-      setClasesInscritas((prev) => [...prev, claseId]);
+    if (response.estado === "INSCRIPTO") {
+      setClasesInscritas((prev) =>
+        prev.includes(claseId) ? prev : [...prev, claseId],
+      );
 
-      await cargarGrupo();
+      setClasesEnEspera((prev) =>
+        prev.filter((id) => id !== claseId),
+      );
 
-      toast.success("Inscripción realizada correctamente");
-    } catch (error: any) {
-      console.error(error);
+      toast.success("Inscripción realizada correctamente.");
+    } else if (response.estado === "LISTA_ESPERA") {
+      setClasesEnEspera((prev) =>
+        prev.includes(claseId) ? prev : [...prev, claseId],
+      );
 
-      toast.error(
-        error?.response?.data?.mensaje ||
-          "No fue posible realizar la inscripción",
+      toast.success(
+        "La clase está completa. Fuiste agregado a la lista de espera.",
+      );
+    } else {
+      toast.success(
+        response.mensaje ?? "Solicitud procesada correctamente.",
       );
     }
-  };
+
+    await cargarGrupo();
+  } catch (error: any) {
+    console.error(error);
+
+    toast.error(
+      error?.response?.data?.mensaje ??
+        "No fue posible realizar la inscripción",
+    );
+  }
+};
 
   useEffect(() => {
     obtenerMiPerfil().then(setPerfil).catch(console.error);
@@ -155,6 +176,7 @@ export default function GrupoDetallePage() {
           {(grupo.clases?.length ?? 0) > 0 ? (
             grupo.clases?.map((clase: Clase) => {
               const estaInscripto = clasesInscritas.includes(clase.id);
+              const estaEnListaEspera = clasesEnEspera.includes(clase.id);
 
               return (
                 <div
@@ -373,54 +395,75 @@ export default function GrupoDetallePage() {
                     "
                     >
                       {estaInscripto ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDesinscribirse(clase.id)}
-                          className="
-                          w-full
-                          sm:w-auto
-                          px-5
-                          py-3
-                          rounded-xl
-                          font-bold
-                          bg-red-500/20
-                          text-red-400
-                          hover:bg-red-500/30
-                          transition-all
-                          whitespace-nowrap
-                        "
-                        >
-                          Desinscribirme
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={bloqueado}
-                          onClick={() => {
-                            if (!validarCuentaActiva(perfil)) {
-                              return;
-                            }
+  <button
+    type="button"
+    onClick={() => handleDesinscribirse(clase.id)}
+    className="
+      w-full
+      sm:w-auto
+      px-5
+      py-3
+      rounded-xl
+      font-bold
+      bg-red-500/20
+      text-red-400
+      hover:bg-red-500/30
+      transition-all
+      whitespace-nowrap
+    "
+  >
+    Desinscribirme
+  </button>
+) : estaEnListaEspera ? (
+  <button
+    type="button"
+    disabled
+    className="
+      w-full
+      sm:w-auto
+      px-5
+      py-3
+      rounded-xl
+      font-bold
+      bg-yellow-500/10
+      text-yellow-300
+      border
+      border-yellow-500/30
+      cursor-not-allowed
+      whitespace-nowrap
+    "
+  >
+    En lista de espera
+  </button>
+) : (
+  <button
+    type="button"
+    disabled={bloqueado}
+    onClick={() => {
+      if (!validarCuentaActiva(perfil)) {
+        return;
+      }
 
-                            handleInscribirse(clase.id);
-                          }}
-                          className={`
-                          w-full
-                          sm:w-auto
-                          px-5
-                          py-3
-                          rounded-xl
-                          font-bold
-                          transition-all
-                          ${
-                            bloqueado
-                              ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-                              : "bg-[#4adea8] text-[#12201b] hover:opacity-90"
-                          }
-                        `}
-                        >
-                          {bloqueado ? "Cuenta bloqueada" : "Inscribirme"}
-                        </button>
-                      )}
+      void handleInscribirse(clase.id);
+    }}
+    className={`
+      w-full
+      sm:w-auto
+      px-5
+      py-3
+      rounded-xl
+      font-bold
+      transition-all
+      ${
+        bloqueado
+          ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+          : "bg-[#4adea8] text-[#12201b] hover:opacity-90"
+      }
+    `}
+  >
+    {bloqueado ? "Cuenta bloqueada" : "Inscribirme"}
+  </button>
+)}
                     </div>
                   </div>
                 </div>

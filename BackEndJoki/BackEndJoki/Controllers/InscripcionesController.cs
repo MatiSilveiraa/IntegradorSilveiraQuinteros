@@ -41,15 +41,15 @@ namespace Joki.WebApi.Controllers
                 {
                     return Ok(new
                     {
-                        mensaje =
-                            "Clase llena. Alumno agregado a lista de espera"
+                        mensaje = "Clase llena. Alumno agregado a lista de espera",
+                        estado = resultado
                     });
                 }
 
                 return Ok(new
                 {
-                    mensaje =
-                        "Inscripción realizada correctamente"
+                    mensaje = "Inscripción realizada correctamente",
+                    estado = resultado
                 });
             }
             catch (LogicaNegocioException e)

@@ -66,6 +66,7 @@ export default function ClaseFormPage() {
 
   const [tipoClase, setTipoClase] = useState<TipoClase>("recurrente");
   const [direccionSeleccionada, setDireccionSeleccionada] = useState("");
+  const [cantidadInscriptos, setCantidadInscriptos] = useState(0);
 
   const [horarioPuntual, setHorarioPuntual] = useState<HorarioClase>({
     horaInicio: "",
@@ -249,6 +250,7 @@ export default function ClaseFormPage() {
           const diaNumero = convertirDiaANumero(clase.diaSemana);
 
           setTipoClase(clase.esFija ? "recurrente" : "puntual");
+          setCantidadInscriptos(clase.cantidadInscriptos ?? 0);
 
           setHorarioPuntual({
             horaInicio: clase.horaInicio?.substring(0, 5) ?? "",
@@ -466,6 +468,14 @@ export default function ClaseFormPage() {
       toast.error("El cupo máximo debe ser mayor a 0");
       return false;
     }
+
+    if (esEdicion && form.cupoMaximo < cantidadInscriptos) {
+  toast.error(
+    `El cupo no puede ser menor a ${cantidadInscriptos} porque ya hay alumnos inscriptos.`,
+  );
+
+  return false;
+}
 
     if (!form.entrenadorPrincipalId) {
       toast.error("Seleccioná al menos un entrenador");
@@ -1108,6 +1118,7 @@ export default function ClaseFormPage() {
               value={form.cupoMaximo}
               onChange={handleChange}
               placeholder="Ej: 18"
+              min={esEdicion ? cantidadInscriptos : 1}
               className={inputClass}
             />
           </div>

@@ -28,6 +28,16 @@ export const obtenerClasePorId = async (
   return response.data;
 };
 
+export const obtenerListaEsperaClase = async (
+  claseId: number,
+): Promise<InscriptoClase[]> => {
+  const response = await axiosInstance.get(
+    `/api/Clase/${claseId}/lista-espera`,
+  );
+
+  return response.data;
+};
+
 export const crearClase = async (
   data: CrearClaseRequest,
 ) => {
