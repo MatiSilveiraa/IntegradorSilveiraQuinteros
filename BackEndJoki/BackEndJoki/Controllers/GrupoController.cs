@@ -13,9 +13,13 @@ namespace Joki.WebApi.Controllers
     public class GrupoController : ControllerBase
     {
         private readonly ICrearGrupo _crearGrupo;
+
         private readonly IObtenerGrupos _obtenerGrupos;
+
         private readonly IObtenerGrupoPorId _obtenerGrupoPorId;
+
         private readonly IEditarGrupo _editarGrupo;
+
         private readonly IEliminarGrupo _eliminarGrupo;
 
         public GrupoController(
@@ -26,9 +30,13 @@ namespace Joki.WebApi.Controllers
             IEliminarGrupo eliminarGrupo)
         {
             _crearGrupo = crearGrupo;
+
             _obtenerGrupos = obtenerGrupos;
+
             _obtenerGrupoPorId = obtenerGrupoPorId;
+
             _editarGrupo = editarGrupo;
+
             _eliminarGrupo = eliminarGrupo;
         }
 
@@ -39,31 +47,51 @@ namespace Joki.WebApi.Controllers
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                if (!TryObtenerUsuarioId(
+                    out int usuarioId))
+                {
+                    return Unauthorized(new
+                    {
+                        mensaje =
+                            "No se pudo identificar al usuario autenticado."
+                    });
+                }
 
                 var response =
                     _crearGrupo.Ejecutar(
                         request,
                         usuarioId);
 
-                return StatusCode(201, response);
+                return StatusCode(
+                    StatusCodes.Status201Created,
+                    response);
             }
             catch (InfraestructuraException e)
             {
-                return StatusCode(e.StatusCode(), e.Error());
+                return StatusCode(
+                    e.StatusCode(),
+                    e.Error());
             }
             catch (LogicaNegocioException e)
             {
-                return StatusCode(400, e.Error());
+                return BadRequest(new
+                {
+                    mensaje = e.Message
+                });
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Error error =
-                    new Error(500, "Hubo un problema. Prueba nuevamente");
+                Console.WriteLine(
+                    $"Error al crear grupo: {e}");
 
-                return StatusCode(500, error);
+                Error error =
+                    new Error(
+                        500,
+                        "Hubo un problema al crear el grupo. Prueba nuevamente.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    error);
             }
         }
 
@@ -77,17 +105,25 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(grupos);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Error error =
-                    new Error(500, "Hubo un problema. Prueba nuevamente");
+                Console.WriteLine(
+                    $"Error al obtener grupos: {e}");
 
-                return StatusCode(500, error);
+                Error error =
+                    new Error(
+                        500,
+                        "Hubo un problema al obtener los grupos.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    error);
             }
         }
 
-        [HttpGet("{id}")]
-        public IActionResult ObtenerPorId(int id)
+        [HttpGet("{id:int}")]
+        public IActionResult ObtenerPorId(
+            int id)
         {
             try
             {
@@ -105,24 +141,36 @@ namespace Joki.WebApi.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, new
-                {
-                    mensaje = e.Message
-                });
+                Console.WriteLine(
+                    $"Error al obtener grupo {id}: {e}");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje =
+                            "Hubo un problema al obtener el grupo."
+                    });
             }
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public IActionResult Editar(
             int id,
             [FromBody] EditarGrupoRequest request)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                if (!TryObtenerUsuarioId(
+                    out int usuarioId))
+                {
+                    return Unauthorized(new
+                    {
+                        mensaje =
+                            "No se pudo identificar al usuario autenticado."
+                    });
+                }
 
                 var grupo =
                     _editarGrupo.Ejecutar(
@@ -134,7 +182,8 @@ namespace Joki.WebApi.Controllers
             }
             catch (LogicaNegocioException e)
             {
-                if (e.Message == "El grupo solicitado no existe.")
+                if (e.Message ==
+                    "El grupo solicitado no existe.")
                 {
                     return NotFound(new
                     {
@@ -142,29 +191,43 @@ namespace Joki.WebApi.Controllers
                     });
                 }
 
-                return StatusCode(400, new
+                return BadRequest(new
                 {
                     mensaje = e.Message
                 });
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Error error =
-                    new Error(500, "Hubo un problema. Prueba nuevamente");
+                Console.WriteLine(
+                    $"Error al editar grupo {id}: {e}");
 
-                return StatusCode(500, error);
+                Error error =
+                    new Error(
+                        500,
+                        "Hubo un problema al editar el grupo.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    error);
             }
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public IActionResult Eliminar(int id)
+        [HttpDelete("{id:int}")]
+        public IActionResult Eliminar(
+            int id)
         {
             try
             {
-                int usuarioId = int.Parse(
-                    User.FindFirst(ClaimTypes.NameIdentifier)!
-                        .Value);
+                if (!TryObtenerUsuarioId(
+                    out int usuarioId))
+                {
+                    return Unauthorized(new
+                    {
+                        mensaje =
+                            "No se pudo identificar al usuario autenticado."
+                    });
+                }
 
                 _eliminarGrupo.Ejecutar(
                     id,
@@ -172,23 +235,66 @@ namespace Joki.WebApi.Controllers
 
                 return Ok(new
                 {
-                    mensaje = "Grupo eliminado correctamente"
+                    mensaje =
+                        "Grupo eliminado correctamente."
                 });
             }
             catch (LogicaNegocioException e)
             {
-                return NotFound(new
+                if (e.Message ==
+                    "El grupo solicitado no existe.")
+                {
+                    return NotFound(new
+                    {
+                        mensaje = e.Message
+                    });
+                }
+
+                if (e.Message ==
+                    "No se puede eliminar el grupo porque tiene clases asociadas.")
+                {
+                    return Conflict(new
+                    {
+                        mensaje = e.Message
+                    });
+                }
+
+                return BadRequest(new
                 {
                     mensaje = e.Message
                 });
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Error error =
-                    new Error(500, "Hubo un problema. Prueba nuevamente");
+                Console.WriteLine(
+                    $"Error al eliminar grupo {id}: {e}");
 
-                return StatusCode(500, error);
+                Error error =
+                    new Error(
+                        500,
+                        "Hubo un problema al eliminar el grupo.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    error);
             }
+        }
+
+        private bool TryObtenerUsuarioId(
+            out int usuarioId)
+        {
+            usuarioId = 0;
+
+            string? usuarioIdTexto =
+                User.FindFirst(
+                    ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("usuarioId")?.Value
+                ?? User.FindFirst("id")?.Value
+                ?? User.FindFirst("sub")?.Value;
+
+            return int.TryParse(
+                usuarioIdTexto,
+                out usuarioId);
         }
     }
 }

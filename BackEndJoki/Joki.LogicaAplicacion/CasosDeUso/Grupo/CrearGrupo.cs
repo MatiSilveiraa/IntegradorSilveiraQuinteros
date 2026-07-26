@@ -10,6 +10,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
     public class CrearGrupo : ICrearGrupo
     {
         private readonly IRepositorioGrupo _repositorioGrupo;
+
         private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public CrearGrupo(
@@ -17,6 +18,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
             IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioGrupo = repositorioGrupo;
+
             _repositorioAuditoria = repositorioAuditoria;
         }
 
@@ -26,38 +28,32 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
         {
             if (request == null)
             {
-                throw new LogicaNegocioException("Datos inválidos.");
+                throw new LogicaNegocioException(
+                    "Los datos del grupo son obligatorios.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Nombre))
             {
-                throw new LogicaNegocioException("El nombre es obligatorio.");
+                throw new LogicaNegocioException(
+                    "El nombre del grupo es obligatorio.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Nivel))
             {
-                throw new LogicaNegocioException("El nivel es obligatorio.");
+                throw new LogicaNegocioException(
+                    "El nivel del grupo es obligatorio.");
             }
 
-            if (request.Clases != null &&
-                request.Clases.Any(c => c.CupoMaximo <= 0))
+            if (usuarioId <= 0)
             {
-                throw new LogicaNegocioException("Cupo inválido.");
-            }
-
-            if (request.Clases != null)
-            {
-                foreach (var clase in request.Clases)
-                {
-                    if (clase.HoraFin <= clase.HoraInicio)
-                    {
-                        throw new LogicaNegocioException("Horario inválido.");
-                    }
-                }
+                throw new LogicaNegocioException(
+                    "No se pudo identificar al entrenador responsable.");
             }
 
             var grupo =
-                MapperGrupo.ToEntity(request);
+                MapperGrupo.ToEntity(
+                    request,
+                    usuarioId);
 
             var grupoCreado =
                 _repositorioGrupo.Agregar(grupo);
@@ -66,13 +62,19 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
                 new AuditoriaEntidad
                 {
                     UsuarioId = usuarioId,
+
                     Entidad = "Grupo",
+
                     EntidadId = grupoCreado.Id,
-                    Accion = $"Creó el grupo {grupoCreado.Nombre}",
+
+                    Accion =
+                        $"Creó el grupo {grupoCreado.Nombre}",
+
                     Fecha = DateTime.UtcNow
                 });
 
-            return MapperGrupo.ToResponse(grupoCreado);
+            return MapperGrupo.ToResponse(
+                grupoCreado);
         }
     }
 }

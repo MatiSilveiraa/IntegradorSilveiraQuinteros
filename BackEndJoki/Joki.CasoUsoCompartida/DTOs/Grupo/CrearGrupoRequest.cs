@@ -1,6 +1,4 @@
-﻿using Joki.CasoUsoCompartida.DTOs.Clase;
-
-namespace Joki.CasoUsoCompartida.DTOs.Grupo
+﻿namespace Joki.CasoUsoCompartida.DTOs.Grupo
 {
     public class CrearGrupoRequest
     {
@@ -8,18 +6,10 @@ namespace Joki.CasoUsoCompartida.DTOs.Grupo
 
         public string Nivel { get; set; }
 
-        public int EntrenadorId { get; set; }
-
-
-        public List<CrearClaseRequest> Clases { get; set; }
-
         public CrearGrupoRequest()
         {
             Nombre = string.Empty;
-
             Nivel = string.Empty;
-
-            Clases = new List<CrearClaseRequest>();
         }
     }
 }

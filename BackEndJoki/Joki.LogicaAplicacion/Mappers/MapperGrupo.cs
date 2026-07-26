@@ -1,12 +1,11 @@
 ﻿using Joki.CasoUsoCompartida.DTOs.Clase;
 using Joki.CasoUsoCompartida.DTOs.Grupo;
-
 using Joki.LogicaNegocio.Entidades;
 using Joki.LogicaNegocio.Enums;
 
 namespace Joki.LogicaAplicacion.Mappers
 {
-    public class MapperGrupo
+    public static class MapperGrupo
     {
         public static GrupoResponse ToResponse(
             Grupo grupo)
@@ -24,26 +23,28 @@ namespace Joki.LogicaAplicacion.Mappers
                 EntrenadorId = grupo.EntrenadorId,
 
                 Clases = grupo.Clases != null
-                ? grupo.Clases.Select(MapperClase.ToResponse).ToList()
-                : new List<ClaseResponse>()
+                    ? grupo.Clases
+                        .Select(MapperClase.ToResponse)
+                        .ToList()
+                    : new List<ClaseResponse>()
             };
         }
 
-        public static Grupo ToEntity(CrearGrupoRequest request)
+        public static Grupo ToEntity(
+            CrearGrupoRequest request,
+            int entrenadorResponsableId)
         {
             return new Grupo
             {
-                Nombre = request.Nombre,
+                Nombre = request.Nombre.Trim(),
 
-                Nivel = request.Nivel,
+                Nivel = request.Nivel.Trim(),
 
                 Estado = EstadoGrupo.ACTIVO,
 
-                EntrenadorId = request.EntrenadorId,
+                EntrenadorId = entrenadorResponsableId,
 
-                Clases = request.Clases != null
-                    ? request.Clases.Select(MapperClase.ToEntity).ToList()
-                    : new List<Clase>()
+                Clases = new List<Clase>()
             };
         }
 
@@ -51,12 +52,9 @@ namespace Joki.LogicaAplicacion.Mappers
             Grupo grupo,
             EditarGrupoRequest request)
         {
-            grupo.Nombre = request.Nombre;
+            grupo.Nombre = request.Nombre.Trim();
 
-            grupo.Nivel = request.Nivel;
-
-            grupo.EntrenadorId =
-                request.EntrenadorId;
+            grupo.Nivel = request.Nivel.Trim();
         }
     }
 }

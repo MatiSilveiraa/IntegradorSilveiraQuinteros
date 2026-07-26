@@ -10,6 +10,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
     public class EditarGrupo : IEditarGrupo
     {
         private readonly IRepositorioGrupo _repositorioGrupo;
+
         private readonly IRepositorioAuditoria _repositorioAuditoria;
 
         public EditarGrupo(
@@ -17,6 +18,7 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
             IRepositorioAuditoria repositorioAuditoria)
         {
             _repositorioGrupo = repositorioGrupo;
+
             _repositorioAuditoria = repositorioAuditoria;
         }
 
@@ -25,19 +27,16 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
             EditarGrupoRequest request,
             int usuarioId)
         {
-            var grupo =
-                _repositorioGrupo.ObtenerPorId(id);
-
-            if (grupo == null)
+            if (id <= 0)
             {
                 throw new LogicaNegocioException(
-                    "El grupo solicitado no existe.");
+                    "El identificador del grupo no es válido.");
             }
 
             if (request == null)
             {
                 throw new LogicaNegocioException(
-                    "Los datos del grupo no pueden ser nulos.");
+                    "Los datos del grupo son obligatorios.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Nombre))
@@ -52,26 +51,55 @@ namespace Joki.LogicaAplicacion.CasosDeUso.Grupo
                     "El nivel del grupo es obligatorio.");
             }
 
+            if (usuarioId <= 0)
+            {
+                throw new LogicaNegocioException(
+                    "No se pudo identificar al usuario autenticado.");
+            }
+
+            var grupo =
+                _repositorioGrupo.ObtenerPorId(id);
+
+            if (grupo == null)
+            {
+                throw new LogicaNegocioException(
+                    "El grupo solicitado no existe.");
+            }
+
             string nombreAnterior =
                 grupo.Nombre;
+
+            string nivelAnterior =
+                grupo.Nivel;
 
             MapperGrupo.UpdateEntity(
                 grupo,
                 request);
 
-            _repositorioGrupo.Actualizar(grupo);
+            _repositorioGrupo.Actualizar(
+                grupo);
 
             _repositorioAuditoria.Agregar(
                 new AuditoriaEntidad
                 {
                     UsuarioId = usuarioId,
+
                     Entidad = "Grupo",
+
                     EntidadId = grupo.Id,
-                    Accion = $"Editó el grupo Id {grupo.Id}. Nombre anterior: {nombreAnterior}. Nombre actual: {grupo.Nombre}",
+
+                    Accion =
+                        $"Editó el grupo Id {grupo.Id}. " +
+                        $"Nombre anterior: {nombreAnterior}. " +
+                        $"Nombre actual: {grupo.Nombre}. " +
+                        $"Nivel anterior: {nivelAnterior}. " +
+                        $"Nivel actual: {grupo.Nivel}",
+
                     Fecha = DateTime.UtcNow
                 });
 
-            return MapperGrupo.ToResponse(grupo);
+            return MapperGrupo.ToResponse(
+                grupo);
         }
     }
 }
